@@ -17,6 +17,7 @@ contract DimoDeveloperLicense is ERC721 {
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
 
+    error ClientIdTaken();
     error Unauthorized();
 
     mapping(uint256 => address) private accounts;
@@ -32,7 +33,9 @@ contract DimoDeveloperLicense is ERC721 {
     }
 
     function mint(string calldata clientId) public returns (uint256, address) {
-        require(clientIdToTokenId[clientId] == 0, "Client id already in use.");
+        if (clientIdToTokenId[clientId] != 0) {
+            revert ClientIdTaken();
+        }
 
         dimoToken.transferFrom(msg.sender, address(this), licenseCost);
 
