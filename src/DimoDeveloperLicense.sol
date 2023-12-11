@@ -17,6 +17,8 @@ contract DimoDeveloperLicense is ERC721 {
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
 
+    error Unauthorized();
+
     mapping(uint256 => address) private accounts;
     mapping(uint256 => mapping(string => bool)) private redirectUris;
     mapping(uint256 => mapping(address => bool)) private signers;
@@ -48,7 +50,9 @@ contract DimoDeveloperLicense is ERC721 {
     }
 
     function enableRedirectUri(uint256 tokenId, string calldata uri) public {
-        require(ownerOf(tokenId) == msg.sender, "Caller is not the owner of this license.");
+        if (msg.sender != ownerOf(tokenId)) {
+            revert Unauthorized();
+        }
 
         redirectUris[tokenId][uri] = true;
 
@@ -56,7 +60,9 @@ contract DimoDeveloperLicense is ERC721 {
     }
 
     function enableSigner(uint256 tokenId, address signer) public {
-        require(ownerOf(tokenId) == msg.sender, "Caller is not the owner of this license.");
+        if (msg.sender != ownerOf(tokenId)) {
+            revert Unauthorized();
+        }
 
         signers[tokenId][signer] = true;
         emit SignerEnabled(tokenId, signer);
