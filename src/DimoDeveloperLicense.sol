@@ -10,7 +10,15 @@ interface IDimoToken {
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
+//POAP
+//https://vitalik.eth.limo/general/2022/01/26/soulbound.html
+//https://eips.ethereum.org/EIPS/eip-5192
 contract DimoDeveloperLicense is ERC721, Ownable2Step {
+
+    /// Event emitted when a token `tokenId` is minted for `owner`
+    //event Minted(address owner, uint256 tokenId);
+    /// Event emitted when token `tokenId` of `owner` is revoked
+    //event Revoked(address owner, uint256 tokenId);
 
     modifier onlyTokenOwner(uint256 tokenId) {
         require(msg.sender == ownerOf(tokenId), "DimoDeveloperLicense: invalid msg.sender");
@@ -89,4 +97,36 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step {
         _licenseCost = licenseCost_;
         emit UpdateLicenseCost(licenseCost_);
     }
+
+    function transferFrom(address from, address to, uint256 tokenId) public virtual {
+
+        revert ERC721InvalidReceiver(address(0));
+
+    }
+
+    // /**
+    //  * @dev See {IERC721-safeTransferFrom}.
+    //  */
+    // function safeTransferFrom(address from, address to, uint256 tokenId) public {
+    //     safeTransferFrom(from, to, tokenId, "");
+    // }
+
+    // /**
+    //  * @dev See {IERC721-safeTransferFrom}.
+    //  */
+    // function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
+    //     transferFrom(from, to, tokenId);
+    //     _checkOnERC721Received(from, to, tokenId, data);
+    // }
+
+    function burn(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, "Only the owner of the token can burn it.");
+        _burn(tokenId);
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721) {
+        super._burn(tokenId);
+    }
+
+    //supportsInterface(){}
 }
