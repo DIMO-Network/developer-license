@@ -19,7 +19,7 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step {
 
     uint256 public _licenseCost;
     uint256 private counter;
-    IDimoToken private dimoToken;
+    IDimoToken private _dimoToken; //TODO: 'cause of the proxy won't this address always be the same?
 
     event UpdateLicenseCost(uint256 licenseCost);
     event LicenseMinted(uint256 indexed tokenId, address indexed owner, address indexed account, string clientId);
@@ -35,8 +35,8 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step {
     mapping(uint256 => string) tokenIdToClientId;
     mapping(string => uint256) clientIdToTokenId;
 
-    constructor(address dimoTokenAddress, uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") Ownable(msg.sender) {
-        dimoToken = IDimoToken(dimoTokenAddress);
+    constructor(address dimoTokenAddress_, uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") Ownable(msg.sender) {
+        _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCost = licenseCost_;
     }
 
@@ -45,7 +45,7 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step {
             revert ClientIdTaken();
         }
 
-        dimoToken.transferFrom(msg.sender, address(this), _licenseCost);
+        _dimoToken.transferFrom(msg.sender, address(this), _licenseCost);
 
         uint256 tokenId = ++counter;
         tokenIdToClientId[tokenId] = clientId;
