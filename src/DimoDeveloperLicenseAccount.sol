@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import {IDimoDeveloperLicense} from "./IDimoDeveloperLicense.sol";
+import {IDimoDeveloperLicense} from "./interface/IDimoDeveloperLicense.sol";
 
 //You can consider EOA signatures from the "owner" of the contract to be valid.
 //You could store a list of approved messages and only consider those to be valid.

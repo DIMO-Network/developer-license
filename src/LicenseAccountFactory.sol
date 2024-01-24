@@ -5,25 +5,27 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {DimoDeveloperLicense} from "./DimoDeveloperLicense.sol";
-import {ILicenseAccountFactory} from "./ILicenseAccountFactory.sol";
+import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
 contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { //ReentrancyGuard
 
     address public _template;
-    DimoDeveloperLicense public _license; 
+    address public _license; 
 
     constructor() Ownable(msg.sender) {
         _template = address(new DimoDeveloperLicenseAccount());
     }
 
-
+    function setLicense(address license_) external {
+        _license = license_;
+    }
 
     /**
      * 
      */
-    function create(uint256 tokenId, address license_) external returns (address clone) {
+    function create(uint256 tokenId) external returns (address clone) {
         clone = _createClone(address(_template));
-        DimoDeveloperLicenseAccount(clone).initialize(tokenId, address(license_));
+        DimoDeveloperLicenseAccount(clone).initialize(tokenId, _license);
     }
 
     /**
