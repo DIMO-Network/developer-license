@@ -7,7 +7,7 @@ import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.so
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 
-//forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
+
 contract MockDimoToken is ERC20, Test {
     constructor() ERC20("DIMO Token", "DIMO") {
         _mint(msg.sender, 1_000_000 ether);
@@ -18,7 +18,8 @@ contract MockDimoToken is ERC20, Test {
     }
 }
 
-contract CounterTest is Test {
+//forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
+contract DimoDeveloperLicenseTest is Test {
 
     MockDimoToken dimoToken;
     DimoDeveloperLicense license;
