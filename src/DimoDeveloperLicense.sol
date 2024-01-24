@@ -2,13 +2,17 @@
 pragma solidity ^0.8.13;
 
 import {ERC721} from "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "./LicenseAccountFactory.sol";
+import {IDimoDeveloperLicense} from "./IDimoDeveloperLicense.sol";
+import {IDimoToken} from "./IDimoToken.sol";
+import {IDimoDeveloperLicenseAccount} from "./IDimoDeveloperLicenseAccount.sol";
 
-interface IDimoToken {
-    function transferFrom(address from, address to, uint256 value) external returns (bool);
-}
+contract DimoDeveloperLicense is ERC721, IDimoDeveloperLicense {
 
-contract DimoDeveloperLicense is ERC721 {
+
+    LicenseAccountFactory public _laf;
+
+
     uint256 public licenseCost;
     uint256 private counter;
     IDimoToken private dimoToken;
@@ -27,7 +31,12 @@ contract DimoDeveloperLicense is ERC721 {
     mapping(uint256 => string) tokenIdToClientId;
     mapping(string => uint256) clientIdToTokenId;
 
-    constructor(address dimoTokenAddress, uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") {
+    constructor(
+        address laf_,
+        address dimoTokenAddress, 
+        uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") {
+        
+        _laf = LicenseAccountFactory(laf_);
         dimoToken = IDimoToken(dimoTokenAddress);
         licenseCost = licenseCost_;
     }
@@ -44,7 +53,8 @@ contract DimoDeveloperLicense is ERC721 {
         clientIdToTokenId[clientId] = tokenId;
         _mint(msg.sender, tokenId);
 
-        DimoDeveloperLicenseAccount account = new DimoDeveloperLicenseAccount(tokenId);
+        //DimoDeveloperLicenseAccount account = new DimoDeveloperLicenseAccount(tokenId);
+        IDimoDeveloperLicenseAccount account = IDimoDeveloperLicenseAccount(_laf.create(tokenId, address(this)));
         address accountAddress = address(account);
 
         emit LicenseMinted(tokenId, msg.sender, accountAddress, clientId);
