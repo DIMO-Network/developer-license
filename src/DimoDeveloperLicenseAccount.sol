@@ -21,7 +21,7 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
     function isValidSignature(bytes32 hash, bytes memory signature) external view returns (bytes4) {
         address recovered = ECDSA.recover(hash, signature);
         if (dimoDeveloperLicense.isSigner(tokenId, recovered)) {
-            return IERC1271.isValidSignature.selector; //0x20c13b0b;
+            return IERC1271.isValidSignature.selector; //0x1626ba7e
         } else {
             return 0xffffffff;
         }

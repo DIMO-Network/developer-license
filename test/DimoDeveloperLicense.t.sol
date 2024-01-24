@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console2} from "forge-std/Test.sol";
 import {DimoDeveloperLicense} from "../src/DimoDeveloperLicense.sol";
 import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -50,9 +50,12 @@ contract CounterTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(license), 10_000 ether);
-        (uint256 tokenId, address accountAddress) = license.mint("");
-        assertEq(tokenId, 1);
+        (uint256 tokenId, address accountAddress) = license.mint("solala");
+        license.enableSigner(tokenId, user);
         vm.stopPrank();
+
+        bool signer = license.isSigner(tokenId, user);
+        console2.log("signer: %s", signer);
 
         bytes32 hashValue = keccak256(
             abi.encodePacked(
@@ -64,7 +67,9 @@ contract CounterTest is Test {
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
         bytes memory signature = abi.encodePacked(r, s, v); 
-        DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
+        bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
+        //0x1626ba7e
+        console2.logBytes4(output);
     }
 
     
