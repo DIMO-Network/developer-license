@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {DimoDeveloperLicense} from "../src/DimoDeveloperLicense.sol";
+import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "forge-std/console.sol";
 
@@ -10,15 +11,26 @@ contract MockDimoToken is ERC20, Test {
     constructor() ERC20("DIMO Token", "DIMO") {
         _mint(msg.sender, 1_000_000 ether);
     }
+
+    function mint(address user, uint256 amount) public {
+        _mint(user, amount);
+    }
 }
 
 contract CounterTest is Test {
-    function test_MintLicenseSuccess() public {
-        MockDimoToken dimoToken = new MockDimoToken();
-        DimoDeveloperLicense license = new DimoDeveloperLicense(address(dimoToken), 10_000 ether);
 
+    MockDimoToken dimoToken;
+    DimoDeveloperLicense license;
+
+    function setUp() public {
+        
+        dimoToken = new MockDimoToken();
+        license = new DimoDeveloperLicense(address(dimoToken), 10_000 ether);
         dimoToken.approve(address(license), 10_000 ether);
+    }
 
+    function test_MintLicenseSuccess() public {
+        
         vm.expectEmit(true, true, false, true);
         emit DimoDeveloperLicense.LicenseMinted(1, address(this), address(0), "vehicle_genius");
 
@@ -28,4 +40,32 @@ contract CounterTest is Test {
         assertEq(license.ownerOf(tokenId), address(this));
         assertEq(dimoToken.balanceOf(address(license)), 10_000 ether);
     }
+
+    function test_DeveloperLicenseAccount() public {
+
+        uint256 privateKey = 0x1337;
+        address user = vm.addr(privateKey);
+
+        dimoToken.mint(user, 10_000 ether);
+
+        vm.startPrank(user);
+        dimoToken.approve(address(license), 10_000 ether);
+        (uint256 tokenId, address accountAddress) = license.mint("");
+        assertEq(tokenId, 1);
+        vm.stopPrank();
+
+        bytes32 hashValue = keccak256(
+            abi.encodePacked(
+                keccak256(
+                    "\x19Ethereum Signed Message:\n32"
+                ),
+                keccak256("Hello World")
+            )   
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
+        bytes memory signature = abi.encodePacked(r, s, v); 
+        DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
+    }
+
+    
 }
