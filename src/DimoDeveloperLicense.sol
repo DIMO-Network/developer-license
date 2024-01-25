@@ -46,7 +46,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
                             Events
     //////////////////////////////////////////////////////////////*/
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
-    event Revoked(address indexed from, uint256 indexed tokenId);
+    event Revoked(address indexed from, uint256 indexed tokenId); ///@dev IERC5727
     event Issued(
         uint256 indexed tokenId, 
         address indexed owner, 
@@ -180,7 +180,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     }
 
     /**
-     * @notice Returns the locking status of an dev license SBT.
+     * @dev IERC5192
      */
     function locked(uint256 tokenId) external view returns (bool) {
         require(_exists(tokenId), INVALID_TOKEN_ID);
