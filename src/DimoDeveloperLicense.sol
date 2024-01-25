@@ -8,40 +8,32 @@ import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 import {IDimoDeveloperLicense} from "./interface/IDimoDeveloperLicense.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "./interface/IDimoDeveloperLicenseAccount.sol";
-import {IERC5727} from "./interface/IERC5727.sol";
 
 import {IERC165} from "./interface/IERC165.sol";
 
 contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
 
+    ILicenseAccountFactory public _laf;
+
+    string INVALID_OPERATION = "DimoDeveloperLicense: invalid operation";
+    
     mapping(uint256 tokenId => bool) private _revoked;
 
     event Revoked(address indexed from, uint256 indexed tokenId);
-    
-    // event Issued (
-    //     address indexed from,
-    //     address indexed to,
-    //     uint256 indexed tokenId,
-    //     uint8 burnAuth
-    // );
     event Issued(
         uint256 indexed tokenId, 
         address indexed owner, 
         address indexed account, 
         string clientId
     );
-
     event Verified(address indexed by, uint256 indexed tokenId, bool result);
-    //event Locked(uint256 tokenId);
+    event Locked(uint256 tokenId);
+    event UpdateLicenseCost(uint256 licenseCost);
 
-    ILicenseAccountFactory public _laf;
-
+    
     uint256 public _licenseCost;
     uint256 private counter;
     IDimoToken private _dimoToken;
-
-    event UpdateLicenseCost(uint256 licenseCost);
-
     
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
@@ -75,15 +67,8 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
         emit UpdateLicenseCost(licenseCost_);
     }
 
-    // function issue(
-    //     uint256 tokenId,
-    //     uint256 amount,
-    //     bytes calldata data
-    // ) external payable {}
-    function mint(string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
-        if (clientIdToTokenId[clientId] != 0) {
-            revert ClientIdTaken();
-        }
+    function issue(string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
+        require(clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
         // TODO: token or DC...
         _dimoToken.transferFrom(msg.sender, address(this), _licenseCost);
 
@@ -155,11 +140,79 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
         return keccak256(bytes(tokenIdToClientId[tokenId])) != keccak256(bytes(""));
     }
 
-    /**
-     */
+    function _mint(address to, uint256 id) internal virtual {
+        require(to != address(0), "INVALID_RECIPIENT");
+
+        require(_ownerOf[id] == address(0), "ALREADY_MINTED");
+
+        // Counter overflow is incredibly unrealistic.
+        unchecked {
+            _balanceOf[to]++;
+        }
+
+        _ownerOf[id] = to;
+
+        emit Transfer(address(0), to, id);
+    }
+
+    function _burn(uint256 id) internal virtual {
+        address owner = _ownerOf[id];
+
+        require(owner != address(0), "NOT_MINTED");
+
+        // Ownership check above ensures no underflow.
+        unchecked {
+            _balanceOf[owner]--;
+        }
+
+        delete _ownerOf[id];
+
+        delete getApproved[id];
+
+        emit Transfer(owner, address(0), id);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               SBT LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function approve(address /*spender*/, uint256 /*id*/) public override virtual {
+        revert(INVALID_OPERATION);
+    }
+
+    function setApprovalForAll(address /*operator*/, bool /*approved*/) public override virtual {
+        revert(INVALID_OPERATION);
+    }
+
+    function transferFrom(address /*from*/, address /*to*/, uint256 /*id*/) public override virtual {
+        revert(INVALID_OPERATION);
+    }
+
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*id*/
+    ) public override virtual {
+        revert(INVALID_OPERATION);
+    }
+
+    function safeTransferFrom(
+        address /*from*/,
+        address /*to*/,
+        uint256 /*id*/,
+        bytes memory /*data*/
+    ) public override virtual {
+        revert(INVALID_OPERATION);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC165 LOGIC
+    //////////////////////////////////////////////////////////////*/
+
     function supportsInterface(bytes4 interfaceId) public override pure returns (bool) {
         return
             interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
-            interfaceId == 0x80ac58cd;   // ERC165 Interface ID for ERC721
+            interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
+            interfaceId == 0x5b5e139f;   // ERC165 Interface ID for ERC721Metadata
     }
 }
