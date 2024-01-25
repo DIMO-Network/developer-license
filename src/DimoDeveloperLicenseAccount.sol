@@ -10,10 +10,14 @@ import {IDimoDeveloperLicense} from "./interface/IDimoDeveloperLicense.sol";
 contract DimoDeveloperLicenseAccount is IERC1271 {
     IDimoDeveloperLicense private _license;
     uint256 private _tokenId;
+    bool private _initialized;
 
+    //TODO: test re-init
     function initialize(uint256 tokenId_, address license_) public {
+        require(!_initialized, "");
         _license = IDimoDeveloperLicense(license_);
         _tokenId = tokenId_;
+        _initialized = true;
     }
 
     function isValidSignature(bytes32 hashValue, bytes memory signature) external view returns (bytes4) {
