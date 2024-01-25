@@ -11,7 +11,25 @@ import {IDimoDeveloperLicenseAccount} from "./interface/IDimoDeveloperLicenseAcc
 
 import {IERC165} from "./interface/IERC165.sol";
 
-contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
+contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC721 Logic
+    //////////////////////////////////////////////////////////////*/
+    string public name;
+
+    string public symbol;
+
+    function tokenURI(uint256 id) public view virtual returns (string memory);
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed id);
+    mapping(uint256 => address) internal _ownerOf;
+
+    function ownerOf(uint256 id) public view virtual returns (address owner) {
+        require((owner = _ownerOf[id]) != address(0), "NOT_MINTED");
+    }
+
+    /* * */
 
     ILicenseAccountFactory public _laf;
 
@@ -39,8 +57,7 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
 
     error ClientIdTaken();
-
-    mapping(uint256 => address) private accounts;
+    
     mapping(uint256 => mapping(string => bool)) private redirectUris;
     mapping(uint256 => mapping(address => bool)) private signers;
 
@@ -55,7 +72,9 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
     constructor(
         address laf_,
         address dimoTokenAddress_, 
-        uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") Ownable(msg.sender) {
+        uint256 licenseCost_) Ownable(msg.sender) {
+        name = "DIMO Developer License";
+        symbol = "DLX";
         
         _laf = ILicenseAccountFactory(laf_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
@@ -67,6 +86,20 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
         emit UpdateLicenseCost(licenseCost_);
     }
 
+    // function _mint(address to, uint256 id) internal virtual {
+    //     require(to != address(0), "INVALID_RECIPIENT");
+
+    //     require(_ownerOf[id] == address(0), "ALREADY_MINTED");
+
+    //     // Counter overflow is incredibly unrealistic.
+    //     unchecked {
+    //         _balanceOf[to]++;
+    //     }
+
+    //     _ownerOf[id] = to;
+
+    //     emit Transfer(address(0), to, id);
+    // }
     function issue(string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         require(clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
         // TODO: token or DC...
@@ -75,7 +108,8 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
         tokenId = ++counter;
         tokenIdToClientId[tokenId] = clientId;
         clientIdToTokenId[clientId] = tokenId;
-        _mint(msg.sender, tokenId);
+
+        _ownerOf[tokenId] = msg.sender; //TODO: msg.sender or a supplied param? or both...
 
         accountAddress = _laf.create(tokenId);
 
@@ -140,20 +174,7 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
         return keccak256(bytes(tokenIdToClientId[tokenId])) != keccak256(bytes(""));
     }
 
-    function _mint(address to, uint256 id) internal virtual {
-        require(to != address(0), "INVALID_RECIPIENT");
 
-        require(_ownerOf[id] == address(0), "ALREADY_MINTED");
-
-        // Counter overflow is incredibly unrealistic.
-        unchecked {
-            _balanceOf[to]++;
-        }
-
-        _ownerOf[id] = to;
-
-        emit Transfer(address(0), to, id);
-    }
 
     function _burn(uint256 id) internal virtual {
         address owner = _ownerOf[id];
