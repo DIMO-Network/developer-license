@@ -25,7 +25,7 @@ contract DimoDeveloperLicenseTest is Test {
         dimoToken.approve(address(license), 10_000 ether);
     }
 
-    function test_MintLicenseSuccess() public {
+    function test_mintLicenseSuccess() public {
         
         vm.expectEmit(true, true, false, true);
         emit DimoDeveloperLicense.LicenseMinted(1, address(this), address(0), "vehicle_genius");
@@ -37,7 +37,7 @@ contract DimoDeveloperLicenseTest is Test {
         assertEq(dimoToken.balanceOf(address(license)), 10_000 ether);
     }
 
-    function test_DeveloperLicenseAccount() public {
+    function test_developerLicenseAccount() public {
 
         uint256 privateKey = 0x1337;
         address user = vm.addr(privateKey);
@@ -67,6 +67,16 @@ contract DimoDeveloperLicenseTest is Test {
         //0x1626ba7e
         console2.logBytes4(output);
         assertEq(IERC1271.isValidSignature.selector, output);
+    }
+
+    function test_existsLocked() public {
+        (uint256 tokenId,) = license.mint("test");
+
+        bool locked = license.locked(tokenId);
+        assertEq(locked, true);
+
+        vm.expectRevert("DimoDeveloperLicense: invalid tokenId");
+        license.locked(300);
     }
 
     

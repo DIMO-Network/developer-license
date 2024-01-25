@@ -41,26 +41,6 @@ interface IERC5727 is IERC5192, IERC5484 {
     function issuerOf(uint256 tokenId) external view returns (address);
 
     /**
-     * @notice Issue a token in a specified slot to an address.
-     * @dev MUST revert if the `to` address is the zero address.
-     *      MUST revert if the `verifier` address is the zero address.
-     * @param to The address to issue the token to
-     * @param tokenId The token id
-     * @param slot The slot to issue the token in
-     * @param burnAuth The burn authorization of the token
-     * @param verifier The address of the verifier
-     * @param data Additional data used to issue the token
-     */
-    function issue(
-        address to,
-        uint256 tokenId,
-        uint256 slot,
-        BurnAuth burnAuth,
-        address verifier,
-        bytes calldata data
-    ) external payable;
-
-    /**
      * @notice Issue credit to a token.
      * @dev MUST revert if the `tokenId` does not exist.
      * @param tokenId The token id
@@ -80,19 +60,6 @@ interface IERC5727 is IERC5192, IERC5484 {
      * @param data The additional data used to revoke the token
      */
     function revoke(uint256 tokenId, bytes calldata data) external payable;
-
-    /**
-     * @notice Revoke credit from a token.
-     * @dev MUST revert if the `tokenId` does not exist.
-     * @param tokenId The token id
-     * @param amount The amount of the credit
-     * @param data The additional data used to revoke the credit
-     */
-    function revoke(
-        uint256 tokenId,
-        uint256 amount,
-        bytes calldata data
-    ) external payable;
 
     /**
      * @notice Verify if a token is valid.

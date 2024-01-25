@@ -10,18 +10,21 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "./interface/IDimoDeveloperLicenseAccount.sol";
 import {IERC5727} from "./interface/IERC5727.sol";
 
-contract DimoDeveloperLicense is ERC721, IERC5727, Ownable2Step, IDimoDeveloperLicense {
+import {IERC165} from "./interface/IERC165.sol";
 
-    //event Revoked(address indexed from, uint256 indexed tokenId);
-    //event Verified(address indexed by, uint256 indexed tokenId, bool result);
-    //event Issued (
-    //     address indexed from,
-    //     address indexed to,
-    //     uint256 indexed tokenId,
-    //     BurnAuth burnAuth
-    //);
+contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
+
+    mapping(uint256 tokenId => bool) private _revoked;
+
+    event Revoked(address indexed from, uint256 indexed tokenId);
+    event Issued (
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId,
+        uint8 burnAuth
+    );
+    event Verified(address indexed by, uint256 indexed tokenId, bool result);
     //event Locked(uint256 tokenId);
-    //event Unlocked(uint256 tokenId);
 
     ILicenseAccountFactory public _laf;
 
@@ -50,11 +53,11 @@ contract DimoDeveloperLicense is ERC721, IERC5727, Ownable2Step, IDimoDeveloperL
 
     constructor(
         address laf_,
-        address dimoTokenAddress, 
+        address dimoTokenAddress_, 
         uint256 licenseCost_) ERC721("DIMO Developer License", "DDL") Ownable(msg.sender) {
         
         _laf = ILicenseAccountFactory(laf_);
-        _dimoToken = IDimoToken(dimoTokenAddress);
+        _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCost = licenseCost_;
     }
 
@@ -63,11 +66,16 @@ contract DimoDeveloperLicense is ERC721, IERC5727, Ownable2Step, IDimoDeveloperL
         emit UpdateLicenseCost(licenseCost_);
     }
 
+    // function issue(
+    //     uint256 tokenId,
+    //     uint256 amount,
+    //     bytes calldata data
+    // ) external payable {}
     function mint(string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         if (clientIdToTokenId[clientId] != 0) {
             revert ClientIdTaken();
         }
-
+        // TODO: token or DC...
         _dimoToken.transferFrom(msg.sender, address(this), _licenseCost);
 
         tokenId = ++counter;
@@ -101,39 +109,48 @@ contract DimoDeveloperLicense is ERC721, IERC5727, Ownable2Step, IDimoDeveloperL
         return signers[tokenId][signer];
     }
 
-    function verifierOf(uint256 tokenId) external view returns (address) {}
+    /**
+     * @dev Method signature aligns with paradigm established by IERC5727
+     */
+    function revoke(uint256 tokenId, bytes calldata /*data*/) external onlyOwner {
+        _revoked[tokenId] = true;
+        emit Revoked(msg.sender, tokenId);
+    }
 
-    function issuerOf(uint256 tokenId) external view returns (address) {}
-    
-    function issue(
-        address to,
-        uint256 tokenId,
-        uint256 slot,
-        BurnAuth burnAuth,
-        address verifier,
-        bytes calldata data
-    ) external payable {}
+    /**
+     * @dev Method signature aligns with paradigm established by IERC5727
+     */
+    function verify(uint256 tokenId, bytes calldata /*data*/) external returns (bool result) {
+        result = _exists(tokenId) && !_revoked[tokenId];
+        emit Verified(msg.sender, tokenId, result); 
+    }
 
-    function issue(
-        uint256 tokenId,
-        uint256 amount,
-        bytes calldata data
-    ) external payable {}
+    /**
+     * @dev Return value corresponds to BurnAuth.Both from IERC5484
+     */
+    function burnAuth(uint256 /*tokenId*/) external pure returns (uint8) {
+        return 2;
+    }
 
-    function revoke(uint256 tokenId, bytes calldata data) external payable {}
+    /**
+     * @notice Returns the locking status of an dev license SBT.
+     */
+    function locked(uint256 tokenId) external view returns (bool) {
+        require(_exists(tokenId), "DimoDeveloperLicense: invalid tokenId");
+        return true;
+    }
 
-    function revoke(
-        uint256 tokenId,
-        uint256 amount,
-        bytes calldata data
-    ) external payable {}
+    /**
+     */
+    function _exists(uint256 tokenId) private view returns (bool) {
+        return keccak256(bytes(tokenIdToClientId[tokenId])) != keccak256(bytes(""));
+    }
 
-    function verify(
-        uint256 tokenId,
-        bytes calldata data
-    ) external returns (bool) {}
-
-    function burnAuth(uint256 tokenId) external view returns (BurnAuth) {}
-
-    function locked(uint256 tokenId) external view returns (bool) {}
+    /**
+     */
+    function supportsInterface(bytes4 interfaceId) public override pure returns (bool) {
+        return
+            interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
+            interfaceId == 0x80ac58cd;   // ERC165 Interface ID for ERC721
+    }
 }
