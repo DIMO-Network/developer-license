@@ -17,12 +17,20 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
     mapping(uint256 tokenId => bool) private _revoked;
 
     event Revoked(address indexed from, uint256 indexed tokenId);
-    event Issued (
-        address indexed from,
-        address indexed to,
-        uint256 indexed tokenId,
-        uint8 burnAuth
+    
+    // event Issued (
+    //     address indexed from,
+    //     address indexed to,
+    //     uint256 indexed tokenId,
+    //     uint8 burnAuth
+    // );
+    event Issued(
+        uint256 indexed tokenId, 
+        address indexed owner, 
+        address indexed account, 
+        string clientId
     );
+
     event Verified(address indexed by, uint256 indexed tokenId, bool result);
     //event Locked(uint256 tokenId);
 
@@ -33,7 +41,8 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
     IDimoToken private _dimoToken;
 
     event UpdateLicenseCost(uint256 licenseCost);
-    event LicenseMinted(uint256 indexed tokenId, address indexed owner, address indexed account, string clientId);
+
+    
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
 
@@ -85,7 +94,7 @@ contract DimoDeveloperLicense is ERC721, Ownable2Step, IDimoDeveloperLicense {
 
         accountAddress = _laf.create(tokenId);
 
-        emit LicenseMinted(tokenId, msg.sender, accountAddress, clientId);
+        emit Issued(tokenId, msg.sender, accountAddress, clientId);
     }
 
     /**
