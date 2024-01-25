@@ -28,9 +28,9 @@ contract DimoDeveloperLicenseTest is Test {
     function test_mintLicenseSuccess() public {
         
         vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.LicenseMinted(1, address(this), address(0), "vehicle_genius");
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "vehicle_genius");
 
-        (uint256 tokenId,) = license.mint("vehicle_genius");
+        (uint256 tokenId,) = license.issue("vehicle_genius");
         assertEq(tokenId, 1);
 
         assertEq(license.ownerOf(tokenId), address(this));
@@ -46,7 +46,7 @@ contract DimoDeveloperLicenseTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(license), 10_000 ether);
-        (uint256 tokenId, address accountAddress) = license.mint("solala");
+        (uint256 tokenId, address accountAddress) = license.issue("solala");
         license.enableSigner(tokenId, user);
         vm.stopPrank();
 
@@ -70,7 +70,7 @@ contract DimoDeveloperLicenseTest is Test {
     }
 
     function test_existsLocked() public {
-        (uint256 tokenId,) = license.mint("test");
+        (uint256 tokenId,) = license.issue("test");
 
         bool locked = license.locked(tokenId);
         assertEq(locked, true);

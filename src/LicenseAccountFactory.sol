@@ -7,7 +7,8 @@ import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {DimoDeveloperLicense} from "./DimoDeveloperLicense.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
-contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { //ReentrancyGuard
+//TODO: ReentrancyGuard
+contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { 
 
     address public _template;
     address public _license; 
