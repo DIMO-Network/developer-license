@@ -26,7 +26,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     mapping(uint256 => address) internal _ownerOf;
 
     function ownerOf(uint256 id) public view virtual returns (address owner) {
-        require((owner = _ownerOf[id]) != address(0), "NOT_MINTED");
+        require((owner = _ownerOf[id]) != address(0), INVALID_TOKEN_ID);
     }
 
     /* * */
@@ -34,6 +34,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     ILicenseAccountFactory public _laf;
 
     string INVALID_OPERATION = "DimoDeveloperLicense: invalid operation";
+    string INVALID_TOKEN_ID = "DimoDeveloperLicense: invalid tokenId";
     
     mapping(uint256 tokenId => bool) private _revoked;
 
@@ -164,7 +165,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
      * @notice Returns the locking status of an dev license SBT.
      */
     function locked(uint256 tokenId) external view returns (bool) {
-        require(_exists(tokenId), "DimoDeveloperLicense: invalid tokenId");
+        require(_exists(tokenId), INVALID_TOKEN_ID);
         return true;
     }
 
