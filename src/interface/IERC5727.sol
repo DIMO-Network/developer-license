@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC4906} from "./IERC4906.sol";
 import {IERC5192} from "./IERC5192.sol";
 import {IERC5484} from "./IERC5484.sol";
 
@@ -9,7 +8,7 @@ import {IERC5484} from "./IERC5484.sol";
  * @title ERC5727 Soulbound Token Interface
  * @dev The core interface of the ERC5727 standard.
  */
-interface IERC5727 is IERC5192, IERC5484, IERC4906 {
+interface IERC5727 is IERC5192, IERC5484 {
     /**
      * @dev MUST emit when a token is revoked.
      * @param from The address of the owner

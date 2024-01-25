@@ -4,19 +4,9 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {DimoDeveloperLicense} from "../src/DimoDeveloperLicense.sol";
 import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
-
-
-contract MockDimoToken is ERC20, Test {
-    constructor() ERC20("DIMO Token", "DIMO") {
-        _mint(msg.sender, 1_000_000 ether);
-    }
-
-    function mint(address user, uint256 amount) public {
-        _mint(user, amount);
-    }
-}
+import {MockDimoToken} from "./mock/MockDimoToken.sol";
+import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
 //forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
 contract DimoDeveloperLicenseTest is Test {
@@ -25,11 +15,13 @@ contract DimoDeveloperLicenseTest is Test {
     DimoDeveloperLicense license;
 
     function setUp() public {
-
         LicenseAccountFactory laf = new LicenseAccountFactory();
         
         dimoToken = new MockDimoToken();
         license = new DimoDeveloperLicense(address(laf), address(dimoToken), 10_000 ether);
+
+        laf.setLicense(address(license));
+
         dimoToken.approve(address(license), 10_000 ether);
     }
 
@@ -74,6 +66,7 @@ contract DimoDeveloperLicenseTest is Test {
         bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
         //0x1626ba7e
         console2.logBytes4(output);
+        assertEq(IERC1271.isValidSignature.selector, output);
     }
 
     

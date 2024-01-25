@@ -16,7 +16,7 @@ contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { //Reent
         _template = address(new DimoDeveloperLicenseAccount());
     }
 
-    function setLicense(address license_) external {
+    function setLicense(address license_) external onlyOwner {
         _license = license_;
     }
 
