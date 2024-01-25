@@ -87,10 +87,18 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
         _licenseCost = licenseCost_;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            Admin Functions
+    //////////////////////////////////////////////////////////////*/
+
     function setLicenseCost(uint256 licenseCost_) public onlyOwner {
         _licenseCost = licenseCost_;
         emit UpdateLicenseCost(licenseCost_);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            License Logic
+    //////////////////////////////////////////////////////////////*/
 
     function issue(string calldata clientId) external returns (uint256 tokenId, address accountAddress) {
         return issue(msg.sender, clientId);
@@ -156,8 +164,12 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
         return signers[tokenId][signer];
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            SBT Logic
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @dev Method signature aligns with paradigm established by IERC5727
+     * @dev method signature aligns with paradigm established by IERC5727
      */
     function revoke(uint256 tokenId, bytes calldata /*data*/) external onlyOwner {
         _revoked[tokenId] = true;
@@ -165,7 +177,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     }
 
     /**
-     * @dev Method signature aligns with paradigm established by IERC5727
+     * @dev method signature aligns with paradigm established by IERC5727
      */
     function verify(uint256 tokenId, bytes calldata /*data*/) external returns (bool result) {
         result = _exists(tokenId) && !_revoked[tokenId];
@@ -173,7 +185,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     }
 
     /**
-     * @dev Return value corresponds to BurnAuth.Both from IERC5484
+     * @dev return value corresponds to BurnAuth.Both from IERC5484
      */
     function burnAuth(uint256 /*tokenId*/) external pure returns (uint8) {
         return 2;
@@ -187,14 +199,16 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
         return true;
     }
 
-    /**
-     */
+    /*//////////////////////////////////////////////////////////////
+                         Private Helper Functions
+    //////////////////////////////////////////////////////////////*/
+
     function _exists(uint256 tokenId) private view returns (bool) {
         return keccak256(bytes(_tokenIdToClientId[tokenId])) != keccak256(bytes(""));
     }
 
     /*//////////////////////////////////////////////////////////////
-                               SBT LOGIC
+                             NO-OP NFT Logic
     //////////////////////////////////////////////////////////////*/
 
     function approve(address /*spender*/, uint256 /*id*/) public virtual {
