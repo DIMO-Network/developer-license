@@ -20,6 +20,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     string public _image;
     string public _description;
     uint256 public _licenseCost;
+    uint256 public _minimumStake;
     uint256 public _counter;
     ILicenseAccountFactory public _laf;
     IDimoToken public _dimoToken;
@@ -94,6 +95,14 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     function setLicenseCost(uint256 licenseCost_) public onlyOwner {
         _licenseCost = licenseCost_;
         emit UpdateLicenseCost(licenseCost_);
+    }
+
+    /**
+     * https://dimo.zone/news/on-dimo-tokenomics
+     */
+    function setMinimumStake(uint256 minimumStake_) public onlyOwner {
+        _minimumStake = minimumStake_;
+        emit UpdateMinimumStake(minimumStake_);
     }
 
     /*//////////////////////////////////////////////////////////////
