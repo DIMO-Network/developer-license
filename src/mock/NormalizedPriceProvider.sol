@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IOracleSource} from "./interface/IOracleSource.sol";
+import {IOracleSource} from "./IOracleSource.sol";
 
 /**
  * @notice Normalize the format of different oracle sources into a common source.

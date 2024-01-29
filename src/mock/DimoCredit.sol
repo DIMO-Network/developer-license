@@ -8,6 +8,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 /** 
+ * TODO: should we include a way to do EIP-2612 from smart
+ * contract accounts? 
+ * 
  * @notice approve this contract on $DIMO token before minting
  * address is 0xE261D618a959aFfFd53168Cd07D12E37B26761db
  * 
@@ -42,7 +45,10 @@ contract DimoDataCredit is ERC20, Ownable2Step {
     uint256 constant SCALING_FACTOR = 10**18;
     uint256 constant DATA_CREDIT_RATE = 10**3;
     
-    constructor() ERC20("Dimo Data Credit", "DCX", 18) Ownable(msg.sender) {
+    /**
+     * TODO: _marketRewards to a gnosis safe
+     */
+    constructor() ERC20("Dimo Credit", "DCX", 18) Ownable(msg.sender) {
         _dimo = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _marketRewards = 0x2332A085461391595C3127472046EDC39996e141;
         _provider = NormalizedPriceProvider(0x012Ee74d44D7894b8F6B4509CFAFf4620d73C99f);

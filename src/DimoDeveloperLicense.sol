@@ -100,10 +100,10 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense {
     /**
      * https://dimo.zone/news/on-dimo-tokenomics
      */
-    function setMinimumStake(uint256 minimumStake_) public onlyOwner {
-        _minimumStake = minimumStake_;
-        emit UpdateMinimumStake(minimumStake_);
-    }
+    //function setMinimumStake(uint256 minimumStake_) public onlyOwner {
+        //_minimumStake = minimumStake_;
+        //emit UpdateMinimumStake(minimumStake_);
+    //}
 
     /*//////////////////////////////////////////////////////////////
                             License Logic
