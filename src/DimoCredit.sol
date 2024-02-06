@@ -13,8 +13,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /** 
  * 
- * TODO: should we include a way to do EIP-2612 from smart
- * contract accounts? 
+ * @dev they're not transferable, so there's no approve logic.
  * 
  * @notice approve this contract on $DIMO token before minting
  * address is 0xE261D618a959aFfFd53168Cd07D12E37B26761db
@@ -49,7 +48,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
     uint256 PURCHASE_DCN = 10_000 ether;
 
     IDimoToken public _dimo;
-    //address public _marketRewards;
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
 
@@ -64,8 +62,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
     event Transfer(address indexed from, address indexed to, uint256 amount);
-
-    event Approval(address indexed owner, address indexed spender, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -82,8 +78,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
     uint256 public totalSupply;
 
     mapping(address => uint256) public balanceOf;
-
-    mapping(address => mapping(address => uint256)) public allowance;
     
     /**
      */
@@ -138,7 +132,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         // Convert USD amount to data credits
         uint256 dataCredits = usdAmount * DATA_CREDIT_RATE;
         
-        _mintAndTransfer(amountIn, dataCredits, to);
+        _mint(amountIn, dataCredits, to);
     }
 
     function mintAmountOut(
@@ -155,7 +149,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         // Adjust for precision
         uint256 amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
 
-        _mintAndTransfer(amountIn, dataCredits, to);
+        _mint(amountIn, dataCredits, to);
     }
 
     /**
@@ -171,7 +165,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         }
     }
 
-    function _mintAndTransfer(uint256 amountDimo, uint256 amountDataCredits, address to) private {
+    function _mint(uint256 amountDimo, uint256 amountDataCredits, address to) private {
         require(_dimo.balanceOf(to) >= amountDimo, "DimoCredit: insufficient amount");
 
         _dimo.transferFrom(to, _receiver, amountDimo);
