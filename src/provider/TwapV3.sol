@@ -10,7 +10,7 @@ import {FixedPoint96} from "@uniswap/v4-core/src/libraries/FixedPoint96.sol";
 import {OracleSource} from "./OracleSource.sol";
 
 /** 
- * 
+ * TODO: fully understand intervals...
  */
 contract TwapV3 is OracleSource, Ownable2Step {
     address poolWmaticUsdc;

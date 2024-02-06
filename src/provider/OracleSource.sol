@@ -3,6 +3,12 @@ pragma solidity ^0.8.19;
 
 import {IOracleSource} from "./IOracleSource.sol";
 
+/**
+ * multiple oracle sources queued up ready to go, because if
+ * one of the starts malfunctioning we'd want to switch it to
+ * another "one on the fly", rather than code up and deploy
+ * a new smart contract for it
+ */
 abstract contract OracleSource {
 
     uint256 public _updateTimestamp;

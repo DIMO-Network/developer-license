@@ -29,6 +29,9 @@ contract NormalizedPriceProvider is Ownable2Step {
         _allowedAddress[msg.sender] = true;
     }
 
+    /**
+     * this can prolly be replaced with some kind of access control...
+     */
     modifier onlyAllowedAddress() {
         require(_allowedAddress[msg.sender], "NormalizedPriceProvider: invalid msg.senderd");
         _;
