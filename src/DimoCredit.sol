@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
-import {NormalizedPriceProvider} from "./NormalizedPriceProvider.sol";
-import {DimoMarketRewards} from "./DimoMarketRewards.sol";
+import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
+import {IDimoToken} from "./interface/IDimoToken.sol";
+
 /** 
+ * TODO: i don't think this should wrap that other ERC20...
+ * 
  * TODO: should we include a way to do EIP-2612 from smart
  * contract accounts? 
  * 
@@ -16,7 +20,13 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
  * 
  * 1 DC == $0.001 USD
  */
-contract DimoCredit is ERC20, Ownable2Step {
+contract DimoCredit is Ownable2Step, AccessControl {
+
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+
+    // TODO: _receiver to then burn or send to rewards smart contract
+    // or whatever *this happens on MINT*
+    address public _receiver;
 
     // Establish a new OBD device, dash cam, software connection, etc.
     uint256 MINT_DEVICE = 4_500 ether;
@@ -37,38 +47,60 @@ contract DimoCredit is ERC20, Ownable2Step {
     // Purchase/renew DIMO Canonical Name (DCN)
     uint256 PURCHASE_DCN = 10_000 ether;
 
-    ERC20 public _dimo;
+    IDimoToken public _dimo;
     address public _marketRewards;
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
 
     uint256 constant SCALING_FACTOR = 10**18;
     uint256 constant DATA_CREDIT_RATE = 10**3;
+
+    /*//////////////////////////////////////////////////////////////
+                                 EVENTS
+    //////////////////////////////////////////////////////////////*/
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+
+    event Approval(address indexed owner, address indexed spender, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
+                            METADATA STORAGE
+    //////////////////////////////////////////////////////////////*/
+    string public name;
+
+    string public symbol;
+
+    uint8 public immutable decimals;
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC20 STORAGE
+    //////////////////////////////////////////////////////////////*/
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+
+    mapping(address => mapping(address => uint256)) public allowance;
     
     /**
      * TODO: _marketRewards to a gnosis safe
      */
-    constructor() ERC20("Dimo Credit", "DCX", 18) Ownable(msg.sender) {
-        _dimo = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
-        _marketRewards = 0x2332A085461391595C3127472046EDC39996e141;
+    constructor() Ownable(msg.sender) {
+        _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _provider = NormalizedPriceProvider(0x012Ee74d44D7894b8F6B4509CFAFf4620d73C99f);
         _periodValidity = 1 days;
     }
 
     function initialize(
         address dimo_, 
-        address marketRewards_, 
+        address receiver_, 
         address provider_, 
         uint256 periodValidity_ 
     ) onlyOwner external {
-        _dimo = ERC20(dimo_);
-        _marketRewards = marketRewards_;
+        _dimo = IDimoToken(dimo_);
+
+        _receiver = receiver_;
+
         _provider = NormalizedPriceProvider(provider_);
         _periodValidity = periodValidity_;
-    }
-
-    function burn(address from, uint256 amount) external {
-        _burn(from, amount);
     }
 
     /**
@@ -120,12 +152,32 @@ contract DimoCredit is ERC20, Ownable2Step {
     }
 
     function _mintAndTransfer(uint256 amountDimo, uint256 amountDataCredits, address to) private {
-        require(_dimo.balanceOf(to) >= amountDimo, "DimoDataCredit: insufficient amount");
-        _dimo.transferFrom(to, _marketRewards, amountDimo);
-        _mint(to, amountDataCredits);
+        require(_dimo.balanceOf(to) >= amountDimo, "DimoCredit: insufficient amount");
+        _dimo.transferFrom(to, _receiver, amountDimo);
+
+        totalSupply += amountDataCredits;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            balanceOf[to] += amountDataCredits;
+        }
+
+        emit Transfer(address(0), to, amountDataCredits);
     }
 
+    /**
+     * TODO: https://docs.openzeppelin.com/contracts/4.x/access-control
+     */
+    function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
+        balanceOf[from] -= amount;
 
-    //function 
+        // Cannot underflow because a user's balance
+        // will never be larger than the total supply.
+        unchecked {
+            totalSupply -= amount;
+        }
 
+        emit Transfer(from, address(0), amount);
+    }
 }

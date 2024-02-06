@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 import {IDimoDeveloperLicense} from "./interface/IDimoDeveloperLicense.sol";
@@ -11,8 +9,9 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "./interface/IDimoDeveloperLicenseAccount.sol";
 
 /* * */
+import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {Metadata} from "./metadata/Metadata.sol";
-import {NormalizedPriceProvider} from "./mock/NormalizedPriceProvider.sol";
+import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 /* * */
 
 contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
@@ -32,7 +31,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     
     IDimoToken public _dimoToken;
     IDimoCredit public _dimoCredit;
-    address public _dcReceiver;
 
     /*//////////////////////////////////////////////////////////////
                               Mappings
@@ -125,18 +123,18 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         uint256 tokenTransferAmount = amountUsdPerToken * _licenseCostInUsd;
         _dimoToken.transferFrom(to, address(this), tokenTransferAmount);
 
-        _issue(to, clientId);
+        return _issue(to, clientId);
     }
 
     function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
 
-        uint256 dcTransferAmount = amountUsdPerToken * DATA_CREDIT_RATE;
-        _dimoCredit.transfer(msg.sender, _dcReceiver, dcTransferAmount);
+        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.DATA_CREDIT_RATE;
+        _dimoCredit.burn(msg.sender, address(this), dcTransferAmount);
 
-        _issue(to, clientId);
+        return _issue(to, clientId);
     }
 
-    function _issue(address to, string calldata clientId) private {
+    function _issue(address to, string calldata clientId) private returns (uint256 tokenId, address accountAddress) {
         require(_clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
 
         tokenId = ++_counter;
