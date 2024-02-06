@@ -10,7 +10,6 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {IDimoToken} from "./interface/IDimoToken.sol";
-import {Nop} from "./Nop.sol";
 
 /** 
  * 
@@ -62,6 +61,11 @@ contract DimoCredit is Ownable2Step, AccessControl, Nop {
     function dataCreditRate() external pure returns (uint256) {
         return DATA_CREDIT_RATE;
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            Error Messages
+    //////////////////////////////////////////////////////////////*/
+    string INVALID_OPERATION = "DimoCredit: invalid operation";
 
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
@@ -187,4 +191,25 @@ contract DimoCredit is Ownable2Step, AccessControl, Nop {
 
         emit Transfer(from, address(0), amount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            NO-OP ERC20 Logic
+    //////////////////////////////////////////////////////////////*/
+
+    function transfer(address /*_to*/, uint256 /*_value*/) public returns (bool success) {
+        revert(INVALID_OPERATION);
+    }
+
+    function transferFrom(address /*_from*/, address /*_to*/, uint256 /*_value*/) public returns (bool success) {
+        revert(INVALID_OPERATION);
+    }
+
+    function approve(address /*_spender*/, uint256 /*_value*/) public returns (bool success) {
+        revert(INVALID_OPERATION);
+    }
+
+    function allowance(address /*_owner*/, address /*_spender*/) public view returns (uint256 remaining) {
+        revert(INVALID_OPERATION);
+    }
+
 }
