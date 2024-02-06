@@ -52,19 +52,19 @@ contract DimoDeveloperLicenseTest is Test {
         dimoToken.approve(address(license), 1_000_000 ether);
     }
 
-    // function test_mintLicenseSuccess() public {   
-    //     vm.expectEmit(true, true, false, false);
-    //     emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
+    function test_mintLicenseSuccess() public {   
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
 
-    //     (uint256 tokenId,) = license.issueInDimo();
-    //     assertEq(tokenId, 1);
+        (uint256 tokenId,) = license.issueInDimo();
+        assertEq(tokenId, 1);
 
-    //     (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
-    //     uint256 tokenTransferAmount = amountUsdPerToken * 100;
+        (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
+        uint256 tokenTransferAmount = amountUsdPerToken * 100;
 
-    //     assertEq(license.ownerOf(tokenId), address(this));
-    //     assertEq(dimoToken.balanceOf(address(dc.receiver())), tokenTransferAmount);
-    // }
+        assertEq(license.ownerOf(tokenId), address(this));
+        assertEq(dimoToken.balanceOf(address(dc.receiver())), tokenTransferAmount);
+    }
 
     function test_developerLicenseAccount() public {
 
@@ -94,15 +94,15 @@ contract DimoDeveloperLicenseTest is Test {
         assertEq(IERC1271.isValidSignature.selector, output);
     }
 
-    // function test_existsLocked() public {
-    //     (uint256 tokenId,) = license.issueInDimo("test");
+    function test_existsLocked() public {
+        (uint256 tokenId,) = license.issueInDimo();
 
-    //     bool locked = license.locked(tokenId);
-    //     assertEq(locked, true);
+        bool locked = license.locked(tokenId);
+        assertEq(locked, true);
 
-    //     vm.expectRevert("DimoDeveloperLicense: invalid tokenId");
-    //     license.locked(300);
-    // }
+        vm.expectRevert("DimoDeveloperLicense: invalid tokenId");
+        license.locked(300);
+    }
 
     
 }
