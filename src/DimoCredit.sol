@@ -32,25 +32,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
         return _receiver;
     }
 
-    // Establish a new OBD device, dash cam, software connection, etc.
-    uint256 MINT_DEVICE = 4_500 ether;
-    // Mint a new vehicle on DIMO
-    uint256 MINT_VEHICLE = 4_500 ether;
-    // Pair a device and vehicle
-    uint256 PAIR_DEVICE_VEHICLE = 1_000 ether;
-    // Transfer a previously minted device to another user
-    uint256 TRANSFER_DEVICE = 1_000 ether;
-    // Transfer a previously minted vehicle to another user
-    uint256 TRANSFER_VEHICLE = 1_000 ether;
-    // Unpair a device and vehicle
-    uint256 UNPAIR_DEVICE_VEHICLE = 1_000 ether;
-    // Update device permissions
-    uint256 UPDATE_DEVICE_PERMISSIONS = 200 ether;
-    // Update vehicle permissions
-    uint256 UPDATE_VEHICLE_PERMISSIONS = 100 ether;
-    // Purchase/renew DIMO Canonical Name (DCN)
-    uint256 PURCHASE_DCN = 10_000 ether;
-
     IDimoToken public _dimo;
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
@@ -196,19 +177,19 @@ contract DimoCredit is Ownable2Step, AccessControl {
                             NO-OP ERC20 Logic
     //////////////////////////////////////////////////////////////*/
 
-    function transfer(address /*_to*/, uint256 /*_value*/) public returns (bool success) {
+    function transfer(address /*_to*/, uint256 /*_value*/) public view returns (bool /*success*/) {
         revert(INVALID_OPERATION);
     }
 
-    function transferFrom(address /*_from*/, address /*_to*/, uint256 /*_value*/) public returns (bool success) {
+    function transferFrom(address /*_from*/, address /*_to*/, uint256 /*_value*/) public view returns (bool /*success*/) {
         revert(INVALID_OPERATION);
     }
 
-    function approve(address /*_spender*/, uint256 /*_value*/) public returns (bool success) {
+    function approve(address /*_spender*/, uint256 /*_value*/) public view returns (bool /*success*/) {
         revert(INVALID_OPERATION);
     }
 
-    function allowance(address /*_owner*/, address /*_spender*/) public view returns (uint256 remaining) {
+    function allowance(address /*_owner*/, address /*_spender*/) public view returns (uint256 /*remaining*/) {
         revert(INVALID_OPERATION);
     }
 
