@@ -41,7 +41,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     mapping(uint256 => address) internal _ownerOf;
     mapping(uint256 tokenId => bool) private _revoked;
     mapping(uint256 => mapping(string => bool)) private redirectUris;
-    //mapping(uint256 => mapping(address => bool)) private signers;
     mapping(uint256 => mapping(address => uint256)) private signers;
     ///@dev points to block.timestamp
     
