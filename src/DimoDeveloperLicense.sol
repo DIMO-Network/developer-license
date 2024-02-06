@@ -19,6 +19,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
 
     NormalizedPriceProvider _provider;
 
+    uint256 _periodValidity; ///@dev signer validity expiration
+
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
@@ -39,7 +41,9 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     mapping(uint256 => address) internal _ownerOf;
     mapping(uint256 tokenId => bool) private _revoked;
     mapping(uint256 => mapping(string => bool)) private redirectUris;
-    mapping(uint256 => mapping(address => bool)) private signers;
+    //mapping(uint256 => mapping(address => bool)) private signers;
+    mapping(uint256 => mapping(address => uint256)) private signers;
+    ///@dev points to block.timestamp
     
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
@@ -66,6 +70,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     event Verified(address indexed by, uint256 indexed tokenId, bool result);
     event Locked(uint256 tokenId);
     event UpdateLicenseCost(uint256 licenseCost);
+    event UpdatePeriodValidity(uint256 periodValidity);
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
 
@@ -95,6 +100,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         name = "DIMO Developer License";
         symbol = "DLX";
 
+        _periodValidity = 365 days;
+
         _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
 
@@ -110,6 +117,11 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     function setLicenseCost(uint256 licenseCostInUsd_) public onlyOwner {
         _licenseCostInUsd = licenseCostInUsd_;
         emit UpdateLicenseCost(_licenseCostInUsd);
+    }
+
+    function setPeriodValidity(uint256 periodValidity_) public onlyOwner {
+        _periodValidity = periodValidity_;
+        emit UpdatePeriodValidity(_licenseCostInUsd);
     }
 
     /**
@@ -199,16 +211,23 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     }
 
     /**
+     * @notice validity period...
      */
     function enableSigner(uint256 tokenId, address signer) onlyTokenOwner(tokenId) external {
-        signers[tokenId][signer] = true;
+        signers[tokenId][signer] = block.timestamp;
         emit SignerEnabled(tokenId, signer);
     }
 
     /**
      */
     function isSigner(uint256 tokenId, address signer) public view returns (bool) {
-        return signers[tokenId][signer];
+        uint256 timestampInit = signers[tokenId][signer];
+        uint256 timestampCurrent = block.timestamp;
+        if(timestampCurrent - timestampInit > _periodValidity) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
