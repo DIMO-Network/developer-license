@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {console2} from "forge-std/Test.sol";
+
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {IDimoDeveloperLicense} from "./interface/IDimoDeveloperLicense.sol";
@@ -14,10 +16,14 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
 
     //TODO: test re-init
     function initialize(uint256 tokenId_, address license_) public {
-        require(!_initialized, "");
+        require(!_initialized, "DimoDeveloperLicenseAccount: invalid operation");
         _license = IDimoDeveloperLicense(license_);
         _tokenId = tokenId_;
         _initialized = true;
+    }
+
+    function isSigner(address signer) public view returns(bool) {
+        return _license.isSigner(_tokenId, signer);
     }
 
     //TODO: isSignerNow()... expiration, analygous to API keys

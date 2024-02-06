@@ -16,7 +16,7 @@ import {DimoCredit} from "../src/DimoCredit.sol";
 //forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
 contract DimoDeveloperLicenseTest is Test {
 
-    address dimoToken;
+    ERC20 dimoToken;
     DimoDeveloperLicense license;
 
     DimoCredit dc;
@@ -25,14 +25,16 @@ contract DimoDeveloperLicenseTest is Test {
     function setUp() public {
         vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
 
+        dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
+
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
         npp = new NormalizedPriceProvider();
 
         TwapV3 twap = new TwapV3();
-        uint32 twapIntervalUsdc = 30 minutes;
-        uint32 twapIntervalDimo = 4 minutes; 
-        twap.initialize(twapIntervalUsdc, twapIntervalDimo);
+        uint32 intervalUsdc = 30 minutes;
+        uint32 intervalDimo = 4 minutes; 
+        twap.initialize(intervalUsdc, intervalDimo);
         npp.addOracleSource(address(twap));
 
         dc = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(npp));
@@ -40,62 +42,57 @@ contract DimoDeveloperLicenseTest is Test {
         license = new DimoDeveloperLicense(
             address(laf), 
             address(npp), 
-            0xE261D618a959aFfFd53168Cd07D12E37B26761db, 
+            address(dimoToken), 
             address(dc),
             100
         );
 
         laf.setLicense(address(license));
-        deal(0xE261D618a959aFfFd53168Cd07D12E37B26761db, address(this), 1_000_000 ether);
-        ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).approve(address(license), 1_000_000 ether);
+        deal(address(dimoToken), address(this), 1_000_000 ether);
+        dimoToken.approve(address(license), 1_000_000 ether);
     }
 
-    function test_mintLicenseSuccess() public {
-        
-        vm.expectEmit(true, true, false, false);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
+    // function test_mintLicenseSuccess() public {   
+    //     vm.expectEmit(true, true, false, false);
+    //     emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDimo();
-        assertEq(tokenId, 1);
+    //     (uint256 tokenId,) = license.issueInDimo();
+    //     assertEq(tokenId, 1);
 
-        (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+    //     (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
+    //     uint256 tokenTransferAmount = amountUsdPerToken * 100;
 
-        assertEq(license.ownerOf(tokenId), address(this));
-        assertEq(ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(address(dc.receiver())), tokenTransferAmount);
-    }
-
-    // function test_developerLicenseAccount() public {
-
-    //     uint256 privateKey = 0x1337;
-    //     address user = vm.addr(privateKey);
-
-    //     dimoToken.mint(user, 10_000 ether);
-
-    //     vm.startPrank(user);
-    //     dimoToken.approve(address(license), 10_000 ether);
-    //     (uint256 tokenId, address accountAddress) = license.issueInDimo("solala");
-    //     license.enableSigner(tokenId, user);
-    //     vm.stopPrank();
-
-    //     bool signer = license.isSigner(tokenId, user);
-    //     console2.log("signer: %s", signer);
-
-    //     bytes32 hashValue = keccak256(
-    //         abi.encodePacked(
-    //             keccak256(
-    //                 "\x19Ethereum Signed Message:\n32"
-    //             ),
-    //             keccak256("Hello World")
-    //         )   
-    //     );
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
-    //     bytes memory signature = abi.encodePacked(r, s, v); 
-    //     bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
-    //     //0x1626ba7e
-    //     console2.logBytes4(output);
-    //     assertEq(IERC1271.isValidSignature.selector, output);
+    //     assertEq(license.ownerOf(tokenId), address(this));
+    //     assertEq(dimoToken.balanceOf(address(dc.receiver())), tokenTransferAmount);
     // }
+
+    function test_developerLicenseAccount() public {
+
+        uint256 privateKey = 0x1337;
+        address user = vm.addr(privateKey);
+
+        deal(address(dimoToken), user, 1_000_000 ether);
+
+        vm.startPrank(user);
+        dimoToken.approve(address(license), 1_000_000 ether);
+        (uint256 tokenId, address accountAddress) = license.issueInDimo();
+        license.enableSigner(tokenId, user);
+        vm.stopPrank();
+
+        bytes32 hashValue = keccak256(
+            abi.encodePacked(
+                keccak256(
+                    "\x19Ethereum Signed Message:\n32"
+                ),
+                keccak256("Hello World")
+            )   
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
+        bytes memory signature = abi.encodePacked(r, s, v); 
+        bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
+        console2.logBytes4(output);
+        assertEq(IERC1271.isValidSignature.selector, output);
+    }
 
     // function test_existsLocked() public {
     //     (uint256 tokenId,) = license.issueInDimo("test");

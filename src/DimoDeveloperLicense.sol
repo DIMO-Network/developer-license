@@ -153,12 +153,13 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         return _issue(to);
     }
 
+    //clientId == accountAddress
     function _issue(address to) private returns (uint256 tokenId, address clientId) {
         //require(_clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
 
-        clientId = _laf.create(tokenId);
-
         tokenId = ++_counter;
+        clientId = _laf.create(tokenId);
+        
         _tokenIdToClientId[tokenId] = clientId;
         _clientIdToTokenId[clientId] = tokenId;
 
