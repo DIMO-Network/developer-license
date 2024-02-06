@@ -9,6 +9,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "./interface/IDimoDeveloperLicenseAccount.sol";
 
 /* * */
+import {console2} from "forge-std/Test.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {Metadata} from "./metadata/Metadata.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
