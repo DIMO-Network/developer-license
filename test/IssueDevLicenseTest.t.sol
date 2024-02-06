@@ -56,10 +56,10 @@ contract IssueDevLicenseTest is Test {
     /**
      */
     function test_issueInDimoSuccess() public {   
-        vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "test");
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDimo("test");
+        (uint256 tokenId,) = license.issueInDimo();
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
 
@@ -83,10 +83,10 @@ contract IssueDevLicenseTest is Test {
         dimoToken.approve(address(license), tokenTransferAmount);
         vm.stopPrank();
 
-        vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), "test");
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDimo(licenseHolder, "test");
+        (uint256 tokenId,) = license.issueInDimo(licenseHolder);
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), licenseHolder);
         assertEq(dimoToken.balanceOf(dc.receiver()), tokenTransferAmount);
@@ -101,10 +101,10 @@ contract IssueDevLicenseTest is Test {
         dc.mintAmountOut(address(this), tokenTransferAmount, "");
         assertEq(dc.balanceOf(address(this)), tokenTransferAmount);
 
-        vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "test");
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDc(address(this), "test");
+        (uint256 tokenId,) = license.issueInDc(address(this));
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
 
@@ -124,10 +124,10 @@ contract IssueDevLicenseTest is Test {
         dc.mintAmountOut(licenseHolder, tokenTransferAmount, "");
         assertEq(dc.balanceOf(licenseHolder), tokenTransferAmount);
 
-        vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), "test");
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDc(licenseHolder, "test");
+        (uint256 tokenId,) = license.issueInDc(licenseHolder);
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), licenseHolder);
         assertEq(dc.balanceOf(licenseHolder), 0);

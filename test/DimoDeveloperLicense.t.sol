@@ -52,10 +52,10 @@ contract DimoDeveloperLicenseTest is Test {
 
     function test_mintLicenseSuccess() public {
         
-        vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "vehicle_genius");
+        vm.expectEmit(true, true, false, false);
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
 
-        (uint256 tokenId,) = license.issueInDimo("vehicle_genius");
+        (uint256 tokenId,) = license.issueInDimo();
         assertEq(tokenId, 1);
 
         (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
