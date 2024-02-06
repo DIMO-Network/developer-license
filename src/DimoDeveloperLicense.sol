@@ -124,7 +124,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     }
 
     function issueInDimo(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
-        
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * _licenseCostInUsd;
         _dimoToken.transferFrom(to, address(this), tokenTransferAmount);
@@ -132,8 +131,14 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         return _issue(to, clientId);
     }
 
-    function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
+    function issueInDc(string calldata clientId) external returns (uint256 tokenId, address accountAddress) {
+        return issueInDc(msg.sender, clientId);
+    }
 
+    /**
+     * TODO: is this math correct? do we need to normalize it... 
+     */
+    function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dataCreditRate();
         _dimoCredit.burn(msg.sender, dcTransferAmount);
 

@@ -7,12 +7,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IOracleSource} from "./IOracleSource.sol";
 
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
 /**
  * @notice Normalize the format of different oracle sources into a common source.
  */
-contract NormalizedPriceProvider is Ownable2Step {
+contract NormalizedPriceProvider is Ownable2Step, AccessControl {
 
-    mapping(address => bool) private _allowedAddress;
+    bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
     uint256 public _primaryIndex;
     IOracleSource[] public _oracleSources;
@@ -26,15 +28,7 @@ contract NormalizedPriceProvider is Ownable2Step {
     string constant private ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
 
     constructor() Ownable(msg.sender) {
-        _allowedAddress[msg.sender] = true;
-    }
-
-    /**
-     * this can prolly be replaced with some kind of access control...
-     */
-    modifier onlyAllowedAddress() {
-        require(_allowedAddress[msg.sender], "NormalizedPriceProvider: invalid msg.senderd");
-        _;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function addOracleSource(address source) onlyOwner external {
@@ -68,7 +62,7 @@ contract NormalizedPriceProvider is Ownable2Step {
      * This shouldn't be permissioned, it'll cost us $LINK, but it'll cost
      * the caller gas.
      */
-    function updatePrice() onlyAllowedAddress external {
+    function updatePrice() onlyRole(UPDATER_ROLE)  external {
         _oracleSources[_primaryIndex].updatePrice();
     }
 
@@ -94,14 +88,6 @@ contract NormalizedPriceProvider is Ownable2Step {
 
     function isUpdatable() external view returns (bool updatable) {
         updatable = _oracleSources[_primaryIndex].isUpdatable();
-    }
-
-    function setAllowedAddress(address addr, bool status) external onlyOwner {
-        _allowedAddress[addr] = status;
-    }
-
-    function isAddressAllowed(address addr) external view returns (bool allowed) {
-        allowed = _allowedAddress[addr];
     }
 
 }

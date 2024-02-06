@@ -15,7 +15,7 @@ import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 
 //forge test --match-path ./test/DevLicenseTest.t.sol -vv
-contract DevLicenseTest is Test {
+contract IssueDevLicenseTest is Test {
 
     DimoCredit dc;
     ERC20 dimoToken;
