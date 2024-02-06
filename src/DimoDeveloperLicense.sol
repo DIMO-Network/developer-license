@@ -40,9 +40,9 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     mapping(uint256 tokenId => bool) private _revoked;
     mapping(uint256 => mapping(string => bool)) private redirectUris;
     mapping(uint256 => mapping(address => bool)) private signers;
-    // TODO: do we use both of these?
-    mapping(uint256 => string) _tokenIdToClientId;
-    mapping(string => uint256) _clientIdToTokenId;
+    
+    mapping(uint256 => address) _tokenIdToClientId;
+    mapping(address => uint256) _clientIdToTokenId;
 
     /*//////////////////////////////////////////////////////////////
                             Error Messages
@@ -54,13 +54,14 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
+    //TODO: what here needs to be indexed...
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event Revoked(address indexed from, uint256 indexed tokenId); ///@dev IERC5727
     event Issued(
         uint256 indexed tokenId, 
         address indexed owner, 
         address indexed account, 
-        string clientId
+        address clientId
     );
     event Verified(address indexed by, uint256 indexed tokenId, bool result);
     event Locked(uint256 tokenId);
@@ -123,37 +124,39 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
                             License Logic
     //////////////////////////////////////////////////////////////*/
 
-    function issueInDimo(string calldata clientId) external returns (uint256 tokenId, address accountAddress) {
-        return issueInDimo(msg.sender, clientId);
+    function issueInDimo() external returns (uint256 tokenId, address clientId) {
+        return issueInDimo(msg.sender);
     }
 
     /**
      * @dev transfer spent $DIMO to the DimoCredit receiver, a GnosisSafe address
      */
-    function issueInDimo(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
+    function issueInDimo(address to) public returns (uint256 tokenId, address clientId) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * _licenseCostInUsd;
         _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
 
-        return _issue(to, clientId);
+        return _issue(to);
     }
 
-    function issueInDc(string calldata clientId) external returns (uint256 tokenId, address accountAddress) {
-        return issueInDc(msg.sender, clientId);
+    function issueInDc() external returns (uint256 tokenId, address clientId) {
+        return issueInDc(msg.sender);
     }
 
     /**
      * TODO: is this math correct? do we need to normalize it... 
      */
-    function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
+    function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
         uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dataCreditRate();
         _dimoCredit.burn(to, dcTransferAmount);
 
-        return _issue(to, clientId);
+        return _issue(to);
     }
 
-    function _issue(address to, string calldata clientId) private returns (uint256 tokenId, address accountAddress) {
-        require(_clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
+    function _issue(address to) private returns (uint256 tokenId, address clientId) {
+        //require(_clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
+
+        clientId = _laf.create(tokenId);
 
         tokenId = ++_counter;
         _tokenIdToClientId[tokenId] = clientId;
@@ -161,9 +164,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
 
         _ownerOf[tokenId] = to; 
 
-        accountAddress = _laf.create(tokenId);
-
-        emit Issued(tokenId, to, accountAddress, clientId);
+        emit Issued(tokenId, to, clientId, clientId);
         emit Locked(tokenId); ///@dev IERC5192
         emit Transfer(address(0), to, tokenId); ///@dev ERC721
     }
@@ -180,7 +181,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         
         delete _ownerOf[tokenId];
         
-        string memory clientId = _tokenIdToClientId[tokenId];
+        address clientId = _tokenIdToClientId[tokenId];
         delete _tokenIdToClientId[tokenId];
         delete _clientIdToTokenId[clientId];
 
@@ -250,7 +251,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
                          Private Helper Functions
     //////////////////////////////////////////////////////////////*/
     function _exists(uint256 tokenId) private view returns (bool) {
-        return keccak256(bytes(_tokenIdToClientId[tokenId])) != keccak256(bytes(""));
+        //TODO: _test_ these supportive functuions
+        return _tokenIdToClientId[tokenId] != address(0);
     }
 
     /*//////////////////////////////////////////////////////////////
