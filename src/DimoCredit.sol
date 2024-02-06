@@ -16,7 +16,7 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
  * 
  * 1 DC == $0.001 USD
  */
-contract DimoDataCredit is ERC20, Ownable2Step {
+contract DimoCredit is ERC20, Ownable2Step {
 
     // Establish a new OBD device, dash cam, software connection, etc.
     uint256 MINT_DEVICE = 4_500 ether;
@@ -126,6 +126,6 @@ contract DimoDataCredit is ERC20, Ownable2Step {
     }
 
 
-    function 
+    //function 
 
 }
