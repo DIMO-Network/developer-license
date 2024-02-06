@@ -103,20 +103,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
         decimals = decimals_;
     }
 
-    function initialize(
-        address dimo_, 
-        address receiver_, 
-        address provider_, 
-        uint256 periodValidity_ 
-    ) onlyOwner external {
-        _dimo = IDimoToken(dimo_);
-
-        _receiver = receiver_;
-
-        _provider = NormalizedPriceProvider(provider_);
-        _periodValidity = periodValidity_;
-    }
-
     /**
      * 
      */
