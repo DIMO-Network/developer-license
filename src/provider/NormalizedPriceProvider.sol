@@ -86,9 +86,6 @@ contract NormalizedPriceProvider is Ownable2Step {
     }
 
     function getAmountUsdPerToken(bytes calldata data) public returns (uint256 amountUsdPerToken, uint256 updateTimestamp) {
-
-        console2.log("-- ~~~ --");
-
         (amountUsdPerToken, updateTimestamp) = _oracleSources[_primaryIndex].getAmountUsdPerToken(data);
     }
 

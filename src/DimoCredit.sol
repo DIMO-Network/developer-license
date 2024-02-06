@@ -94,13 +94,12 @@ contract DimoCredit is Ownable2Step, AccessControl {
         address receiver_,
         address provider_
     ) Ownable(msg.sender) {
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _provider = NormalizedPriceProvider(provider_);
         _periodValidity = 1 days;
-
-        //_setRoleAdmin(msg.sender, BURNER_ROLE);
-        //_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         _receiver = receiver_;
     
@@ -148,18 +147,14 @@ contract DimoCredit is Ownable2Step, AccessControl {
         bytes calldata data
         ) external {
 
-        console2.log("-- AAA --");
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
 
-        console2.log("-- BBB --");
         // Calculate the equivalent USD amount from data credits
         uint256 usdAmount = dataCredits / DATA_CREDIT_RATE;
 
-        console2.log("-- CCC --");
         // Adjust for precision
         uint256 amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
 
-        console2.log("-- DDD --");
         _mintAndTransfer(amountIn, dataCredits, to);
     }
 
@@ -177,11 +172,8 @@ contract DimoCredit is Ownable2Step, AccessControl {
     }
 
     function _mintAndTransfer(uint256 amountDimo, uint256 amountDataCredits, address to) private {
-
-        console2.log("-- 111 --");
         require(_dimo.balanceOf(to) >= amountDimo, "DimoCredit: insufficient amount");
 
-        console2.log("-- 222 --");
         _dimo.transferFrom(to, _receiver, amountDimo);
 
         totalSupply += amountDataCredits;
