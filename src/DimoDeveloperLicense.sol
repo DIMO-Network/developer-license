@@ -13,9 +13,10 @@ import {console2} from "forge-std/Test.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {Metadata} from "./metadata/Metadata.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
+import {Nop} from "./Nop.sol";
 /* * */
 
-contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
+contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata, Nop {
 
     NormalizedPriceProvider _provider;
 
@@ -48,7 +49,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
                             Error Messages
     //////////////////////////////////////////////////////////////*/
     string INVALID_MSG_SENDER = "DimoDeveloperLicense: invalid msg.sender";
-    string INVALID_OPERATION = "DimoDeveloperLicense: invalid operation";
     string INVALID_TOKEN_ID = "DimoDeveloperLicense: invalid tokenId";
 
     /*//////////////////////////////////////////////////////////////
@@ -123,10 +123,13 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         return issueInDimo(msg.sender, clientId);
     }
 
+    /**
+     * @dev transfer spent $DIMO to the DimoCredit receiver, a GnosisSafe address
+     */
     function issueInDimo(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * _licenseCostInUsd;
-        _dimoToken.transferFrom(to, address(this), tokenTransferAmount);
+        _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
 
         return _issue(to, clientId);
     }
@@ -246,37 +249,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         return keccak256(bytes(_tokenIdToClientId[tokenId])) != keccak256(bytes(""));
     }
 
-    /*//////////////////////////////////////////////////////////////
-                             NO-OP NFT Logic
-    //////////////////////////////////////////////////////////////*/
-    function approve(address /*spender*/, uint256 /*id*/) public virtual {
-        revert(INVALID_OPERATION);
-    }
 
-    function setApprovalForAll(address /*operator*/, bool /*approved*/) public virtual {
-        revert(INVALID_OPERATION);
-    }
-
-    function transferFrom(address /*from*/, address /*to*/, uint256 /*id*/) public virtual {
-        revert(INVALID_OPERATION);
-    }
-
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*id*/
-    ) public virtual {
-        revert(INVALID_OPERATION);
-    }
-
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*id*/,
-        bytes memory /*data*/
-    ) public virtual {
-        revert(INVALID_OPERATION);
-    }
 
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC

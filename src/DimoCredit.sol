@@ -10,6 +10,7 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {IDimoToken} from "./interface/IDimoToken.sol";
+import {Nop} from "./Nop.sol";
 
 /** 
  * 
@@ -20,13 +21,17 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  * 
  * 1 DC == $0.001 USD
  */
-contract DimoCredit is Ownable2Step, AccessControl {
+contract DimoCredit is Ownable2Step, AccessControl, Nop {
 
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     // TODO: _receiver to then burn or send to rewards smart contract
     // or whatever *this happens on MINT* (gnosis safe)
     address public _receiver;
+
+    function receiver() external view returns (address) {
+        return _receiver;
+    }
 
     // Establish a new OBD device, dash cam, software connection, etc.
     uint256 MINT_DEVICE = 4_500 ether;
