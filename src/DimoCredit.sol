@@ -10,7 +10,6 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /** 
- * TODO: i don't think this should wrap that other ERC20...
  * 
  * TODO: should we include a way to do EIP-2612 from smart
  * contract accounts? 
@@ -25,7 +24,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     // TODO: _receiver to then burn or send to rewards smart contract
-    // or whatever *this happens on MINT*
+    // or whatever *this happens on MINT* (gnosis safe)
     address public _receiver;
 
     // Establish a new OBD device, dash cam, software connection, etc.
@@ -81,12 +80,19 @@ contract DimoCredit is Ownable2Step, AccessControl {
     mapping(address => mapping(address => uint256)) public allowance;
     
     /**
-     * TODO: _marketRewards to a gnosis safe
      */
-    constructor() Ownable(msg.sender) {
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_
+    ) Ownable(msg.sender) {
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _provider = NormalizedPriceProvider(0x012Ee74d44D7894b8F6B4509CFAFf4620d73C99f);
         _periodValidity = 1 days;
+    
+        name = name_;
+        symbol = symbol_;
+        decimals = decimals_;
     }
 
     function initialize(
@@ -122,7 +128,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         _mintAndTransfer(amountIn, dataCredits, to);
     }
 
-    function mintOut(
+    function mintAmountOut(
         address to, 
         uint256 dataCredits,
         bytes calldata data
