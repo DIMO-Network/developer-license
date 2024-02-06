@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {console2} from "forge-std/Test.sol";
+
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IOracleSource} from "./IOracleSource.sol";
@@ -84,6 +86,9 @@ contract NormalizedPriceProvider is Ownable2Step {
     }
 
     function getAmountUsdPerToken(bytes calldata data) public returns (uint256 amountUsdPerToken, uint256 updateTimestamp) {
+
+        console2.log("-- ~~~ --");
+
         (amountUsdPerToken, updateTimestamp) = _oracleSources[_primaryIndex].getAmountUsdPerToken(data);
     }
 

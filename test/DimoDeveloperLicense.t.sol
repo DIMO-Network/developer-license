@@ -31,7 +31,13 @@ contract DimoDeveloperLicenseTest is Test {
         twap.initialize(twapIntervalUsdc, twapIntervalDimo);
         npp.addOracleSource(address(twap));
 
-        license = new DimoDeveloperLicense(address(laf), address(npp), 0xE261D618a959aFfFd53168Cd07D12E37B26761db, 100);
+        license = new DimoDeveloperLicense(
+            address(laf), 
+            address(npp), 
+            0xE261D618a959aFfFd53168Cd07D12E37B26761db, 
+            address(0),
+            100
+        );
 
         laf.setLicense(address(license));
         deal(0xE261D618a959aFfFd53168Cd07D12E37B26761db, address(this), 1_000_000 ether);

@@ -85,10 +85,12 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         address laf_,
         address provider_,
         address dimoTokenAddress_, 
+        address dimoCreditAddress_,
         uint256 licenseCostInUsd_) Ownable(msg.sender) {
         name = "DIMO Developer License";
         symbol = "DLX";
 
+        _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
 
         _laf = ILicenseAccountFactory(laf_);

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {console2} from "forge-std/Test.sol";
+
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
@@ -47,7 +49,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
     uint256 PURCHASE_DCN = 10_000 ether;
 
     IDimoToken public _dimo;
-    address public _marketRewards;
+    //address public _marketRewards;
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
 
@@ -88,11 +90,19 @@ contract DimoCredit is Ownable2Step, AccessControl {
     constructor(
         string memory name_,
         string memory symbol_,
-        uint8 decimals_
+        uint8 decimals_,
+        address receiver_,
+        address provider_
     ) Ownable(msg.sender) {
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
-        _provider = NormalizedPriceProvider(0x012Ee74d44D7894b8F6B4509CFAFf4620d73C99f);
+        _provider = NormalizedPriceProvider(provider_);
         _periodValidity = 1 days;
+
+        //_setRoleAdmin(msg.sender, BURNER_ROLE);
+        //_setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        _receiver = receiver_;
     
         name = name_;
         symbol = symbol_;
@@ -137,14 +147,19 @@ contract DimoCredit is Ownable2Step, AccessControl {
         uint256 dataCredits,
         bytes calldata data
         ) external {
+
+        console2.log("-- AAA --");
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
 
+        console2.log("-- BBB --");
         // Calculate the equivalent USD amount from data credits
         uint256 usdAmount = dataCredits / DATA_CREDIT_RATE;
 
+        console2.log("-- CCC --");
         // Adjust for precision
         uint256 amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
 
+        console2.log("-- DDD --");
         _mintAndTransfer(amountIn, dataCredits, to);
     }
 
@@ -162,7 +177,11 @@ contract DimoCredit is Ownable2Step, AccessControl {
     }
 
     function _mintAndTransfer(uint256 amountDimo, uint256 amountDataCredits, address to) private {
+
+        console2.log("-- 111 --");
         require(_dimo.balanceOf(to) >= amountDimo, "DimoCredit: insufficient amount");
+
+        console2.log("-- 222 --");
         _dimo.transferFrom(to, _receiver, amountDimo);
 
         totalSupply += amountDataCredits;
