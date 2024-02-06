@@ -81,6 +81,10 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         _;
     }
 
+    /**
+     * TODO: do we need the provider and the dc to be passed seperately, 
+     * 'cause they have references to eachother...
+     */
     constructor(
         address laf_,
         address provider_,

@@ -11,6 +11,7 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 
 import {TwapV3} from "../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
+import {DimoCredit} from "../src/DimoCredit.sol";
 
 //forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
 contract DimoDeveloperLicenseTest is Test {
@@ -18,12 +19,15 @@ contract DimoDeveloperLicenseTest is Test {
     address dimoToken;
     DimoDeveloperLicense license;
 
+    DimoCredit dc;
+    NormalizedPriceProvider npp;
+
     function setUp() public {
         vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
 
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
-        NormalizedPriceProvider npp = new NormalizedPriceProvider();
+        npp = new NormalizedPriceProvider();
 
         TwapV3 twap = new TwapV3();
         uint32 twapIntervalUsdc = 30 minutes;
@@ -31,11 +35,13 @@ contract DimoDeveloperLicenseTest is Test {
         twap.initialize(twapIntervalUsdc, twapIntervalDimo);
         npp.addOracleSource(address(twap));
 
+        dc = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(npp));
+
         license = new DimoDeveloperLicense(
             address(laf), 
             address(npp), 
             0xE261D618a959aFfFd53168Cd07D12E37B26761db, 
-            address(0),
+            address(dc),
             100
         );
 
@@ -52,8 +58,11 @@ contract DimoDeveloperLicenseTest is Test {
         (uint256 tokenId,) = license.issueInDimo("vehicle_genius");
         assertEq(tokenId, 1);
 
+        (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
+        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+
         assertEq(license.ownerOf(tokenId), address(this));
-        assertEq(ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(address(license)), 10_000 ether);
+        assertEq(ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(address(dc.receiver())), tokenTransferAmount);
     }
 
     // function test_developerLicenseAccount() public {

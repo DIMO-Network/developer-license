@@ -20,7 +20,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  * 
  * 1 DC == $0.001 USD
  */
-contract DimoCredit is Ownable2Step, AccessControl, Nop {
+contract DimoCredit is Ownable2Step, AccessControl {
 
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 

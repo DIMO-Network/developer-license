@@ -67,9 +67,12 @@ contract IssueDevLicenseTest is Test {
         uint256 tokenTransferAmount = amountUsdPerToken * 100;
         console2.log("tokenTransferAmount %s", tokenTransferAmount);
 
-        assertEq(dimoToken.balanceOf(address(license)), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(dc.receiver()), tokenTransferAmount);
     }
 
+    /**
+     * TODO: Do we want to send $DIMO to the DC receiver? 
+     */
     function test_issueInDimoSenderSuccess() public {
         address licenseHolder = address(0x999);
 
@@ -86,7 +89,7 @@ contract IssueDevLicenseTest is Test {
         (uint256 tokenId,) = license.issueInDimo(licenseHolder, "test");
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), licenseHolder);
-        assertEq(dimoToken.balanceOf(address(license)), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(dc.receiver()), tokenTransferAmount);
     }
 
     function test_issueInDc() public {  
