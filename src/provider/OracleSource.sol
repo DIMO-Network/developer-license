@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {IOracleSource} from "./IOracleSource.sol";
 
-contract OracleSource {
+abstract contract OracleSource {
 
     uint256 public _updateTimestamp;
     uint256 public _amountUsdPerToken;
