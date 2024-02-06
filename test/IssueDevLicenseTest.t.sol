@@ -14,7 +14,7 @@ import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.s
 import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 
-//forge test --match-path ./test/DevLicenseTest.t.sol -vv
+//forge test --match-path ./test/IssueDevLicenseTest.t.sol -vv
 contract IssueDevLicenseTest is Test {
 
     DimoCredit dc;
@@ -55,11 +55,11 @@ contract IssueDevLicenseTest is Test {
 
     /**
      */
-    function test_issueInDimo() public {   
+    function test_issueInDimoSuccess() public {   
         vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "vehicle_genius");
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "test");
 
-        (uint256 tokenId,) = license.issueInDimo("vehicle_genius");
+        (uint256 tokenId,) = license.issueInDimo("test");
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
 
@@ -67,6 +67,25 @@ contract IssueDevLicenseTest is Test {
         uint256 tokenTransferAmount = amountUsdPerToken * 100;
         console2.log("tokenTransferAmount %s", tokenTransferAmount);
 
+        assertEq(dimoToken.balanceOf(address(license)), tokenTransferAmount);
+    }
+
+    function test_issueInDimoSenderSuccess() public {
+        address licenseHolder = address(0x999);
+
+        (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
+        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+        deal(address(dimoToken), licenseHolder, tokenTransferAmount);
+        vm.startPrank(licenseHolder);
+        dimoToken.approve(address(license), tokenTransferAmount);
+        vm.stopPrank();
+
+        vm.expectEmit(true, true, false, true);
+        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), "test");
+
+        (uint256 tokenId,) = license.issueInDimo(licenseHolder, "test");
+        assertEq(tokenId, 1);
+        assertEq(license.ownerOf(tokenId), licenseHolder);
         assertEq(dimoToken.balanceOf(address(license)), tokenTransferAmount);
     }
 
@@ -80,13 +99,35 @@ contract IssueDevLicenseTest is Test {
         assertEq(dc.balanceOf(address(this)), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, true);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "vehicle_genius");
+        emit DimoDeveloperLicense.Issued(1, address(this), address(0), "test");
 
-        (uint256 tokenId,) = license.issueInDc(address(this), "vehicle_genius");
+        (uint256 tokenId,) = license.issueInDc(address(this), "test");
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
 
         assertEq(dc.balanceOf(address(this)), 0);
+    }
+
+    function test_issueInDcSenderSuccess() public {
+        address licenseHolder = address(0x999);
+
+        uint256 tokenTransferAmount = dc.dataCreditRate() * 100;
+        
+        deal(address(dimoToken), licenseHolder, 1_000_000 ether);
+        vm.startPrank(licenseHolder);
+        dimoToken.approve(address(dc), tokenTransferAmount);
+        vm.stopPrank();
+
+        dc.mintAmountOut(licenseHolder, tokenTransferAmount, "");
+        assertEq(dc.balanceOf(licenseHolder), tokenTransferAmount);
+
+        vm.expectEmit(true, true, false, true);
+        emit DimoDeveloperLicense.Issued(1, licenseHolder, address(0), "test");
+
+        (uint256 tokenId,) = license.issueInDc(licenseHolder, "test");
+        assertEq(tokenId, 1);
+        assertEq(license.ownerOf(tokenId), licenseHolder);
+        assertEq(dc.balanceOf(licenseHolder), 0);
     }
     
 }

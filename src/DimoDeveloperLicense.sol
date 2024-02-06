@@ -140,7 +140,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
      */
     function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dataCreditRate();
-        _dimoCredit.burn(msg.sender, dcTransferAmount);
+        _dimoCredit.burn(to, dcTransferAmount);
 
         return _issue(to, clientId);
     }
