@@ -54,6 +54,10 @@ contract DimoCredit is Ownable2Step, AccessControl {
     uint256 constant SCALING_FACTOR = 10**18;
     uint256 constant DATA_CREDIT_RATE = 10**3;
 
+    function dataCreditRate() external pure returns (uint256) {
+        return DATA_CREDIT_RATE;
+    }
+
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/

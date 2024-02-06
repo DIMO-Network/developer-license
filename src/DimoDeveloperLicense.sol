@@ -82,23 +82,26 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
 
     constructor(
         address laf_,
+        address provider_,
         address dimoTokenAddress_, 
-        uint256 licenseCost_) Ownable(msg.sender) {
+        uint256 licenseCostInUsd_) Ownable(msg.sender) {
         name = "DIMO Developer License";
         symbol = "DLX";
 
+        _provider = NormalizedPriceProvider(provider_);
+
         _laf = ILicenseAccountFactory(laf_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
-        _licenseCost = licenseCost_;
+        _licenseCostInUsd = licenseCostInUsd_;
     }
 
     /*//////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
 
-    function setLicenseCost(uint256 licenseCost_) public onlyOwner {
-        _licenseCost = licenseCost_;
-        emit UpdateLicenseCost(licenseCost_);
+    function setLicenseCost(uint256 licenseCostInUsd_) public onlyOwner {
+        _licenseCostInUsd = licenseCostInUsd_;
+        emit UpdateLicenseCost(_licenseCostInUsd);
     }
 
     /**
@@ -119,7 +122,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
 
     function issueInDimo(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
         
-        uint256 amountUsdPerToken = _provider.getAmountUsdPerToken();
+        (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * _licenseCostInUsd;
         _dimoToken.transferFrom(to, address(this), tokenTransferAmount);
 
@@ -128,8 +131,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
 
     function issueInDc(address to, string calldata clientId) public returns (uint256 tokenId, address accountAddress) {
 
-        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.DATA_CREDIT_RATE;
-        _dimoCredit.burn(msg.sender, address(this), dcTransferAmount);
+        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dataCreditRate();
+        _dimoCredit.burn(msg.sender, dcTransferAmount);
 
         return _issue(to, clientId);
     }
@@ -231,7 +234,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     /*//////////////////////////////////////////////////////////////
                          Private Helper Functions
     //////////////////////////////////////////////////////////////*/
-
     function _exists(uint256 tokenId) private view returns (bool) {
         return keccak256(bytes(_tokenIdToClientId[tokenId])) != keccak256(bytes(""));
     }
@@ -239,7 +241,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     /*//////////////////////////////////////////////////////////////
                              NO-OP NFT Logic
     //////////////////////////////////////////////////////////////*/
-
     function approve(address /*spender*/, uint256 /*id*/) public virtual {
         revert(INVALID_OPERATION);
     }
@@ -272,7 +273,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
-
     function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
         return
             interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165

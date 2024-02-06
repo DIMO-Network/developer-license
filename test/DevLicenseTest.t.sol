@@ -49,48 +49,5 @@ contract DimoDeveloperLicenseTest is Test {
         assertEq(license.ownerOf(tokenId), address(this));
         assertEq(ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(address(license)), 10_000 ether);
     }
-
-    // function test_developerLicenseAccount() public {
-
-    //     uint256 privateKey = 0x1337;
-    //     address user = vm.addr(privateKey);
-
-    //     dimoToken.mint(user, 10_000 ether);
-
-    //     vm.startPrank(user);
-    //     dimoToken.approve(address(license), 10_000 ether);
-    //     (uint256 tokenId, address accountAddress) = license.issueInDimo("solala");
-    //     license.enableSigner(tokenId, user);
-    //     vm.stopPrank();
-
-    //     bool signer = license.isSigner(tokenId, user);
-    //     console2.log("signer: %s", signer);
-
-    //     bytes32 hashValue = keccak256(
-    //         abi.encodePacked(
-    //             keccak256(
-    //                 "\x19Ethereum Signed Message:\n32"
-    //             ),
-    //             keccak256("Hello World")
-    //         )   
-    //     );
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
-    //     bytes memory signature = abi.encodePacked(r, s, v); 
-    //     bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
-    //     //0x1626ba7e
-    //     console2.logBytes4(output);
-    //     assertEq(IERC1271.isValidSignature.selector, output);
-    // }
-
-    // function test_existsLocked() public {
-    //     (uint256 tokenId,) = license.issueInDimo("test");
-
-    //     bool locked = license.locked(tokenId);
-    //     assertEq(locked, true);
-
-    //     vm.expectRevert("DimoDeveloperLicense: invalid tokenId");
-    //     license.locked(300);
-    // }
-
     
 }

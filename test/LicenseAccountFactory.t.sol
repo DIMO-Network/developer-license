@@ -18,7 +18,7 @@ contract LicenseAccountFactoryTest is Test {
         LicenseAccountFactory laf = new LicenseAccountFactory();
         
         //dimoToken = new MockDimoToken();
-        license = new DimoDeveloperLicense(address(laf), address(dimoToken), 10_000 ether);
+        license = new DimoDeveloperLicense(address(laf),  address(0), address(dimoToken), 10_000 ether);
         dimoToken.approve(address(license), 10_000 ether);
     }
 
