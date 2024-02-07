@@ -27,8 +27,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     string public name;
     string public symbol;
 
-    uint256 public _licenseCostOffsetDc;  ///@dev variable pricing for cost in DC
-    uint256 public _licenseCostOffsetDimo;///@dev variable pricing for cost in $DIMO
+    // uint256 public _licenseCostOffsetDc;  ///@dev variable pricing for cost in DC
+    // uint256 public _licenseCostOffsetDimo;///@dev variable pricing for cost in $DIMO
     uint256 public _licenseCostInUsd;
     uint256 public _minimumStake;
     uint256 public _counter;

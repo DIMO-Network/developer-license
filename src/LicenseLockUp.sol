@@ -21,7 +21,6 @@ contract LicenseLockUp {
     mapping(uint256 => uint256) private _licenseLockUpTotal;
 
     constructor(address dimoToken_) {
-
         _dimoToken = IDimoToken(dimoToken_);
     }
 
@@ -29,6 +28,7 @@ contract LicenseLockUp {
         require(amount > 0, "Amount must be greater than 0");
 
         //require that they're a validSigner...
+        isSigner(tokenId, msg.sender);
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
 
