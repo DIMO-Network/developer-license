@@ -27,6 +27,8 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     string public name;
     string public symbol;
 
+    uint256 public _licenseCostOffsetDc;  ///@dev variable pricing for cost in DC
+    uint256 public _licenseCostOffsetDimo;///@dev variable pricing for cost in $DIMO
     uint256 public _licenseCostInUsd;
     uint256 public _minimumStake;
     uint256 public _counter;
@@ -41,8 +43,42 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     mapping(uint256 => address) internal _ownerOf;
     mapping(uint256 tokenId => bool) private _revoked;
     mapping(uint256 => mapping(string => bool)) private redirectUris;
-    mapping(uint256 => mapping(address => uint256)) private signers;
-    ///@dev points to block.timestamp
+    mapping(uint256 => mapping(address => uint256)) private signers; ///@dev points to block.timestamp
+
+
+    event Deposit(uint256 indexed tokenId, address indexed user, uint256 amount);
+    event Withdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
+
+    /* * */
+
+    mapping(uint256 => mapping(address => uint256)) private _licenseLockUp;
+
+    function deposit(uint256 tokenId, uint256 amount) public {
+        require(amount > 0, "Amount must be greater than 0");
+
+        //require that they're a validSigner...
+
+        _licenseLockUp[tokenId][msg.sender] += amount;
+
+        emit Deposit(tokenId, msg.sender, amount);
+    }
+
+    function withdraw(uint256 tokenId, uint256 amount) public {
+        require(amount > 0, "Amount must be greater than 0");
+        require(_licenseLockUp[tokenId][msg.sender] >= amount, "Insufficient balance to withdraw");
+
+        _licenseLockUp[tokenId][msg.sender] -= amount;
+
+        emit Withdraw(tokenId, msg.sender, amount);
+    }
+
+    function balanceOf(uint256 tokenId, address user) public view returns (uint256) {
+        return _licenseLockUp[tokenId][user];
+    }
+
+    /* * */
+
+
     
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
@@ -304,7 +340,7 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
         bytes memory /*data*/
     ) public virtual {
         revert(INVALID_OPERATION);
-    } //^add these to DC
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
