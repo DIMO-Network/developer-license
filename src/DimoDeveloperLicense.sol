@@ -316,7 +316,4 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
             interfaceId == 0x5b5e139f;   // ERC165 Interface ID for ERC721Metadata
     }
 
-
-
-
 }
