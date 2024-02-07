@@ -45,41 +45,6 @@ contract DimoDeveloperLicense is Ownable2Step, IDimoDeveloperLicense, Metadata {
     mapping(uint256 => mapping(string => bool)) private redirectUris;
     mapping(uint256 => mapping(address => uint256)) private signers; ///@dev points to block.timestamp
 
-
-    event Deposit(uint256 indexed tokenId, address indexed user, uint256 amount);
-    event Withdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
-
-    /* * */
-
-    mapping(uint256 => mapping(address => uint256)) private _licenseLockUp;
-
-    function deposit(uint256 tokenId, uint256 amount) public {
-        require(amount > 0, "Amount must be greater than 0");
-
-        //require that they're a validSigner...
-
-        _licenseLockUp[tokenId][msg.sender] += amount;
-
-        emit Deposit(tokenId, msg.sender, amount);
-    }
-
-    function withdraw(uint256 tokenId, uint256 amount) public {
-        require(amount > 0, "Amount must be greater than 0");
-        require(_licenseLockUp[tokenId][msg.sender] >= amount, "Insufficient balance to withdraw");
-
-        _licenseLockUp[tokenId][msg.sender] -= amount;
-
-        emit Withdraw(tokenId, msg.sender, amount);
-    }
-
-    function balanceOf(uint256 tokenId, address user) public view returns (uint256) {
-        return _licenseLockUp[tokenId][user];
-    }
-
-    /* * */
-
-
-    
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
 
