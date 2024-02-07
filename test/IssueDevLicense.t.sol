@@ -94,11 +94,11 @@ contract IssueDevLicenseTest is Test {
 
     function test_issueInDc() public {  
 
-        uint256 tokenTransferAmount = dc.dataCreditRate() * 100;
+        uint256 tokenTransferAmount = dc.dimoCreditRate() * 100;
         console2.log("tokenTransferAmount %s", tokenTransferAmount); 
 
         dimoToken.approve(address(dc), 1_000_000 ether);
-        dc.mintAmountOut(address(this), tokenTransferAmount, "");
+        dc.mintAmountDc(address(this), tokenTransferAmount, "");
         assertEq(dc.balanceOf(address(this)), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, false);
@@ -114,14 +114,14 @@ contract IssueDevLicenseTest is Test {
     function test_issueInDcSenderSuccess() public {
         address licenseHolder = address(0x999);
 
-        uint256 tokenTransferAmount = dc.dataCreditRate() * 100;
+        uint256 tokenTransferAmount = dc.dimoCreditRate() * 100;
         
         deal(address(dimoToken), licenseHolder, 1_000_000 ether);
         vm.startPrank(licenseHolder);
         dimoToken.approve(address(dc), tokenTransferAmount);
         vm.stopPrank();
 
-        dc.mintAmountOut(licenseHolder, tokenTransferAmount, "");
+        dc.mintAmountDc(licenseHolder, tokenTransferAmount, "");
         assertEq(dc.balanceOf(licenseHolder), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, false);

@@ -37,10 +37,10 @@ contract DimoCredit is Ownable2Step, AccessControl {
     uint256 public _periodValidity;
 
     uint256 constant SCALING_FACTOR = 10**18;
-    uint256 constant DATA_CREDIT_RATE = 10**3;
+    uint256 constant DIMO_CREDIT_RATE = 10**3;
 
-    function dataCreditRate() external pure returns (uint256) {
-        return DATA_CREDIT_RATE;
+    function dimoCreditRate() external pure returns (uint256) {
+        return DIMO_CREDIT_RATE;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -100,33 +100,33 @@ contract DimoCredit is Ownable2Step, AccessControl {
         address to, 
         uint256 amountIn,
         bytes calldata data
-        ) external {
+        ) external returns(uint256 dimoCredits) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
         uint256 usdAmount = (amountIn * amountUsdPerToken) / SCALING_FACTOR;
 
         // Convert USD amount to data credits
-        uint256 dataCredits = usdAmount * DATA_CREDIT_RATE;
+        dimoCredits = usdAmount * DIMO_CREDIT_RATE;
         
-        _mint(amountIn, dataCredits, to);
+        _mint(amountIn, dimoCredits, to);
     }
 
-    function mintAmountOut(
+    function mintAmountDc(
         address to, 
-        uint256 dataCredits,
+        uint256 dimoCredits,
         bytes calldata data
-        ) external {
+        ) external returns(uint256 amountIn) {
 
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
 
         // Calculate the equivalent USD amount from data credits
-        uint256 usdAmount = dataCredits / DATA_CREDIT_RATE;
+        uint256 usdAmount = dimoCredits / DIMO_CREDIT_RATE;
 
         // Adjust for precision
-        uint256 amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
+        amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
 
-        _mint(amountIn, dataCredits, to);
+        _mint(amountIn, dimoCredits, to);
     }
 
     /**
