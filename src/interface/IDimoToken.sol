@@ -5,4 +5,5 @@ interface IDimoToken {
     function balanceOf(address _owner) external view returns (uint256 balance);
     function transferFrom(address from, address to, uint256 value) external returns (bool);
     function approve(address spender, uint256 value) external returns (bool success);
+    function burn(address user, uint256 amount) external;
 }

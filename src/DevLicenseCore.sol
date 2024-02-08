@@ -56,9 +56,9 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
-    string INVALID_TOKEN_ID = "DimoDeveloperLicense: invalid tokenId";
-    string INVALID_OPERATION = "DimoDeveloperLicense: invalid operation";
-    string INVALID_MSG_SENDER = "DimoDeveloperLicense: invalid msg.sender";
+    string INVALID_TOKEN_ID = "DevLicenseDimo: invalid tokenId";
+    string INVALID_OPERATION = "DevLicenseDimo: invalid operation";
+    string INVALID_MSG_SENDER = "DevLicenseDimo: invalid msg.sender";
 
     /*//////////////////////////////////////////////////////////////
                             Modifiers
