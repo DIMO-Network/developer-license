@@ -111,28 +111,32 @@ contract DevLicenseLock is DevLicenseCore {
         emit UpdateMinimumStake(minimumLockAmount_);
     }
 
+    ///@notice these functions require careful accounting...
+
     /**
      * TODO: do we want this generalized transfer function, or 
      * do we want to be more restrictive with what we can do...
      */
-    function reallocate(uint256 tokenId, uint256 amount) public onlyOwner {
-        require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
+    // function reallocate(uint256 tokenId, uint256 amount, address to) public onlyOwner {
+    //     require(_licenseLockUpTotal[tokenId] <= amount, INVALID_PARAM);
 
-        _licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-        _licenseLockUpTotal[tokenId] -= amount;
+    //     //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
+    //     _licenseLockUpTotal[tokenId] -= amount;
 
-        _dimoToken.transferFrom(address(this), msg.sender, amount);
-        emit AdminSanction(tokenId, amount);
-    }
+    //     _dimoToken.transferFrom(address(this), to, amount);
+    //     emit AdminSanction(tokenId, amount);
+    // }
 
     /**
+     * you need to fix this accounting...
      * 
+     * we could limit the number of valid signers, to liek 100 or something,,,
      */
     function burn(uint256 tokenId, uint256 amount) public onlyOwner {
         require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
 
-        _licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-        _licenseLockUpTotal[tokenId] -= amount;
+        //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
+        //_licenseLockUpTotal[tokenId] -= amount;
 
         _dimoToken.burn(address(this), amount);
         emit AdminSanction(tokenId, amount);

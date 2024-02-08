@@ -6,4 +6,5 @@ interface IDimoToken {
     function transferFrom(address from, address to, uint256 value) external returns (bool);
     function approve(address spender, uint256 value) external returns (bool success);
     function burn(address user, uint256 amount) external;
+    function grantRole(bytes32 role, address account) external;
 }

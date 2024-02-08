@@ -10,6 +10,7 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {TwapV3} from "../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
+import {IDimoToken} from "../src/interface/IDimoToken.sol";
 
 //forge test --match-path ./test/DevLicenseLock.t.sol -vv
 contract DevLicenseLockTest is Test {
@@ -78,9 +79,35 @@ contract DevLicenseLockTest is Test {
         
         assertEq(license.balanceOfLockUpUser(tokenId, user01), amount01);
         assertEq(license.balanceOfLockUpLicense(tokenId), amount00 + amount01);
+        assertEq(dimoToken.balanceOf(address(license)), amount00 + amount01);
     }
 
+    //_dimoToken.approve(address spender, uint256 amount)
+    function test_reallocateSuccess() public { 
 
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123);
+        IDimoToken(address(dimoToken)).grantRole(keccak256("BURNER_ROLE"), address(license));
+        vm.stopPrank();
+
+        address user00 = address(this);
+        license.enableSigner(tokenId, user00);
+
+        uint256 amount00 = 1 ether;
+        license.lock(tokenId, amount00); 
+
+        assertEq(license.balanceOfLockUpUser(tokenId, user00), amount00);
+        assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
+        assertEq(dimoToken.balanceOf(address(license)), amount00);
+
+        address user01 = address(0x123);
+        
+        license.burn(tokenId, amount00);
+        
+        // assertEq(license.balanceOfLockUpUser(tokenId, user01), 0);
+        // assertEq(license.balanceOfLockUpLicense(tokenId), 0);
+        // assertEq(dimoToken.balanceOf(address(license)), 0);
+        // assertEq(dimoToken.balanceOf(address(user01)), amount00);
+    }
 
     
 }
