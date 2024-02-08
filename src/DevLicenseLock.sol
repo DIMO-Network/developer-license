@@ -35,13 +35,17 @@ contract DevLicenseLock is DevLicenseCore {
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_
     ) DevLicenseCore(laf_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) {
+
+        _minimumStake = 1 ether;
     }
 
+    /**
+     * TODO: msg.sender or from param
+     */
     function deposit(uint256 tokenId, uint256 amount) public {
-        require(amount > 0, "Amount must be greater than 0");
+        require(amount > _minimumStake, "Amount must be greater than 0");
+        require(isSigner(tokenId, msg.sender), "Amount must be greater than 0");
 
-        //require that they're a validSigner...
-        isSigner(tokenId, msg.sender);
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
 
