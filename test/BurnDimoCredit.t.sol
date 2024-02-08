@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DimoDeveloperLicense} from "../src/DimoDeveloperLicense.sol";
 import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
 import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
@@ -21,7 +20,6 @@ contract BurnDimoCreditTest is Test {
 
     DimoCredit dc;
     IDimoToken dimoToken;
-    DimoDeveloperLicense license;
     NormalizedPriceProvider npp;
 
     function setUp() public {

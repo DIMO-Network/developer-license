@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DimoDeveloperLicense} from "../src/DimoDeveloperLicense.sol";
+import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
 import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
 import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
@@ -17,7 +17,7 @@ import {DimoCredit} from "../src/DimoCredit.sol";
 contract DimoDeveloperLicenseTest is Test {
 
     ERC20 dimoToken;
-    DimoDeveloperLicense license;
+    DevLicenseDimo license;
 
     DimoCredit dc;
     NormalizedPriceProvider npp;
@@ -39,7 +39,7 @@ contract DimoDeveloperLicenseTest is Test {
 
         dc = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(npp));
 
-        license = new DimoDeveloperLicense(
+        license = new DevLicenseDimo(
             address(laf), 
             address(npp), 
             address(dimoToken), 
@@ -54,7 +54,7 @@ contract DimoDeveloperLicenseTest is Test {
 
     function test_mintLicenseSuccess() public {   
         vm.expectEmit(true, true, false, false);
-        emit DimoDeveloperLicense.Issued(1, address(this), address(0), address(0));
+        emit DevLicenseDimo.Issued(1, address(this), address(0), address(0));
 
         (uint256 tokenId,) = license.issueInDimo();
         assertEq(tokenId, 1);
