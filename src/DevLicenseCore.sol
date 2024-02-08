@@ -24,8 +24,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _laf;
-    uint256 public _periodValidity; ///@dev signer validity expiration
-
+    uint256 public _periodValidity; 
+    ///@dev ^signer validity expiration
     uint256 public _licenseCostInUsd;
 
     uint256 public _counter;
@@ -34,12 +34,12 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
                               Mappings
     //////////////////////////////////////////////////////////////*/
     mapping(uint256 => address) internal _ownerOf;
-    mapping(uint256 => mapping(address => uint256)) private _signers; ///@dev points to block.timestamp
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
-
+    mapping(uint256 => mapping(address => uint256)) private _signers; 
+    ///@dev ^points to block.timestamp
     mapping(uint256 tokenId => bool) private _revoked; 
-    ///@notice TODO: ^implement me!!!
+    ///@notice TODO: ^test me!!!
 
     /*//////////////////////////////////////////////////////////////
                             Events
@@ -64,7 +64,6 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
                             Modifiers
     //////////////////////////////////////////////////////////////*/
 
-    //TODO: what operations could this contract actually perform?
     modifier onlyTokenOwner(uint256 tokenId) { 
         require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
         _;
@@ -92,9 +91,13 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     /* * */
 
     /**
-     * @notice validity period...
+     * @notice signer/owner/minter???
      */
     function enableSigner(uint256 tokenId, address signer) onlyTokenOwner(tokenId) external {
+        _enableSigner(tokenId, signer);
+    }
+
+    function _enableSigner(uint256 tokenId, address signer) internal {
         _signers[tokenId][signer] = block.timestamp;
         emit SignerEnabled(tokenId, signer);
     }
@@ -205,7 +208,7 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     //////////////////////////////////////////////////////////////*/
     function _exists(uint256 tokenId) private view returns (bool) {
         //TODO: _test_ these supportive functuions
-        return _tokenIdToClientId[tokenId] != address(0);
+        return _ownerOf[tokenId] != address(0);
     }
 
     /*//////////////////////////////////////////////////////////////

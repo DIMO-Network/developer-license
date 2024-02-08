@@ -14,7 +14,7 @@ import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.s
 import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 
-//forge test --match-path ./test/IssueDevLicenseTest.t.sol -vv
+//forge test --match-path ./test/IssueDevLicense.t.sol -vv
 contract IssueDevLicenseTest is Test {
 
     DimoCredit dc;
@@ -57,7 +57,7 @@ contract IssueDevLicenseTest is Test {
      */
     function test_issueInDimoSuccess() public {   
         vm.expectEmit(true, true, false, false);
-        emit DevLicenseDimo.Issued(1, address(this), address(0), address(0));
+        emit DevLicenseDimo.Issued(1, address(this), address(0));
 
         (uint256 tokenId,) = license.issueInDimo();
         assertEq(tokenId, 1);
@@ -65,8 +65,7 @@ contract IssueDevLicenseTest is Test {
 
         (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * 100;
-        console2.log("tokenTransferAmount %s", tokenTransferAmount);
-
+        //console2.log("tokenTransferAmount %s", tokenTransferAmount);
         assertEq(dimoToken.balanceOf(dc.receiver()), tokenTransferAmount);
     }
 
@@ -84,7 +83,7 @@ contract IssueDevLicenseTest is Test {
         vm.stopPrank();
 
         vm.expectEmit(true, true, false, false);
-        emit DevLicenseDimo.Issued(1, licenseHolder, address(0), address(0));
+        emit DevLicenseDimo.Issued(1, licenseHolder, address(0));
 
         (uint256 tokenId,) = license.issueInDimo(licenseHolder);
         assertEq(tokenId, 1);
@@ -102,7 +101,7 @@ contract IssueDevLicenseTest is Test {
         assertEq(dc.balanceOf(address(this)), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, false);
-        emit DevLicenseDimo.Issued(1, address(this), address(0), address(0));
+        emit DevLicenseDimo.Issued(1, address(this), address(0));
 
         (uint256 tokenId,) = license.issueInDc(address(this));
         assertEq(tokenId, 1);
@@ -125,9 +124,10 @@ contract IssueDevLicenseTest is Test {
         assertEq(dc.balanceOf(licenseHolder), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, false);
-        emit DevLicenseDimo.Issued(1, licenseHolder, address(0), address(0));
+        emit DevLicenseDimo.Issued(1, licenseHolder, address(0));
 
         (uint256 tokenId,) = license.issueInDc(licenseHolder);
+
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), licenseHolder);
         assertEq(dc.balanceOf(licenseHolder), 0);

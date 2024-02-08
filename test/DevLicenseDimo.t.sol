@@ -13,8 +13,8 @@ import {TwapV3} from "../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 
-//forge test --match-path ./test/DimoDeveloperLicense.t.sol -vv
-contract DimoDeveloperLicenseTest is Test {
+//forge test --match-path ./test/DevLicenseDimo.t.sol -vv
+contract DevLicenseDimoTest is Test {
 
     ERC20 dimoToken;
     DevLicenseDimo license;
@@ -54,15 +54,15 @@ contract DimoDeveloperLicenseTest is Test {
 
     function test_mintLicenseSuccess() public {   
         vm.expectEmit(true, true, false, false);
-        emit DevLicenseDimo.Issued(1, address(this), address(0), address(0));
-
-        (uint256 tokenId,) = license.issueInDimo();
+        emit DevLicenseDimo.Issued(1, address(this), address(0));
+         
+        (uint256 tokenId, address clientId) = license.issueInDimo();
         assertEq(tokenId, 1);
+
+        assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * 100;
-
-        assertEq(license.ownerOf(tokenId), address(this));
         assertEq(dimoToken.balanceOf(address(dc.receiver())), tokenTransferAmount);
     }
 
@@ -90,7 +90,7 @@ contract DimoDeveloperLicenseTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
         bytes memory signature = abi.encodePacked(r, s, v); 
         bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
-        console2.logBytes4(output);
+        //console2.logBytes4(output);
         assertEq(IERC1271.isValidSignature.selector, output);
     }
 
@@ -100,7 +100,7 @@ contract DimoDeveloperLicenseTest is Test {
         bool locked = license.locked(tokenId);
         assertEq(locked, true);
 
-        vm.expectRevert("DimoDeveloperLicense: invalid tokenId");
+        vm.expectRevert("DevLicenseDimo: invalid tokenId");
         license.locked(300);
     }
 

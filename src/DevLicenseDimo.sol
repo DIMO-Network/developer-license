@@ -28,15 +28,8 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    //TODO: what here needs to be indexed...
-
-    event RedirectUriEnabled(uint256 indexed tokenId, string uri);
-    event Issued(
-        uint256 indexed tokenId, 
-        address indexed owner, 
-        address indexed account, 
-        address clientId
-    );
+    event RedirectUriEnabled(uint256 tokenId, string uri);
+    event Issued(uint256 tokenId, address owner, address clientId);
 
     /*//////////////////////////////////////////////////////////////
                               Mappings
@@ -64,7 +57,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     }
 
     /**
-     * TODO: why is the token owner able to set this? 
+     * 
      */
     function enableRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
         _redirectUris[tokenId][uri] = true;
@@ -99,7 +92,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
      * TODO: is this math correct? do we need to normalize it... 
      */
     function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
-        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dataCreditRate();
+        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dimoCreditRate();
         _dimoCredit.burn(to, dcTransferAmount);
 
         return _issue(to);
@@ -107,17 +100,14 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
 
     //clientId == accountAddress
     function _issue(address to) private returns (uint256 tokenId, address clientId) {
-        //require(_clientIdToTokenId[clientId] == 0, "DimoDeveloperLicense: invalid clientId");
-
         tokenId = ++_counter;
         clientId = _laf.create(tokenId);
-        
+
         _tokenIdToClientId[tokenId] = clientId;
         _clientIdToTokenId[clientId] = tokenId;
+        _ownerOf[tokenId] = to;
 
-        _ownerOf[tokenId] = to; 
-
-        emit Issued(tokenId, to, clientId, clientId);
+        emit Issued(tokenId, to, clientId);
         emit Locked(tokenId); ///@dev IERC5192
         emit Transfer(address(0), to, tokenId); ///@dev ERC721
     }
