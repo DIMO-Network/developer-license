@@ -102,11 +102,11 @@ contract DevLicenseLockTest is Test {
         address user01 = address(0x123);
         
         license.burn(tokenId, amount00);
+        //TODO: accounting is a problem here...
         
-        // assertEq(license.balanceOfLockUpUser(tokenId, user01), 0);
-        // assertEq(license.balanceOfLockUpLicense(tokenId), 0);
-        // assertEq(dimoToken.balanceOf(address(license)), 0);
-        // assertEq(dimoToken.balanceOf(address(user01)), amount00);
+        //assertEq(license.balanceOfLockUpUser(tokenId, user01), 0);
+        //assertEq(license.balanceOfLockUpLicense(tokenId), 0);
+        assertEq(dimoToken.balanceOf(address(license)), 0);
     }
 
     
