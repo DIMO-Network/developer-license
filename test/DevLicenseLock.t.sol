@@ -11,14 +11,17 @@ import {TwapV3} from "../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 
-//forge test --match-path ./test/Lock.t.sol -vv
-contract LockTest is Test {
+//forge test --match-path ./test/DevLicenseLock.t.sol -vv
+contract DevLicenseLockTest is Test {
 
     ERC20 dimoToken;
     DevLicenseDimo license;
 
     DimoCredit dc;
     NormalizedPriceProvider npp;
+
+    uint256 tokenId;
+    address clientId;
 
     function setUp() public {
         vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
@@ -48,10 +51,33 @@ contract LockTest is Test {
         laf.setLicense(address(license));
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(license), 1_000_000 ether);
+
+        (tokenId, clientId) = license.issueInDimo();    
     }
 
-    function test_mintLicenseSuccess() public {   
+    function test_lockSuccess() public { 
+
+        address user00 = address(this);
+        license.enableSigner(tokenId, user00);
+
+        uint256 amount00 = 1 ether;
+        license.lock(tokenId, amount00); 
+
+        assertEq(license.balanceOfLockUpUser(tokenId, user00), amount00);
+        assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
+
+        address user01 = address(0x123);
+        uint256 amount01 = 1_000_000 ether;
+        license.enableSigner(tokenId, user01);
+        deal(address(dimoToken), user01, amount01);
+
+        vm.startPrank(user01);
+        dimoToken.approve(address(license), amount01);
+        license.lock(tokenId, amount01); 
+        vm.stopPrank();
         
+        assertEq(license.balanceOfLockUpUser(tokenId, user01), amount01);
+        assertEq(license.balanceOfLockUpLicense(tokenId), amount00 + amount01);
     }
 
 

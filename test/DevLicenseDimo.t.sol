@@ -56,7 +56,7 @@ contract DevLicenseDimoTest is Test {
         vm.expectEmit(true, true, false, false);
         emit DevLicenseDimo.Issued(1, address(this), address(0));
          
-        (uint256 tokenId, address clientId) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo();
         assertEq(tokenId, 1);
 
         assertEq(license.ownerOf(tokenId), address(this));

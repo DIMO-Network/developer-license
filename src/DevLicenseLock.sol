@@ -56,9 +56,11 @@ contract DevLicenseLock is DevLicenseCore {
 
     /**
      * TODO: msg.sender or from param
+     * 
+     * NOTE: have to be a valid singer!
      */
-    function deposit(uint256 tokenId, uint256 amount) public {
-        require(amount > _minimumStake, INVALID_PARAM);
+    function lock(uint256 tokenId, uint256 amount) public {
+        require(amount >= _minimumStake, INVALID_PARAM);
         require(isSigner(tokenId, msg.sender), INVALID_MSG_SENDER);
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
@@ -81,7 +83,7 @@ contract DevLicenseLock is DevLicenseCore {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            Info Functions
+                            View Functions
     //////////////////////////////////////////////////////////////*/
 
     function balanceOfLockUpUser(uint256 tokenId, address user) public view returns (uint256 balance) {
@@ -104,10 +106,9 @@ contract DevLicenseLock is DevLicenseCore {
     /**
      * TODO: prolly should be a role for this instead of 'onlyOwner'
      */
-
-    function setMinimumStake(uint256 minimumStake_) public onlyOwner {
-        _minimumStake = minimumStake_;
-        emit UpdateMinimumStake(_minimumStake);
+    function setMinimumLockAmount(uint256 minimumLockAmount_) public onlyOwner {
+        _minimumStake = minimumLockAmount_;
+        emit UpdateMinimumStake(minimumLockAmount_);
     }
 
     /**
