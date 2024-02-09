@@ -91,6 +91,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     /* * */
 
     /**
+     * signer aka api key
+     * 
      * @notice signer/owner/minter???
      */
     function enableSigner(uint256 tokenId, address signer) onlyTokenOwner(tokenId) external {
