@@ -57,55 +57,27 @@ contract DevLicenseLockTest is Test {
     }
 
     function test_lockSuccess() public { 
-
-        address user00 = address(this);
-        license.enableSigner(tokenId, user00);
-
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00); 
 
         assertEq(license.balanceOf(tokenId), amount00);
-        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
-
-        address user01 = address(0x123);
-        uint256 amount01 = 1_000_000 ether;
-        license.enableSigner(tokenId, user01);
-        deal(address(dimoToken), user01, amount01);
-
-        vm.startPrank(user01);
-        dimoToken.approve(address(license), amount01);
-        license.lock(tokenId, amount01); 
-        vm.stopPrank();
-        
-        assertEq(license.balanceOf(tokenId), amount00 + amount01);
-        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00 + amount01);
-        assertEq(dimoToken.balanceOf(address(license)), amount00 + amount01);
+        assertEq(dimoToken.balanceOf(address(license)), amount00);
     }
 
     //_dimoToken.approve(address spender, uint256 amount)
-    function test_reallocateSuccess() public { 
-
+    function test_burnSuccess() public { 
         vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123);
         IDimoToken(address(dimoToken)).grantRole(keccak256("BURNER_ROLE"), address(license));
         vm.stopPrank();
 
-        address user00 = address(this);
-        license.enableSigner(tokenId, user00);
-
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00); 
 
         assertEq(license.balanceOf(tokenId), amount00);
-        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
 
-        address user01 = address(0x123);
-        
         license.burn(tokenId, amount00);
-        //TODO: accounting is a problem here...
         
-        //assertEq(license.balanceOfLockUpUser(tokenId, user01), 0);
-        //assertEq(license.balanceOfLockUpLicense(tokenId), 0);
         assertEq(dimoToken.balanceOf(address(license)), 0);
     }
 

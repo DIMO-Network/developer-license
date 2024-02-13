@@ -13,7 +13,7 @@ import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
 import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
 /** 
- * 
+ * license burnable by user? whats the upside
  */
 contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
 
