@@ -57,11 +57,11 @@ contract DevLicenseLock is DevLicenseCore {
     /**
      * TODO: msg.sender or from param
      * 
-     * NOTE: have to be a valid singer!
      */
     function lock(uint256 tokenId, uint256 amount) public {
         require(amount >= _minimumStake, INVALID_PARAM);
-        require(isSigner(tokenId, msg.sender), INVALID_MSG_SENDER);
+        //require(isSigner(tokenId, msg.sender), INVALID_MSG_SENDER);
+        require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
 
