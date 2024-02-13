@@ -53,7 +53,6 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     ) {
         symbol = "DLX";
         name = "DIMO Developer License";
-        
     }
 
     /**
