@@ -22,15 +22,15 @@ contract DevLicenseLock is DevLicenseCore {
 
     /* * */
 
-    mapping(uint256 => mapping(address => uint256)) public _licenseLockUpDeposit;
-    mapping(uint256 => uint256) public _licenseLockUpTotal;
+    mapping(uint256 => uint256) public _licenseLockUp;
     mapping(uint256 => bool) public _licenseLockUpFrozen;
 
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
     event UpdateMinimumStake(uint256 amount);
-    event AdminSanction(uint256 tokenId, uint256 amount);
+    event AssetFreezeUpdate(uint256 tokenId, uint256 amount, bool frozen);
+    event AssetForfeit(uint256 tokenId, uint256 amount);
     event Deposit(uint256 indexed tokenId, address indexed user, uint256 amount);
     event Withdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
 
@@ -60,24 +60,33 @@ contract DevLicenseLock is DevLicenseCore {
      */
     function lock(uint256 tokenId, uint256 amount) public {
         require(amount >= _minimumStake, INVALID_PARAM);
-        //require(isSigner(tokenId, msg.sender), INVALID_MSG_SENDER);
         require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
 
-        _licenseLockUpDeposit[tokenId][msg.sender] += amount;
-        _licenseLockUpTotal[tokenId] += amount;
+        //_licenseLockUpDeposit[tokenId][msg.sender] += amount;
+        //_licenseLockUpTotal[tokenId] += amount;
+
+        _licenseLockUp[tokenId] += amount;
+
+
 
         emit Deposit(tokenId, msg.sender, amount);
     }
 
     function withdraw(uint256 tokenId, uint256 amount) public {
         require(amount > 0, INVALID_PARAM);
-        require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
 
-        _licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-        _licenseLockUpTotal[tokenId] -= amount;
+        //require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
+        bool validAmount = _licenseLockUp[tokenId] >= amount;
+        bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
+        require(validAmount && validMin, INVALID_PARAM);
+
+        //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
+        //_licenseLockUpTotal[tokenId] -= amount;
+
+        _licenseLockUp[tokenId] -= amount;
 
         emit Withdraw(tokenId, msg.sender, amount);
     }
@@ -86,17 +95,8 @@ contract DevLicenseLock is DevLicenseCore {
                             View Functions
     //////////////////////////////////////////////////////////////*/
 
-    function balanceOfLockUpUser(uint256 tokenId, address user) public view returns (uint256 balance) {
-        return _licenseLockUpDeposit[tokenId][user];
-    }
-
-    function balanceOfLockUpLicense(uint256 tokenId) public view returns (uint256 balance) {
-        bool frozen = _licenseLockUpFrozen[tokenId];
-        if(frozen){
-            balance = 0;
-        } else {
-            balance = _licenseLockUpTotal[tokenId];
-        }
+    function balanceOf(uint256 tokenId) public view returns (uint256 balance) {
+        balance = _licenseLockUp[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -133,23 +133,26 @@ contract DevLicenseLock is DevLicenseCore {
      * we could limit the number of valid signers, to liek 100 or something,,,
      */
     function burn(uint256 tokenId, uint256 amount) public onlyOwner {
-        require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
+        //require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
+
+        require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
         //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
         //_licenseLockUpTotal[tokenId] -= amount;
+        _licenseLockUp[tokenId] -= amount;
 
         _dimoToken.burn(address(this), amount);
-        emit AdminSanction(tokenId, amount);
+        //emit AdminSanction(tokenId, amount);
+
+        emit AssetForfeit(tokenId, amount);
     }
 
     /**
-     * 
+     * role instead of onlyOwner
      */
-    function freeze(uint256 tokenId, bool status) public onlyOwner {
-        if(status) {
-            emit AdminSanction(tokenId, _licenseLockUpTotal[tokenId]);
-        }
-        _licenseLockUpFrozen[tokenId] = status;
+    function freeze(uint256 tokenId, bool frozen) public onlyOwner {
+        _licenseLockUpFrozen[tokenId] = frozen;
+        emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
     }
 
 }

@@ -64,8 +64,8 @@ contract DevLicenseLockTest is Test {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00); 
 
-        assertEq(license.balanceOfLockUpUser(tokenId, user00), amount00);
-        assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
+        assertEq(license.balanceOf(tokenId), amount00);
+        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
 
         address user01 = address(0x123);
         uint256 amount01 = 1_000_000 ether;
@@ -77,8 +77,8 @@ contract DevLicenseLockTest is Test {
         license.lock(tokenId, amount01); 
         vm.stopPrank();
         
-        assertEq(license.balanceOfLockUpUser(tokenId, user01), amount01);
-        assertEq(license.balanceOfLockUpLicense(tokenId), amount00 + amount01);
+        assertEq(license.balanceOf(tokenId), amount00 + amount01);
+        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00 + amount01);
         assertEq(dimoToken.balanceOf(address(license)), amount00 + amount01);
     }
 
@@ -95,8 +95,8 @@ contract DevLicenseLockTest is Test {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00); 
 
-        assertEq(license.balanceOfLockUpUser(tokenId, user00), amount00);
-        assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
+        assertEq(license.balanceOf(tokenId), amount00);
+        //assertEq(license.balanceOfLockUpLicense(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
 
         address user01 = address(0x123);
