@@ -93,9 +93,6 @@ contract DimoCredit is Ownable2Step, AccessControl {
         decimals = decimals_;
     }
 
-
-
-
     /**
      * 
      */
@@ -197,16 +194,3 @@ contract DimoCredit is Ownable2Step, AccessControl {
     }
 
 }
-
-
-// function burn() external returns(uint256) {
-// }
-
-// function lock() external returns(uint256) {
-// }
-
-// function freeze() external returns(uint256) {
-// }
-
-// function transferAdmin() external returns(uint256) {
-// }
