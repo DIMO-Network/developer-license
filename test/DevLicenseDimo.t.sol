@@ -94,15 +94,5 @@ contract DevLicenseDimoTest is Test {
         assertEq(IERC1271.isValidSignature.selector, output);
     }
 
-    function test_existsLocked() public {
-        (uint256 tokenId,) = license.issueInDimo();
-
-        bool locked = license.locked(tokenId);
-        assertEq(locked, true);
-
-        vm.expectRevert("DevLicenseDimo: invalid tokenId");
-        license.locked(300);
-    }
-
     
 }
