@@ -42,11 +42,11 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event Locked(uint256 tokenId);
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdatePeriodValidity(uint256 periodValidity);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); ///@dev On mint & burn
 
     /*//////////////////////////////////////////////////////////////
                             Error Messages

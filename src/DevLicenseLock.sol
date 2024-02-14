@@ -64,12 +64,7 @@ contract DevLicenseLock is DevLicenseCore {
 
         _dimoToken.transferFrom(msg.sender, address(this), amount);
 
-        //_licenseLockUpDeposit[tokenId][msg.sender] += amount;
-        //_licenseLockUpTotal[tokenId] += amount;
-
         _licenseLockUp[tokenId] += amount;
-
-
 
         emit Deposit(tokenId, msg.sender, amount);
     }
@@ -78,13 +73,9 @@ contract DevLicenseLock is DevLicenseCore {
         require(amount > 0, INVALID_PARAM);
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
 
-        //require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
         bool validAmount = _licenseLockUp[tokenId] >= amount;
         bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
         require(validAmount && validMin, INVALID_PARAM);
-
-        //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-        //_licenseLockUpTotal[tokenId] -= amount;
 
         _licenseLockUp[tokenId] -= amount;
 

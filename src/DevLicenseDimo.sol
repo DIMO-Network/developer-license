@@ -3,16 +3,11 @@ pragma solidity ^0.8.20;
 
 import {console2} from "forge-std/Test.sol";
 
-import {IDimoToken} from "./interface/IDimoToken.sol";
-
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
-import {DevLicenseCore} from "./DevLicenseCore.sol";
+import {IDimoToken} from "./interface/IDimoToken.sol";
 import {Metadata} from "./metadata/Metadata.sol";
-
+import {DevLicenseCore} from "./DevLicenseCore.sol";
 import {DevLicenseLock} from "./DevLicenseLock.sol";
-
 
 /** 
  * 
@@ -107,7 +102,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
         _ownerOf[tokenId] = to;
 
         emit Issued(tokenId, to, clientId);
-        emit Locked(tokenId); ///@dev IERC5192
+        emit Locked(tokenId); ///@dev ERC5192
         emit Transfer(address(0), to, tokenId); ///@dev ERC721
     }
 
@@ -127,7 +122,6 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
         delete _tokenIdToClientId[tokenId];
         delete _clientIdToTokenId[clientId];
 
-        emit Revoked(from, tokenId); ///@dev IERC5727
         emit Transfer(tokenOwner, address(0), tokenId); ///@dev ERC721
     }
 
