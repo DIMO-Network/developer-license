@@ -89,6 +89,8 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
 
     /**
      * TODO: is this math correct? do we need to normalize it... 
+     * 
+     * invoke from an EOA account, persist to a smart contract account
      */
     function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
         uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dimoCreditRate();

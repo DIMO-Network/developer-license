@@ -170,9 +170,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
      * @dev ERC5192: Minimal Soulbound NFTs Minimal interface for 
      * soulbinding EIP-721 NFTs
      */
-    function locked(uint256 tokenId) external view returns (bool) {
-        require(_exists(tokenId), INVALID_TOKEN_ID);
-        return true;
+    function locked(uint256 tokenId) external view returns (bool locked_) {
+        require(locked_ = _exists(tokenId), INVALID_TOKEN_ID);
     }
 
     /*//////////////////////////////////////////////////////////////
