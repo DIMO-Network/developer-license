@@ -182,7 +182,22 @@ contract ViewTest is Test {
     function test_licenseCostInUsd() public {
         uint256 licenseCostInUsd00 = license._licenseCostInUsd();
         assertEq(licenseCostInUsd00, _licenseCostInUsd); 
-         
+
+        uint256 licenseCostInUsd01 = 0;
+        license.setLicenseCost(licenseCostInUsd01);
+
+        address user = address(0x1999);
+
+        vm.startPrank(user);
+        license.issueInDimo();
+        vm.stopPrank();
+
+        license.setLicenseCost(1);
+
+        vm.startPrank(user);
+        vm.expectRevert();
+        license.issueInDimo();
+        vm.stopPrank();
     }
     
 }

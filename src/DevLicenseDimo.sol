@@ -107,6 +107,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     }
 
     /**
+     * TODO: users shouldn't be able to burn licenses...
      */
     function burn(uint256 tokenId) internal virtual {
         address tokenOwner = _ownerOf[tokenId];
