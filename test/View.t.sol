@@ -26,7 +26,10 @@ contract ViewTest is Test {
     DevLicenseDimo license;
     NormalizedPriceProvider provider;
 
+    uint256 _licenseCostInUsd;
+
     function setUp() public {
+        _licenseCostInUsd = 100;
         vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
@@ -45,7 +48,7 @@ contract ViewTest is Test {
             address(provider), 
             address(dimoToken), 
             address(dimoCredit),
-            100
+            _licenseCostInUsd
         );
         laf.setLicense(address(license));
         deal(address(dimoToken), address(this), 1_000_000 ether);
@@ -152,12 +155,34 @@ contract ViewTest is Test {
         assertEq(supports721Metadata, true);         
     }
 
-    // function test_periodValidity() public {
-         
-    // }
+    function test_periodValidity() public {
 
-    // function test_licenseCostInUsd() public {
+        address signer = address(0x123);
+        (uint256 tokenId, address clientId) = license.issueInDimo();
+        license.enableSigner(tokenId, signer);
+
+        uint256 periodValidity00 = 365 days;
+        assertEq(license._periodValidity(), periodValidity00);
+
+        bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner00, true);
+
+        uint256 periodValidity01 = 1;
+        license.setPeriodValidity(periodValidity01);
+
+        vm.warp(block.timestamp + 2);
+
+        bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner01, false);  
+
+        assertEq(license._periodValidity(), periodValidity01);
          
-    // }
+    }
+
+    function test_licenseCostInUsd() public {
+        uint256 licenseCostInUsd00 = license._licenseCostInUsd();
+        assertEq(licenseCostInUsd00, _licenseCostInUsd); 
+         
+    }
     
 }
