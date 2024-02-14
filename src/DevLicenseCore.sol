@@ -14,8 +14,7 @@ import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /** 
- * license burnable by user? whats the upside
- * ^TODO: should probably disallow that
+ *
  */
 contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
 
@@ -37,7 +36,6 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
     mapping(uint256 => mapping(address => uint256)) private _signers; ///@dev Expiration determined by block.timestamp
-    mapping(uint256 tokenId => bool) private _revoked; 
 
     /*//////////////////////////////////////////////////////////////
                             Events
@@ -82,7 +80,6 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
         _laf = ILicenseAccountFactory(laf_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCostInUsd = licenseCostInUsd_;
-        
     }
 
     /* * */

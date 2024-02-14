@@ -15,6 +15,11 @@ import {DevLicenseLock} from "./DevLicenseLock.sol";
 contract DevLicenseDimo is DevLicenseLock, Metadata {
 
     /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+
+    /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
     string public name;
@@ -68,7 +73,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     }
 
     /**
-     * @dev transfer spent $DIMO to the DimoCredit receiver, a GnosisSafe address
+     * @dev transfer spent $DIMO to the DimoCredit receiver
      */
     function issueInDimo(address to) public returns (uint256 tokenId, address clientId) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
@@ -92,7 +97,9 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
         return _issue(to);
     }
 
-    //clientId == accountAddress
+    /**
+     * @notice clientId is the DimoDeveloperLicenseAccount that holds the token
+     */
     function _issue(address to) private returns (uint256 tokenId, address clientId) {
         tokenId = ++_counter;
         clientId = _laf.create(tokenId);
@@ -107,15 +114,10 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     }
 
     /**
-     * TODO: users shouldn't be able to burn licenses...
+     * @notice only admin enabled addresses are allowed to burn licenses
      */
-    function burn(uint256 tokenId) internal virtual {
+    function burn(uint256 tokenId) external onlyRole(BURNER_ROLE) {
         address tokenOwner = _ownerOf[tokenId];
-        address from = msg.sender;
-        bool authenticated = from == owner() || 
-                             from == tokenOwner ||
-                             isSigner(tokenId, from);
-        require(authenticated, INVALID_MSG_SENDER);
         
         delete _ownerOf[tokenId];
         
