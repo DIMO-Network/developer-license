@@ -8,6 +8,7 @@ import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {TwapV3} from "../src/provider/TwapV3.sol";
 
 import {DimoCredit} from "../src/DimoCredit.sol";
+import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
 import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
@@ -16,7 +17,7 @@ import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicen
 contract ViewTest is Test {
 
     IDimoToken dimoToken;
-    DimoCredit dimoCredit;
+    IDimoCredit dimoCredit;
 
     DevLicenseDimo license;
     NormalizedPriceProvider provider;
@@ -33,7 +34,7 @@ contract ViewTest is Test {
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 
-        dimoCredit = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider));
+        dimoCredit = IDimoCredit(address(new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider))));
         LicenseAccountFactory laf = new LicenseAccountFactory();
         license = new DevLicenseDimo(
             address(laf), 
@@ -100,21 +101,49 @@ contract ViewTest is Test {
         assertEq(isSigner01, false);  
     }
 
-    //do it for DC this time...
-    function test_isSignerExpire() public {
-         
+
+    function test_isSignerExpired() public {
+        address to = address(0x1989);
+        uint256 amountIn = 100 ether;
+        bytes memory data = "";
+
+        deal(address(dimoToken), to, amountIn);
+        vm.startPrank(to);
+        dimoToken.approve(address(dimoCredit), amountIn);
+        vm.stopPrank();
+        uint256 dimoCredits = dimoCredit.mint(to, amountIn, data);
+
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+        
+        (uint256 tokenId, address clientId) = license.issueInDc(to);
+
+        ///@notice ^mint license to a user other than the caller (using DC)
+
+        address signer = address(0x123);
+        
+        vm.startPrank(to);
+        license.enableSigner(tokenId, signer);
+        vm.stopPrank();
+
+        bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner00, true);
+
+        vm.warp(block.timestamp + 366 days);
+
+        bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner01, false);
     }
 
-    function test_supportsInterface() public {
+    // function test_supportsInterface() public {
          
-    }
+    // }
 
-    function test_periodValidity() public {
+    // function test_periodValidity() public {
          
-    }
+    // }
 
-    function test_licenseCostInUsd() public {
+    // function test_licenseCostInUsd() public {
          
-    }
+    // }
     
 }
