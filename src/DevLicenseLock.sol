@@ -10,18 +10,19 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 
-/**
- * 
- * TODO: minimum stake...
- * 
+/** 
  * https://dimo.zone/news/on-dimo-tokenomics
  */
 contract DevLicenseLock is DevLicenseCore {
 
+    /*//////////////////////////////////////////////////////////////
+                              Member Variables
+    //////////////////////////////////////////////////////////////*/
     uint256 public _minimumStake;
 
-    /* * */
-
+    /*//////////////////////////////////////////////////////////////
+                              Mappings
+    //////////////////////////////////////////////////////////////*/
     mapping(uint256 => uint256) public _licenseLockUp;
     mapping(uint256 => bool) public _licenseLockUpFrozen;
 

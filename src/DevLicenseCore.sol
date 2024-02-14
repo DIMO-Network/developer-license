@@ -182,7 +182,6 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
                          Private Helper Functions
     //////////////////////////////////////////////////////////////*/
     function _exists(uint256 tokenId) private view returns (bool) {
-        //TODO: _test_ these supportive functuions
         return _ownerOf[tokenId] != address(0);
     }
 
