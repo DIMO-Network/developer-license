@@ -80,7 +80,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         address provider_
     ) Ownable(msg.sender) {
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner());
 
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _provider = NormalizedPriceProvider(provider_);

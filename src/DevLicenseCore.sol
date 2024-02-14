@@ -3,19 +3,21 @@ pragma solidity ^0.8.20;
 
 import {console2} from "forge-std/Test.sol";
 
-import {IDimoToken} from "./interface/IDimoToken.sol";
-
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IDimoCredit} from "./interface/IDimoCredit.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
-
 import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
+import {IDimoCredit} from "./interface/IDimoCredit.sol";
+import {IDimoToken} from "./interface/IDimoToken.sol";
+
 /** 
  * license burnable by user? whats the upside
+ * ^TODO: should probably disallow that
  */
-contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
+contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
@@ -24,10 +26,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _laf;
-    uint256 public _periodValidity; 
-    ///@dev ^signer validity expiration
+    uint256 public _periodValidity; ///@dev signer validity expiration
     uint256 public _licenseCostInUsd;
-
     uint256 public _counter;
 
     /*//////////////////////////////////////////////////////////////
@@ -36,18 +36,13 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     mapping(uint256 => address) internal _ownerOf;
     mapping(uint256 => address) _tokenIdToClientId;
     mapping(address => uint256) _clientIdToTokenId;
-    mapping(uint256 => mapping(address => uint256)) private _signers; 
-    ///@dev ^points to block.timestamp
+    mapping(uint256 => mapping(address => uint256)) private _signers; ///@dev Expiration determined by block.timestamp
     mapping(uint256 tokenId => bool) private _revoked; 
-    ///@notice TODO: ^test me!!!
 
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    //TODO: what here needs to be indexed...
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
-    event Revoked(address indexed from, uint256 indexed tokenId); ///@dev IERC5727
-    event Verified(address indexed by, uint256 indexed tokenId, bool result);
     event Locked(uint256 tokenId);
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdatePeriodValidity(uint256 periodValidity);
@@ -75,6 +70,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) Ownable(msg.sender) {
+
+        _grantRole(DEFAULT_ADMIN_ROLE, owner());
         
         _periodValidity = 365 days;
 
@@ -173,32 +170,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev method signature aligns with paradigm established by IERC5727
-     * 
-     * TODO: revoke vs. burn
-     */
-    function revoke(uint256 tokenId, bytes calldata /*data*/) external onlyOwner {
-        _revoked[tokenId] = true;
-        emit Revoked(msg.sender, tokenId);
-    }
-
-    /**
-     * @dev method signature aligns with paradigm established by IERC5727
-     */
-    function verify(uint256 tokenId, bytes calldata /*data*/) external returns (bool result) {
-        result = _exists(tokenId) && !_revoked[tokenId];
-        emit Verified(msg.sender, tokenId, result); 
-    }
-
-    /**
-     * @dev return value corresponds to BurnAuth.Both from IERC5484
-     */
-    function burnAuth(uint256 /*tokenId*/) external pure returns (uint8) {
-        return 2;
-    }
-
-    /**
-     * @dev IERC5192
+     * @dev ERC5192: Minimal Soulbound NFTs Minimal interface for 
+     * soulbinding EIP-721 NFTs
      */
     function locked(uint256 tokenId) external view returns (bool) {
         require(_exists(tokenId), INVALID_TOKEN_ID);
@@ -216,10 +189,11 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo {
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
-    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public override pure returns (bool) {
         return
             interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
             interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
+            interfaceId == 0xb45a3c0e || // ERC165 Interface ID for ERC5192
             interfaceId == 0x5b5e139f;   // ERC165 Interface ID for ERC721Metadata
     }
 

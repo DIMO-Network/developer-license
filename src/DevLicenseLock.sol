@@ -133,16 +133,11 @@ contract DevLicenseLock is DevLicenseCore {
      * we could limit the number of valid signers, to liek 100 or something,,,
      */
     function burn(uint256 tokenId, uint256 amount) public onlyOwner {
-        //require(_licenseLockUpDeposit[tokenId][msg.sender] >= amount, INVALID_PARAM);
-
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
-        //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-        //_licenseLockUpTotal[tokenId] -= amount;
         _licenseLockUp[tokenId] -= amount;
 
         _dimoToken.burn(address(this), amount);
-        //emit AdminSanction(tokenId, amount);
 
         emit AssetForfeit(tokenId, amount);
     }
