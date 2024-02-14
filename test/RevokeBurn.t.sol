@@ -60,11 +60,9 @@ contract RevokeBurnTest is Test {
     }
     
     function test_burnSuccess() public {
-
         address user = address(0x2024);
         deal(address(dimoToken), user, 10_000 ether);
         
-
         vm.startPrank(user);
         dimoToken.approve(address(license), 10_000 ether);
         (uint256 tokenId,) = license.issueInDimo();
@@ -76,10 +74,20 @@ contract RevokeBurnTest is Test {
         license.burn(tokenId);
         vm.stopPrank();
 
+        address owner = license.ownerOf(tokenId);
+        assertEq(owner, user);  
+
         vm.startPrank(_dimoAdmin);
         license.grantRole(keccak256("BURNER_ROLE"), _dimoAdmin);
         license.burn(tokenId);
         vm.stopPrank();
+
+        vm.expectRevert("DevLicenseDimo: invalid tokenId");
+        license.ownerOf(tokenId);
+    }
+
+    function test_burnFailLock() public {
+        
     }
     
 }

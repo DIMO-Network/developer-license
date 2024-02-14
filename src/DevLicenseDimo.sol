@@ -117,8 +117,9 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
      * @notice only admin enabled addresses are allowed to burn licenses
      */
     function burn(uint256 tokenId) external onlyRole(BURNER_ROLE) {
+        require(_licenseLockUp[tokenId] == 0, "DevLicenseDimo: resolve lock");
+
         address tokenOwner = _ownerOf[tokenId];
-        
         delete _ownerOf[tokenId];
         
         address clientId = _tokenIdToClientId[tokenId];

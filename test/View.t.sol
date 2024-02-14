@@ -118,7 +118,7 @@ contract ViewTest is Test {
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
         vm.stopPrank();
-        uint256 dimoCredits = dimoCredit.mint(to, amountIn, data);
+        dimoCredit.mint(to, amountIn, data);
 
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
         
