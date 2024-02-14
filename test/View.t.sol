@@ -3,6 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import {IERC5192} from "../src/interface/IERC5192.sol";
+import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
+
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {TwapV3} from "../src/provider/TwapV3.sol";
@@ -134,9 +138,19 @@ contract ViewTest is Test {
         assertEq(isSigner01, false);
     }
 
-    // function test_supportsInterface() public {
-         
-    // }
+    function test_supportsInterface() public {
+        bytes4 interface721 = type(IERC721).interfaceId;
+        bool supports721 = license.supportsInterface(interface721);
+        assertEq(supports721, true);
+    
+        bytes4 interface5192 = type(IERC5192).interfaceId;
+        bool supports5192 = license.supportsInterface(interface5192);
+        assertEq(supports5192, true);
+
+        bytes4 interface721Metadata = type(IERC721Metadata).interfaceId;
+        bool supports721Metadata = license.supportsInterface(interface721Metadata);
+        assertEq(supports721Metadata, true);         
+    }
 
     // function test_periodValidity() public {
          
