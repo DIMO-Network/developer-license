@@ -10,6 +10,7 @@ import {TwapV3} from "../src/provider/TwapV3.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
+import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/View.t.sol -vv
 contract ViewTest is Test {
@@ -76,11 +77,44 @@ contract ViewTest is Test {
         assertEq(symbol, "DLX");
     }
 
-  
-    //isSigner(uint256 tokenId, address signer)
-    //supportsInterface(bytes4 interfaceId)
-    //maybe want these also...
-    //uint256 public _periodValidity; 
-    //uint256 public _licenseCostInUsd;
+    function test_isSignerSucceedFail() public {
+        address admin = address(0x1337);
+        deal(address(dimoToken), admin, 1_000_000 ether);
+        
+        vm.startPrank(admin);
+        dimoToken.approve(address(license), 1_000_000 ether);
+        vm.stopPrank();
+
+        address signer00 = address(0x123);
+        address signer01 = address(0x456);
+
+        vm.startPrank(admin);
+        (uint256 tokenId, address clientId) = license.issueInDimo();
+        license.enableSigner(tokenId, signer00);
+        vm.stopPrank();
+
+        bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer00);
+        assertEq(isSigner00, true);
+
+        bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer01);
+        assertEq(isSigner01, false);  
+    }
+
+    //do it for DC this time...
+    function test_isSignerExpire() public {
+         
+    }
+
+    function test_supportsInterface() public {
+         
+    }
+
+    function test_periodValidity() public {
+         
+    }
+
+    function test_licenseCostInUsd() public {
+         
+    }
     
 }
