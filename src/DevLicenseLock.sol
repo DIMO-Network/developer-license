@@ -1,0 +1,151 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {console2} from "forge-std/Test.sol";
+
+import {DevLicenseCore} from "./DevLicenseCore.sol";
+
+//TODO: import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+/** 
+ * https://dimo.zone/news/on-dimo-tokenomics
+ */
+contract DevLicenseLock is DevLicenseCore {
+
+    /*//////////////////////////////////////////////////////////////
+                              Member Variables
+    //////////////////////////////////////////////////////////////*/
+    uint256 public _minimumStake;
+
+    /*//////////////////////////////////////////////////////////////
+                              Mappings
+    //////////////////////////////////////////////////////////////*/
+    mapping(uint256 => uint256) public _licenseLockUp;
+    mapping(uint256 => bool) public _licenseLockUpFrozen;
+
+    /*//////////////////////////////////////////////////////////////
+                            Events
+    //////////////////////////////////////////////////////////////*/
+    event UpdateMinimumStake(uint256 amount);
+    event AssetFreezeUpdate(uint256 tokenId, uint256 amount, bool frozen);
+    event AssetForfeit(uint256 tokenId, uint256 amount);
+    event Deposit(uint256 indexed tokenId, address indexed user, uint256 amount);
+    event Withdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
+                            Error Messages
+    //////////////////////////////////////////////////////////////*/
+    string INVALID_PARAM = "DevLicenseDimo: invalid param";
+
+    constructor(
+        address laf_,
+        address provider_,
+        address dimoTokenAddress_, 
+        address dimoCreditAddress_,
+        uint256 licenseCostInUsd_
+    ) DevLicenseCore(laf_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) {
+
+        _minimumStake = 1 ether;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         Operative Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     */
+    function lock(uint256 tokenId, uint256 amount) external {
+        lock(tokenId, amount, msg.sender);
+    }
+
+    /**
+     * @dev any arbitrary account can invoke the lock operation
+     * on behalf of an owner that has tokens and has made the 
+     * requisite approvals
+     */
+    function lock(uint256 tokenId, uint256 amount, address owner) public {
+        require(amount >= _minimumStake, INVALID_PARAM);
+        require(owner == ownerOf(tokenId), INVALID_PARAM);
+
+        _dimoToken.transferFrom(owner, address(this), amount);
+
+        _licenseLockUp[tokenId] += amount;
+
+        emit Deposit(tokenId, owner, amount);
+    }
+
+    function withdraw(uint256 tokenId, uint256 amount) external {
+        withdraw(tokenId, amount, msg.sender);
+    }
+
+    /**
+     * TODO: ReentrancyGuard
+     */
+    function withdraw(uint256 tokenId, uint256 amount, address owner) public {
+        require(amount > 0, INVALID_PARAM);
+        require(owner == ownerOf(tokenId), INVALID_PARAM);
+        require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
+
+        bool validAmount = _licenseLockUp[tokenId] >= amount;
+        bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
+        require(validAmount && validMin, INVALID_PARAM);
+
+        _licenseLockUp[tokenId] -= amount;
+        _dimoToken.transferFrom(address(this), owner, amount);
+
+        emit Withdraw(tokenId, msg.sender, amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            View Functions
+    //////////////////////////////////////////////////////////////*/
+
+    function balanceOf(uint256 tokenId) public view returns (uint256 balance) {
+        balance = _licenseLockUp[tokenId];
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            Admin Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * TODO: prolly should be a role for this instead of 'onlyOwner'
+     */
+    function setMinimumLockAmount(uint256 minimumLockAmount_) public onlyOwner {
+        _minimumStake = minimumLockAmount_;
+        emit UpdateMinimumStake(minimumLockAmount_);
+    }
+
+    /**
+     * TODO: do we want this generalized transfer function, or 
+     * do we want to be more restrictive with what we can do...
+     */
+    function reallocate(uint256 tokenId, uint256 amount, address to) public onlyOwner {
+        require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
+
+        _licenseLockUp[tokenId] -= amount;
+
+        _dimoToken.transfer(to, amount);
+        emit AssetForfeit(tokenId, amount);
+    }
+
+    /**
+     */
+    function burn(uint256 tokenId, uint256 amount) public onlyOwner {
+        require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
+
+        _licenseLockUp[tokenId] -= amount;
+
+        _dimoToken.burn(address(this), amount);
+        emit AssetForfeit(tokenId, amount);
+    }
+
+    /**
+     * role instead of onlyOwner
+     */
+    function freeze(uint256 tokenId, bool frozen) public onlyOwner {
+        _licenseLockUpFrozen[tokenId] = frozen;
+        emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
+    }
+
+}

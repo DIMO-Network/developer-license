@@ -1,66 +1,25 @@
-## Foundry
+## Dev License 
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Lorem ipsum...
 
-Foundry consists of:
+* [Spec #0](https://docs.google.com/document/d/1fFXOi_lmVBGG-vYmwSCZVd9nRRf3d0jP1hZjJq-G8MA/edit)
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Documentation
+* ABI
+* Address (License contract)
+* Events
 
-https://book.getfoundry.sh/
+Workflow
+---
 
-## Usage
+0. create license
+    - oauth client created for you on the backend
+    - add redirect url, and check that the backend has that
+    - add a signer, with a known pk
+    - use that signer to sign a challenge message for that license
+    - check that you can log in as the license address
+1.
 
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+---
+--> grant license address privledge on a vehicle
+--> check that the login can use that privledge on the backend
