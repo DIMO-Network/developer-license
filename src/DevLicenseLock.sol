@@ -5,6 +5,8 @@ import {console2} from "forge-std/Test.sol";
 
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 
+//TODO: import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 /** 
  * https://dimo.zone/news/on-dimo-tokenomics
  */
@@ -51,22 +53,37 @@ contract DevLicenseLock is DevLicenseCore {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * TODO: msg.sender or from param
-     * 
      */
-    function lock(uint256 tokenId, uint256 amount) public {
-        require(amount >= _minimumStake, INVALID_PARAM);
-        require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
+    function lock(uint256 tokenId, uint256 amount) external {
+        lock(tokenId, amount, msg.sender);
+    }
 
-        _dimoToken.transferFrom(msg.sender, address(this), amount);
+    /**
+     * @dev any arbitrary account can invoke the lock operation
+     * on behalf of an owner that has tokens and has made the 
+     * requisite approvals
+     */
+    function lock(uint256 tokenId, uint256 amount, address owner) public {
+        require(amount >= _minimumStake, INVALID_PARAM);
+        require(owner == ownerOf(tokenId), INVALID_PARAM);
+
+        _dimoToken.transferFrom(owner, address(this), amount);
 
         _licenseLockUp[tokenId] += amount;
 
-        emit Deposit(tokenId, msg.sender, amount);
+        emit Deposit(tokenId, owner, amount);
     }
 
-    function withdraw(uint256 tokenId, uint256 amount) public {
+    function withdraw(uint256 tokenId, uint256 amount) external {
+        withdraw(tokenId, amount, msg.sender);
+    }
+
+    /**
+     * TODO: ReentrancyGuard
+     */
+    function withdraw(uint256 tokenId, uint256 amount, address owner) public {
         require(amount > 0, INVALID_PARAM);
+        require(owner == ownerOf(tokenId), INVALID_PARAM);
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
 
         bool validAmount = _licenseLockUp[tokenId] >= amount;
@@ -74,6 +91,7 @@ contract DevLicenseLock is DevLicenseCore {
         require(validAmount && validMin, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
+        _dimoToken.transferFrom(address(this), owner, amount);
 
         emit Withdraw(tokenId, msg.sender, amount);
     }
@@ -98,26 +116,20 @@ contract DevLicenseLock is DevLicenseCore {
         emit UpdateMinimumStake(minimumLockAmount_);
     }
 
-    ///@notice these functions require careful accounting...
-
     /**
      * TODO: do we want this generalized transfer function, or 
      * do we want to be more restrictive with what we can do...
      */
-    // function reallocate(uint256 tokenId, uint256 amount, address to) public onlyOwner {
-    //     require(_licenseLockUpTotal[tokenId] <= amount, INVALID_PARAM);
+    function reallocate(uint256 tokenId, uint256 amount, address to) public onlyOwner {
+        require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
 
-    //     //_licenseLockUpDeposit[tokenId][msg.sender] -= amount;
-    //     _licenseLockUpTotal[tokenId] -= amount;
+        _licenseLockUp[tokenId] -= amount;
 
-    //     _dimoToken.transferFrom(address(this), to, amount);
-    //     emit AdminSanction(tokenId, amount);
-    // }
+        _dimoToken.transfer(to, amount);
+        emit AssetForfeit(tokenId, amount);
+    }
 
     /**
-     * you need to fix this accounting...
-     * 
-     * we could limit the number of valid signers, to liek 100 or something,,,
      */
     function burn(uint256 tokenId, uint256 amount) public onlyOwner {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
@@ -125,7 +137,6 @@ contract DevLicenseLock is DevLicenseCore {
         _licenseLockUp[tokenId] -= amount;
 
         _dimoToken.burn(address(this), amount);
-
         emit AssetForfeit(tokenId, amount);
     }
 

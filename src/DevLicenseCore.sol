@@ -32,10 +32,10 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                               Mappings
     //////////////////////////////////////////////////////////////*/
-    mapping(uint256 => address) internal _ownerOf;
-    mapping(uint256 => address) _tokenIdToClientId;
-    mapping(address => uint256) _clientIdToTokenId;
-    mapping(uint256 => mapping(address => uint256)) private _signers; ///@dev Expiration determined by block.timestamp
+    mapping(uint256 => address) public _ownerOf;
+    mapping(uint256 => address) public _tokenIdToClientId;
+    mapping(address => uint256) public _clientIdToTokenId;
+    mapping(uint256 => mapping(address => uint256)) public _signers; ///@dev Expiration determined by block.timestamp
 
     /*//////////////////////////////////////////////////////////////
                             Events

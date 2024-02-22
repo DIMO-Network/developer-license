@@ -18,7 +18,7 @@ import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-//forge test --match-path ./test/RevokeBurn.t.sol -vv
+//forge test --match-path ./test/RevokeBurnReallocate.t.sol -vv
 contract RevokeBurnTest is Test {
 
     IDimoToken dimoToken;
@@ -86,8 +86,39 @@ contract RevokeBurnTest is Test {
         license.ownerOf(tokenId);
     }
 
-    function test_burnFailLock() public {
+    function test_reallocate() public {
+        address owner = address(0x2024);
+        deal(address(dimoToken), owner, 10_000 ether);
         
+        vm.startPrank(owner);
+        dimoToken.approve(address(license), 10_000 ether);
+        dimoToken.approve(address(license), 10_000 ether);
+        (uint256 tokenId,) = license.issueInDimo();
+        vm.stopPrank();  
+
+        uint256 amount99 = 1 ether;
+
+        license.lock(tokenId, amount99, owner);
+
+        uint256 amount00 = license.balanceOf(tokenId);
+        uint256 amount01 = dimoToken.balanceOf(address(license));
+        assertEq(amount00, amount01);
+        
+        address to = address(0x999);
+
+        vm.startPrank(_dimoAdmin);
+        license.reallocate(tokenId, amount00, to);
+        vm.stopPrank();
+
+        uint256 amount02 = license.balanceOf(tokenId);
+        assertEq(amount02, 0);  
+
+        uint256 amount0x = dimoToken.balanceOf(to);
+        assertEq(amount0x, amount00);
     }
+
+   // function test_burnFailLock() public {
+        
+    // }
     
 }
