@@ -13,6 +13,11 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
+    bytes32 public constant LOCK_ADMIN_ROLE = keccak256("LOCK_ADMIN_ROLE");
+
+    /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
     uint256 public _minimumStake;
@@ -108,18 +113,16 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * TODO: prolly should be a role for this instead of 'onlyOwner'
      */
-    function setMinimumLockAmount(uint256 minimumLockAmount_) public onlyOwner {
+    function setMinimumLockAmount(uint256 minimumLockAmount_) external onlyRole(LOCK_ADMIN_ROLE) {
         _minimumStake = minimumLockAmount_;
         emit UpdateMinimumStake(minimumLockAmount_);
     }
 
     /**
-     * TODO: do we want this generalized transfer function, or 
-     * do we want to be more restrictive with what we can do...
+     * TODO: do we want this generalized transfer function?
      */
-    function reallocate(uint256 tokenId, uint256 amount, address to) public onlyOwner {
+    function reallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LOCK_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
@@ -130,7 +133,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function burn(uint256 tokenId, uint256 amount) public onlyOwner {
+    function burnStake(uint256 tokenId, uint256 amount) external onlyRole(LOCK_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
@@ -140,9 +143,8 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     }
 
     /**
-     * role instead of onlyOwner
      */
-    function freeze(uint256 tokenId, bool frozen) public onlyOwner {
+    function freeze(uint256 tokenId, bool frozen) external onlyRole(LOCK_ADMIN_ROLE) {
         _licenseLockUpFrozen[tokenId] = frozen;
         emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
     }

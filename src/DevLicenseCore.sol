@@ -112,6 +112,8 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
 
+    //TODO: role....
+
     function setLicenseCost(uint256 licenseCostInUsd_) public onlyOwner {
         _licenseCostInUsd = licenseCostInUsd_;
         emit UpdateLicenseCost(_licenseCostInUsd);

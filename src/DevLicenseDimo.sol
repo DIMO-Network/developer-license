@@ -17,7 +17,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant REVOKER_ROLE = keccak256("REVOKER_ROLE");
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
@@ -116,9 +116,9 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     }
 
     /**
-     * @notice only admin enabled addresses are allowed to burn licenses
+     * @notice only admin enabled addresses are allowed to revoke/burn licenses
      */
-    function burn(uint256 tokenId) external onlyRole(BURNER_ROLE) {
+    function revoke(uint256 tokenId) external onlyRole(REVOKER_ROLE) {
         require(_licenseLockUp[tokenId] == 0, "DevLicenseDimo: resolve lock");
 
         address tokenOwner = _ownerOf[tokenId];

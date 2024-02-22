@@ -12,6 +12,10 @@ import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.s
 import {DimoCredit} from "../src/DimoCredit.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
 
+interface IGrantRole {
+    function grantRole(bytes32 role, address account) external;
+}
+
 //forge test --match-path ./test/DevLicenseLock.t.sol -vv
 contract DevLicenseLockTest is Test {
 
@@ -54,6 +58,10 @@ contract DevLicenseLockTest is Test {
         dimoToken.approve(address(license), 1_000_000 ether);
 
         (tokenId, clientId) = license.issueInDimo();    
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123);
+        IDimoToken(address(dimoToken)).grantRole(keccak256("BURNER_ROLE"), address(license));
+        vm.stopPrank();
     }
 
     function test_lockSuccess() public { 
@@ -64,19 +72,18 @@ contract DevLicenseLockTest is Test {
         assertEq(dimoToken.balanceOf(address(license)), amount00);
     }
 
-    //_dimoToken.approve(address spender, uint256 amount)
-    function test_burnSuccess() public { 
-        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123);
-        IDimoToken(address(dimoToken)).grantRole(keccak256("BURNER_ROLE"), address(license));
-        vm.stopPrank();
+    function test_burnStakeSuccess() public { 
+        bytes32 role = license.LOCK_ADMIN_ROLE();
+        license.grantRole(role, address(this));
+        bool hasRole = license.hasRole(role, address(this));
+        assertEq(hasRole, true);
 
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00); 
 
         assertEq(license.balanceOf(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
-
-        license.burn(tokenId, amount00);
+        license.burnStake(tokenId, amount00);
         
         assertEq(dimoToken.balanceOf(address(license)), 0);
     }

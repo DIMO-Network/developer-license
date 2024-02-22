@@ -69,17 +69,17 @@ contract RevokeBurnReallocateTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, 
             user, 
-            license.BURNER_ROLE())
+            license.REVOKER_ROLE())
         );
-        license.burn(tokenId);
+        license.revoke(tokenId);
         vm.stopPrank();
 
         address owner = license.ownerOf(tokenId);
         assertEq(owner, user);  
 
         vm.startPrank(_dimoAdmin);
-        license.grantRole(keccak256("BURNER_ROLE"), _dimoAdmin);
-        license.burn(tokenId);
+        license.grantRole(keccak256("REVOKER_ROLE"), _dimoAdmin);
+        license.revoke(tokenId);
         vm.stopPrank();
 
         vm.expectRevert("DevLicenseDimo: invalid tokenId");
@@ -105,6 +105,11 @@ contract RevokeBurnReallocateTest is Test {
         assertEq(amount00, amount01);
         
         address to = address(0x999);
+    
+        bytes32 role = license.LOCK_ADMIN_ROLE();
+        vm.startPrank(_dimoAdmin);
+        license.grantRole(role, _dimoAdmin);
+        vm.stopPrank();
 
         vm.startPrank(_dimoAdmin);
         license.reallocate(tokenId, amount00, to);
