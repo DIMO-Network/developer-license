@@ -54,7 +54,6 @@ contract IntegrationTest is BaseSetUp {
         assertEq(IERC1271.isValidSignature.selector, output);
 
         ///@notice check that you can log in as the license address
-
     }
 
 }
