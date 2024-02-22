@@ -19,6 +19,11 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
 
     /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
+    bytes32 public constant LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
+
+    /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
     IDimoToken public _dimoToken;
@@ -112,14 +117,12 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
 
-    //TODO: role....
-
-    function setLicenseCost(uint256 licenseCostInUsd_) public onlyOwner {
+    function setLicenseCost(uint256 licenseCostInUsd_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _licenseCostInUsd = licenseCostInUsd_;
         emit UpdateLicenseCost(_licenseCostInUsd);
     }
 
-    function setPeriodValidity(uint256 periodValidity_) public onlyOwner {
+    function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _periodValidity = periodValidity_;
         emit UpdatePeriodValidity(_licenseCostInUsd);
     }

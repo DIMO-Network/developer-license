@@ -106,7 +106,7 @@ contract RevokeBurnReallocateTest is Test {
         
         address to = address(0x999);
     
-        bytes32 role = license.LOCK_ADMIN_ROLE();
+        bytes32 role = license.LICENSE_ADMIN_ROLE();
         vm.startPrank(_dimoAdmin);
         license.grantRole(role, _dimoAdmin);
         vm.stopPrank();

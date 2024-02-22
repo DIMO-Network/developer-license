@@ -13,11 +13,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /*//////////////////////////////////////////////////////////////
-                             Access Controls
-    //////////////////////////////////////////////////////////////*/
-    bytes32 public constant LOCK_ADMIN_ROLE = keccak256("LOCK_ADMIN_ROLE");
-
-    /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
     uint256 public _minimumStake;
@@ -114,7 +109,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function setMinimumLockAmount(uint256 minimumLockAmount_) external onlyRole(LOCK_ADMIN_ROLE) {
+    function setMinimumLockAmount(uint256 minimumLockAmount_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _minimumStake = minimumLockAmount_;
         emit UpdateMinimumStake(minimumLockAmount_);
     }
@@ -122,7 +117,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     /**
      * TODO: do we want this generalized transfer function?
      */
-    function reallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LOCK_ADMIN_ROLE) {
+    function reallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
@@ -133,7 +128,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function burnStake(uint256 tokenId, uint256 amount) external onlyRole(LOCK_ADMIN_ROLE) {
+    function burnStake(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
@@ -144,7 +139,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function freeze(uint256 tokenId, bool frozen) external onlyRole(LOCK_ADMIN_ROLE) {
+    function freeze(uint256 tokenId, bool frozen) external onlyRole(LICENSE_ADMIN_ROLE) {
         _licenseLockUpFrozen[tokenId] = frozen;
         emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
     }

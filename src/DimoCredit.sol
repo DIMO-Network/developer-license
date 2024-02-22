@@ -24,9 +24,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
 
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    // TODO: _receiver to then burn or send to rewards smart contract
-    // or whatever *this happens on MINT* (gnosis safe)
-    address public _receiver;
+    address private _receiver; ///@notice receives proceeds from sale of license
 
     function receiver() external view returns (address) {
         return _receiver;
@@ -159,7 +157,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
     }
 
     /**
-     * TODO: https://docs.openzeppelin.com/contracts/4.x/access-control
+     * https://docs.openzeppelin.com/contracts/4.x/access-control
      */
     function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
         balanceOf[from] -= amount;

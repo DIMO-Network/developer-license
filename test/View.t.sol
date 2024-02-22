@@ -120,7 +120,8 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_periodValidity() public {
-
+        license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
+        
         address signer = address(0x123);
         (uint256 tokenId, address clientId) = license.issueInDimo();
         license.enableSigner(tokenId, signer);
@@ -144,6 +145,8 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_licenseCostInUsd() public {
+        license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
+        
         uint256 licenseCostInUsd00 = license._licenseCostInUsd();
         assertEq(licenseCostInUsd00, _licenseCostInUsd); 
 

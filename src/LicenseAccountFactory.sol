@@ -6,7 +6,6 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
-//TODO: ReentrancyGuard
 contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { 
 
     address public _template;

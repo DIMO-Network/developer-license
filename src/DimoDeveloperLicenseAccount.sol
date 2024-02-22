@@ -31,7 +31,6 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
         return _license.isSigner(_tokenId, signer);
     }
 
-    //TODO: isSignerNow()... expiration, analygous to API keys
     function isValidSignature(bytes32 hashValue, bytes memory signature) external view returns (bytes4) {
         address recovered = ECDSA.recover(hashValue, signature);
         if (_license.isSigner(_tokenId, recovered)) {
