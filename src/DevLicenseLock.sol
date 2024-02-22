@@ -5,12 +5,12 @@ import {console2} from "forge-std/Test.sol";
 
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 
-//TODO: import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /** 
  * https://dimo.zone/news/on-dimo-tokenomics
  */
-contract DevLicenseLock is DevLicenseCore {
+contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
@@ -43,7 +43,7 @@ contract DevLicenseLock is DevLicenseCore {
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_
-    ) DevLicenseCore(laf_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) {
+    ) DevLicenseCore(laf_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) ReentrancyGuard() {
 
         _minimumStake = 1 ether;
     }
@@ -74,14 +74,13 @@ contract DevLicenseLock is DevLicenseCore {
         emit Deposit(tokenId, owner, amount);
     }
 
-    function withdraw(uint256 tokenId, uint256 amount) external {
+    function withdraw(uint256 tokenId, uint256 amount) external nonReentrant {
         withdraw(tokenId, amount, msg.sender);
     }
 
     /**
-     * TODO: ReentrancyGuard
      */
-    function withdraw(uint256 tokenId, uint256 amount, address owner) public {
+    function withdraw(uint256 tokenId, uint256 amount, address owner) public nonReentrant {
         require(amount > 0, INVALID_PARAM);
         require(owner == ownerOf(tokenId), INVALID_PARAM);
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");

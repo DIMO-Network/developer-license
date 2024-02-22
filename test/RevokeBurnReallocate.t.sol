@@ -19,7 +19,7 @@ import {IDimoToken} from "../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/RevokeBurnReallocate.t.sol -vv
-contract RevokeBurnTest is Test {
+contract RevokeBurnReallocateTest is Test {
 
     IDimoToken dimoToken;
     IDimoCredit dimoCredit;
