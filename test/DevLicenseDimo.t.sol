@@ -24,9 +24,9 @@ contract DevLicenseDimoTest is BaseSetUp {
 
         assertEq(license.ownerOf(tokenId), address(this));
 
-        (uint256 amountUsdPerToken,) = npp.getAmountUsdPerToken();
+        (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = amountUsdPerToken * 100;
-        assertEq(dimoToken.balanceOf(address(dc.receiver())), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(address(dimoCredit.receiver())), tokenTransferAmount);
     }
 
     function test_developerLicenseAccount() public {

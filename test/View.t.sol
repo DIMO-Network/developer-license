@@ -1,58 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console2} from "forge-std/Test.sol";
-
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
 import {IERC5192} from "../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 
-import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
-import {TwapV3} from "../src/provider/TwapV3.sol";
-
-import {DimoCredit} from "../src/DimoCredit.sol";
-import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
+import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+
 //forge test --match-path ./test/View.t.sol -vv
-contract ViewTest is Test {
-
-    IDimoToken dimoToken;
-    IDimoCredit dimoCredit;
-
-    DevLicenseDimo license;
-    NormalizedPriceProvider provider;
+contract ViewTest is BaseSetUp {
 
     uint256 _licenseCostInUsd;
 
     function setUp() public {
+        _setUp();
         _licenseCostInUsd = 100;
-        vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
-
-        provider = new NormalizedPriceProvider();
-
-        TwapV3 twap = new TwapV3();
-        uint32 intervalUsdc = 30 minutes;
-        uint32 intervalDimo = 4 minutes; 
-        twap.initialize(intervalUsdc, intervalDimo);
-        provider.addOracleSource(address(twap));
-
-        dimoCredit = IDimoCredit(address(new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider))));
-        LicenseAccountFactory laf = new LicenseAccountFactory();
-        license = new DevLicenseDimo(
-            address(laf), 
-            address(provider), 
-            address(dimoToken), 
-            address(dimoCredit),
-            _licenseCostInUsd
-        );
-        laf.setLicense(address(license));
-        deal(address(dimoToken), address(this), 1_000_000 ether);
-        dimoToken.approve(address(license), 1_000_000 ether);
     }
 
     function test_existsLocked() public {

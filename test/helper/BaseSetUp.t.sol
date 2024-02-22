@@ -19,31 +19,30 @@ contract BaseSetUp is Test {
     ERC20 public dimoToken;
     DevLicenseDimo public license;
 
-    DimoCredit public dc;
-    NormalizedPriceProvider public npp;
+    DimoCredit public dimoCredit;
+    NormalizedPriceProvider public provider;
 
     function _setUp() public {
         vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-
         dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
-        npp = new NormalizedPriceProvider();
+        provider = new NormalizedPriceProvider();
 
         TwapV3 twap = new TwapV3();
         uint32 intervalUsdc = 30 minutes;
         uint32 intervalDimo = 4 minutes; 
         twap.initialize(intervalUsdc, intervalDimo);
-        npp.addOracleSource(address(twap));
+        provider.addOracleSource(address(twap));
 
-        dc = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(npp));
+        dimoCredit = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider));
 
         license = new DevLicenseDimo(
             address(laf), 
-            address(npp), 
+            address(provider), 
             address(dimoToken), 
-            address(dc),
+            address(dimoCredit),
             100
         );
 
