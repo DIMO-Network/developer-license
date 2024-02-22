@@ -8,18 +8,31 @@ import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
 //forge test --match-path ./test/Integration.t.sol -vv
 contract IntegrationTest is BaseSetUp {
 
-    //ERC20 public dimoToken;
-    //DevLicenseDimo public license;
-    //DimoCredit public dc;
-    //NormalizedPriceProvider public npp;
+    uint256 tokenId;
 
     function setUp() public {
         _setUp();
+
+        (tokenId,) = license.issueInDimo();
+        assertEq(tokenId, 1);
+        assertEq(license.ownerOf(tokenId), address(this));
     }
 
     function test_integration00() public {   
+        ///@notice oauth client created for you on the backend
+
+        ///@dev add redirect url
+        string memory uri = "https://www.test.com/";
+        license.enableRedirectUri(tokenId, uri);
+
+        ///@notice check that the backend has that
+
+        ///@dev add a signer, with a known pk
+
+        ///@dev use that signer to sign a challenge message for that license
+
+        ///@notice check that you can log in as the license address
 
     }
 
-    
 }
