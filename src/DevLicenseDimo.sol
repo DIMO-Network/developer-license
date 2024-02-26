@@ -5,7 +5,7 @@ import {console2} from "forge-std/Test.sol";
 
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
-import {Metadata} from "./metadata/Metadata.sol";
+import {Metadata} from "./metadata/Metadata.sol"; //TODO: investigate replacement with OZ impl
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 import {DevLicenseLock} from "./DevLicenseLock.sol";
 
@@ -39,7 +39,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /* * */
 
     constructor(
-        address laf_,
+        address laf_, //TODO: semantic naming
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,

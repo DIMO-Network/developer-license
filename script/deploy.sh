@@ -31,7 +31,7 @@ case $NETWORK in
 esac
 
 # Deploy using the appropriate RPC URL
-forge create --rpc-url $RPC_URL --private-key $PRIVATE_KEY ./src/sources/FunctionsConsumer.sol:FunctionsConsumer --constructor-args-path ./constructor-args/constructor-args-$NETWORK.txt
+forge create --rpc-url $RPC_URL --private-key $PRIVATE_KEY ../src/sources/FunctionsConsumer.sol:FunctionsConsumer --constructor-args-path ./constructor-args/constructor-args-$NETWORK.txt
 
 # Flatten the source file and save to a directory
 mkdir -p ./flat
