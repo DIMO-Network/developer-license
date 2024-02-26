@@ -28,8 +28,8 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    event RedirectUriEnabled(uint256 tokenId, string uri);
-    event Issued(uint256 tokenId, address owner, address clientId);
+    event RedirectUriEnabled(uint256 indexed tokenId, string uri);
+    event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
     /*//////////////////////////////////////////////////////////////
                               Mappings

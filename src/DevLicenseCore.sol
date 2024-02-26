@@ -14,7 +14,7 @@ import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /** 
- *
+ * TODO: remove Ownable2Step in favor of Default Admin
  */
 contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
 
@@ -26,10 +26,10 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
-    IDimoToken public _dimoToken;
+    IDimoToken public _dimoToken; //define in constructor TODO
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
-    ILicenseAccountFactory public _laf;
+    ILicenseAccountFactory public _laf; //better name
     uint256 public _periodValidity; ///@dev signer validity expiration
     uint256 public _licenseCostInUsd;
     uint256 public _counter;
@@ -45,9 +45,9 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    event Locked(uint256 tokenId);
-    event UpdateLicenseCost(uint256 licenseCost);
-    event UpdatePeriodValidity(uint256 periodValidity);
+    event Locked(uint256 indexed tokenId);
+    event UpdateLicenseCost(uint256 indexed licenseCost);
+    event UpdatePeriodValidity(uint256 indexed periodValidity);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); ///@dev On mint & burn
 

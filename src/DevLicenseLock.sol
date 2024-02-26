@@ -27,8 +27,8 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
                             Events
     //////////////////////////////////////////////////////////////*/
     event UpdateMinimumStake(uint256 amount);
-    event AssetFreezeUpdate(uint256 tokenId, uint256 amount, bool frozen);
-    event AssetForfeit(uint256 tokenId, uint256 amount);
+    event AssetFreezeUpdate(uint256 indexed tokenId, uint256 amount, bool frozen);
+    event AssetForfeit(uint256 indexed tokenId, uint256 amount);
     event Deposit(uint256 indexed tokenId, address indexed user, uint256 amount);
     event Withdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
 
@@ -59,6 +59,8 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     }
 
     /**
+     * TODO: maybe remove this - increases attack surface
+     * 
      * @dev any arbitrary account can invoke the lock operation
      * on behalf of an owner that has tokens and has made the 
      * requisite approvals
@@ -74,15 +76,11 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         emit Deposit(tokenId, owner, amount);
     }
 
-    function withdraw(uint256 tokenId, uint256 amount) external nonReentrant {
-        withdraw(tokenId, amount, msg.sender);
-    }
-
     /**
      */
-    function withdraw(uint256 tokenId, uint256 amount, address owner) public nonReentrant {
+    function withdraw(uint256 tokenId, uint256 amount) public nonReentrant {
         require(amount > 0, INVALID_PARAM);
-        require(owner == ownerOf(tokenId), INVALID_PARAM);
+        require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
 
         bool validAmount = _licenseLockUp[tokenId] >= amount;
@@ -90,7 +88,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         require(validAmount && validMin, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
-        _dimoToken.transferFrom(address(this), owner, amount);
+        _dimoToken.transferFrom(address(this), msg.sender, amount);
 
         emit Withdraw(tokenId, msg.sender, amount);
     }
@@ -127,8 +125,16 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     }
 
     /**
+     * in case funds get send to this contract as part of a donation attack, etc
      */
-    function burnStake(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
+    function adminWithdraw(uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
+        //TODO: only able to withdraw the difference btwn total lock, and balance of this contract.
+        _dimoToken.transfer(to, amount);
+    }
+
+    /**
+     */
+    function burnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
         _licenseLockUp[tokenId] -= amount;
