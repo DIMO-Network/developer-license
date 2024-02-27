@@ -32,7 +32,9 @@ contract BaseSetUp is Test {
 
         TwapV3 twap = new TwapV3();
         uint32 intervalUsdc = 30 minutes;
+        //console2.log("intervalUsdc: %s", intervalUsdc);
         uint32 intervalDimo = 4 minutes; 
+        //console2.log("intervalDimo: %s", intervalDimo);
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 

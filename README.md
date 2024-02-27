@@ -23,3 +23,10 @@ Workflow
 ---
 --> grant license address privledge on a vehicle
 --> check that the login can use that privledge on the backend
+
+
+
+### deploy
+```
+npx ts-node ./script/deploy.ts
+```

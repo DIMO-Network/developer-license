@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/smatthewenglish/developer-license-donotus#readme",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "ethers": "^6.11.1"
   }
 }
