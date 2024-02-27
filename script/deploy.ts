@@ -15,24 +15,6 @@ let key: string = process.env.PRIVATE_KEY as string
 const wallet = new ethers.Wallet(key)
 const signer = wallet.connect(provider)
 
-const execPromisify = util.promisify(exec);
-
-async function verifyContract(chainId: number, etherscanApiKey: string, compilerVersion: string, contractAddress: string, name: string) {
-    const command = `forge verify-contract --chain-id ${chainId} --etherscan-api-key ${etherscanApiKey} --compiler-version ${compilerVersion} ${contractAddress} ${name}`;
-    try {
-      const { stdout, stderr } = await execPromisify(command);
-      console.log('stdout:', stdout);
-      console.log('stderr:', stderr);
-      if (stderr) {
-        throw new Error('Verification failed, retrying...');
-      }
-      console.log('Verification successful!');
-    } catch (error) {
-      console.error('Error executing verification:', error);
-      // Retry logic or fallback can be implemented here
-    }
-}
-
 async function main() {
 
     const gasPrice = (await provider.getFeeData()).gasPrice
@@ -40,7 +22,7 @@ async function main() {
     const etherscanApiKey: string = process.env.ETHERSCAN_API_KEY_POLYGON as string
 
     // ***************************
-    // * ====== oracle ========= *
+    // * ====== Oracle ========= *
     // ***************************
 
     const nameTwap = 'TwapV3';
@@ -68,10 +50,32 @@ async function main() {
     /* * */
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer);
     await contractNpp.addOracleSource(addressTwap);
+
+    // ********************************
+    // * ====== DIMO Credit ========= *
+    // ********************************
+
     
 
-
     process.exit();
+}
+
+const execPromisify = util.promisify(exec);
+
+async function verifyContract(chainId: number, etherscanApiKey: string, compilerVersion: string, contractAddress: string, name: string) {
+    const command = `forge verify-contract --chain-id ${chainId} --etherscan-api-key ${etherscanApiKey} --compiler-version ${compilerVersion} ${contractAddress} ${name}`;
+    try {
+      const { stdout, stderr } = await execPromisify(command);
+      console.log('stdout:', stdout);
+      console.log('stderr:', stderr);
+      if (stderr) {
+        throw new Error('Verification failed, retrying...');
+      }
+      console.log('Verification successful!');
+    } catch (error) {
+      console.error('Error executing verification:', error);
+      // Retry logic or fallback can be implemented here
+    }
 }
     
 main();
