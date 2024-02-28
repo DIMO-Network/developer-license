@@ -59,7 +59,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
      * 
      */
     function disableRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
-        //_redirectUris[tokenId][uri] = true;
+        _redirectUris[tokenId][uri] = false;
         //emit RedirectUriEnabled(tokenId, uri);
     }
 

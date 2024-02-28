@@ -41,7 +41,7 @@ contract IntegrationTest is BaseSetUp {
         bytes32 hashValue = keccak256(
             abi.encodePacked(
                 keccak256(
-                    "\x19Ethereum Signed Message:\n32"
+                    "\x19Ethereum Signed Message:\n32" //32 length of message...
                 ),
                 keccak256("challenge message")
             )   
