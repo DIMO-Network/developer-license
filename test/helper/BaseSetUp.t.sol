@@ -38,7 +38,7 @@ contract BaseSetUp is Test {
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 
-        dimoCredit = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider));
+        dimoCredit = new DimoCredit(address(0x123), address(provider));
 
         license = new DevLicenseDimo(
             address(laf), 

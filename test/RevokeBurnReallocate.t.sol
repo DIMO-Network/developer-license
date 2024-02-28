@@ -46,7 +46,7 @@ contract RevokeBurnReallocateTest is Test {
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
         vm.startPrank(_dimoAdmin);
-        dimoCredit = IDimoCredit(address(new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(provider))));
+        dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
         license = new DevLicenseDimo(
             address(laf), 
             address(provider), 

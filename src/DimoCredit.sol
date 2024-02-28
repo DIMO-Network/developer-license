@@ -70,14 +70,8 @@ contract DimoCredit is Ownable2Step, AccessControl {
     
     /**
      */
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_,
-        address receiver_,
-        address provider_
-    ) Ownable(msg.sender) {
-
+    constructor(address receiver_, address provider_) Ownable(msg.sender) {
+        
         _grantRole(DEFAULT_ADMIN_ROLE, owner());
 
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
@@ -86,9 +80,9 @@ contract DimoCredit is Ownable2Step, AccessControl {
 
         _receiver = receiver_;
     
-        name = name_;
-        symbol = symbol_;
-        decimals = decimals_;
+        decimals = 18;
+        symbol = "DCX";
+        name = "Dimo Credit";
     }
 
     /**

@@ -32,7 +32,7 @@ contract BurnDimoCreditTest is Test {
         npp = new NormalizedPriceProvider();
         npp.addOracleSource(address(twap));
 
-        dc = new DimoCredit("NAME", "SYMBOL", 18, address(0x123), address(npp));
+        dc = new DimoCredit(address(0x123), address(npp));
 
         dc.grantRole(keccak256("BURNER_ROLE"), address(this));   
     }
