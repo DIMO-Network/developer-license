@@ -59,8 +59,8 @@ async function main() {
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8')) 
     const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
     const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, {gasPrice: gasPrice})
-    await dimoCredit.waitForDeployment();
-    const addressDc = await dimoCredit.getAddress();
+    await dimoCredit.waitForDeployment()
+    const addressDc = await dimoCredit.getAddress()
     console.log(`${nameDc}: ` + addressDc);
     let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
     await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey, encodeArgsDc)
@@ -76,20 +76,53 @@ async function main() {
     await licenseAccountFactory.waitForDeployment();
     const addressLaf = await licenseAccountFactory.getAddress();
     console.log(`${nameLaf}: ` + addressLaf);
-    await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey)
+    await verifyContractUntilSuccess(addressLaf, nameLaf, chainId, etherscanApiKey)
+
+
+    // ******************************************
+    // * ====== TEST ONLY - REMOVE ME ========= *
+    // ******************************************
+
+    const nameTt = 'TestToken';
+    const outTt = JSON.parse(fs.readFileSync(`./out/${nameTt}.sol/${nameTt}.json`, 'utf8')) 
+    const factoryTt = new ethers.ContractFactory(outTt.abi, outTt.bytecode.object, signer)
+    const testToken: ethers.BaseContract = await factoryTt.deploy({gasPrice: gasPrice})
+    await testToken.waitForDeployment();
+    const addressTt = await testToken.getAddress();
+    console.log(`${nameTt}: ` + addressTt);
+    await verifyContractUntilSuccess(addressTt, nameTt, chainId, etherscanApiKey)
 
     // ********************************
     // * ====== Dev License ========= *
     // ********************************
 
+    const licenseCostInUsd = 100;
+
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 
     const factoryDl = new ethers.ContractFactory(outDl.abi, outDl.bytecode.object, signer)
-    const devLicense: ethers.BaseContract = await factoryDl.deploy({gasPrice: gasPrice})
+    const devLicense: ethers.BaseContract = await factoryDl.deploy(
+        addressLaf,
+        addressNpp,
+        addressTt,
+        addressDc,
+        licenseCostInUsd,
+        {
+            maxPriorityFeePerGas: (await provider.getFeeData()).maxPriorityFeePerGas,
+            maxFeePerGas: (await provider.getFeeData()).maxFeePerGas,
+        }
+    )
     await devLicense.waitForDeployment();
     const addressDl = await devLicense.getAddress();
     console.log(`${nameDl}: ` + addressDl);
-    await verifyContractUntilSuccess(addressDl, nameDl, chainId, etherscanApiKey)
+    let encodeArgsDl = factoryDl.interface.encodeDeploy([
+        addressLaf,
+        addressNpp,
+        addressTt,
+        addressDc,
+        licenseCostInUsd
+    ])
+    await verifyContractUntilSuccess(addressDl, nameDl, chainId, etherscanApiKey, encodeArgsDl)
 
     /* * */
     const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
