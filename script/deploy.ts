@@ -62,7 +62,8 @@ async function main() {
     console.log(`${nameMos}: ` + addressMos)
     await verifyContractUntilSuccess(addressMos, nameMos, chainId, etherscanApiKey)
     /* * */
-    await contractNpp.addOracleSource(addressMos);
+    const transaction = await contractNpp.addOracleSource(addressMos);
+    await transaction.wait();
     const primaryOracleSourceIndex = 1;
     await contractNpp.setPrimaryOracleSource(primaryOracleSourceIndex);
 
