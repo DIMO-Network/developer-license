@@ -49,6 +49,23 @@ async function main() {
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
     await contractNpp.addOracleSource(addressTwap);
 
+    // ******************************************
+    // * ====== TEST ONLY - REMOVE ME ========= *
+    // ******************************************
+
+    const nameMos = 'MockOracleSource'
+    const outMos = JSON.parse(fs.readFileSync(`./out/${nameMos}.sol/${nameMos}.json`, 'utf8')) 
+    const factoryMos = new ethers.ContractFactory(outMos.abi, outMos.bytecode.object, signer)
+    const mockOracleSource: ethers.BaseContract = await factoryMos.deploy({gasPrice: gasPrice})
+    await mockOracleSource.waitForDeployment()
+    const addressMos = await mockOracleSource.getAddress()
+    console.log(`${nameMos}: ` + addressMos)
+    await verifyContractUntilSuccess(addressMos, nameMos, chainId, etherscanApiKey)
+    /* * */
+    await contractNpp.addOracleSource(addressMos);
+    const primaryOracleSourceIndex = 1;
+    await contractNpp.setPrimaryOracleSource(primaryOracleSourceIndex);
+
     // ********************************
     // * ====== DIMO Credit ========= *
     // ********************************
@@ -83,13 +100,13 @@ async function main() {
     // * ====== TEST ONLY - REMOVE ME ========= *
     // ******************************************
 
-    const nameTt = 'TestToken';
+    const nameTt = 'TestToken'
     const outTt = JSON.parse(fs.readFileSync(`./out/${nameTt}.sol/${nameTt}.json`, 'utf8')) 
     const factoryTt = new ethers.ContractFactory(outTt.abi, outTt.bytecode.object, signer)
     const testToken: ethers.BaseContract = await factoryTt.deploy({gasPrice: gasPrice})
-    await testToken.waitForDeployment();
-    const addressTt = await testToken.getAddress();
-    console.log(`${nameTt}: ` + addressTt);
+    await testToken.waitForDeployment()
+    const addressTt = await testToken.getAddress()
+    console.log(`${nameTt}: ` + addressTt)
     await verifyContractUntilSuccess(addressTt, nameTt, chainId, etherscanApiKey)
 
     // ********************************
@@ -127,6 +144,10 @@ async function main() {
     /* * */
     const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
     await contractLaf.setLicense(addressDl)
+    /* * */
+    const contractTt = new ethers.Contract(addressTt, outTt.abi, signer)
+    const value = 1000000000000000000000000n
+    await contractTt.approve(addressDl, value)
 
 
     process.exit();

@@ -38,6 +38,10 @@ contract BaseSetUp is Test {
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 
+        //(uint256 amountUsdPerToken, uint256 updateTimestamp) = provider.getAmountUsdPerToken();
+        //console2.log("amountUsdPerToken: %s", amountUsdPerToken);
+        //console2.log("  updateTimestamp: %s", updateTimestamp);
+
         dimoCredit = new DimoCredit(address(0x123), address(provider));
 
         license = new DevLicenseDimo(
