@@ -3,7 +3,6 @@ import * as fs from 'fs'
 import dotenv from 'dotenv'
 import path from 'path'
 import { exec } from 'child_process'
-import util from 'util'
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -31,7 +30,6 @@ async function main() {
     await twap.waitForDeployment()
     const addressTwap = await twap.getAddress()
     console.log(`${nameTwap}: ` + addressTwap)
-    //await verifyContract(chainId, etherscanApiKey, '0.8.22', addressTwap, nameTwap)
     await verifyContractUntilSuccess(addressTwap, nameTwap, chainId, etherscanApiKey)
     /* * */
     const intervalUsdc: number = 1800
@@ -46,7 +44,6 @@ async function main() {
     await normalizedPriceProvider.waitForDeployment()
     const addressNpp = await normalizedPriceProvider.getAddress()
     console.log(`${nameNpp}: ` + addressNpp);
-    //await verifyContract(chainId, etherscanApiKey, '0.8.22', addressNpp, nameNpp)
     await verifyContractUntilSuccess(addressNpp, nameNpp, chainId, etherscanApiKey)
     /* * */
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
@@ -60,34 +57,49 @@ async function main() {
 
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8')) 
-    const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer);
-    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, {gasPrice: gasPrice});
+    const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
+    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, {gasPrice: gasPrice})
     await dimoCredit.waitForDeployment();
     const addressDc = await dimoCredit.getAddress();
     console.log(`${nameDc}: ` + addressDc);
     let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
     await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey, encodeArgsDc)
+
+    // ********************************************
+    // * ====== License Account Factory ========= *
+    // ********************************************
+
+    const nameLaf = 'LicenseAccountFactory';
+    const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8')) 
+    const factoryLaf = new ethers.ContractFactory(outLaf.abi, outLaf.bytecode.object, signer)
+    const licenseAccountFactory: ethers.BaseContract = await factoryLaf.deploy({gasPrice: gasPrice})
+    await licenseAccountFactory.waitForDeployment();
+    const addressLaf = await licenseAccountFactory.getAddress();
+    console.log(`${nameLaf}: ` + addressLaf);
+    await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey)
+
+    // ********************************
+    // * ====== Dev License ========= *
+    // ********************************
+
+    const nameDl = 'DevLicenseDimo';
+    const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 
+    const factoryDl = new ethers.ContractFactory(outDl.abi, outDl.bytecode.object, signer)
+    const devLicense: ethers.BaseContract = await factoryDl.deploy({gasPrice: gasPrice})
+    await devLicense.waitForDeployment();
+    const addressDl = await devLicense.getAddress();
+    console.log(`${nameDl}: ` + addressDl);
+    await verifyContractUntilSuccess(addressDl, nameDl, chainId, etherscanApiKey)
+
     /* * */
+    const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
+    await contractLaf.setLicense(addressDl)
+
 
     process.exit();
 }
 
-// const execPromisify = util.promisify(exec);
-// async function verifyContract(chainId: number, etherscanApiKey: string, compilerVersion: string, contractAddress: string, name: string) {
-//     const command = `forge verify-contract --chain-id ${chainId} --etherscan-api-key ${etherscanApiKey} --compiler-version ${compilerVersion} ${contractAddress} ${name}`;
-//     try {
-//       const { stdout, stderr } = await execPromisify(command);
-//       console.log('stdout:', stdout);
-//       console.log('stderr:', stderr);
-//       if (stderr) {
-//         throw new Error('Verification failed, retrying...');
-//       }
-//       console.log('Verification successful!');
-//     } catch (error) {
-//       console.error('Error executing verification:', error);
-//       // Retry logic or fallback can be implemented here
-//     }
-// }
+
 
 async function verifyContractUntilSuccess(address: any, name: any, chainId: any, apiKey: any, arg?: any) {
     return new Promise((resolve, _) => {
