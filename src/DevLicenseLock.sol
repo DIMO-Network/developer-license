@@ -15,6 +15,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
+    uint256 public _totalLockUp;
     uint256 public _minimumStake;
 
     /*//////////////////////////////////////////////////////////////
@@ -72,6 +73,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         _dimoToken.transferFrom(owner, address(this), amount);
 
         _licenseLockUp[tokenId] += amount;
+        _totalLockUp += amount;
 
         emit Deposit(tokenId, owner, amount);
     }
@@ -90,12 +92,18 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         _licenseLockUp[tokenId] -= amount;
         _dimoToken.transferFrom(address(this), msg.sender, amount);
 
+        _totalLockUp -= amount;
+
         emit Withdraw(tokenId, msg.sender, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
                             View Functions
     //////////////////////////////////////////////////////////////*/
+
+    function totalLockUp() public view returns (uint256 totalLockUp_) {
+        totalLockUp_ = _totalLockUp;
+    }
 
     function balanceOf(uint256 tokenId) public view returns (uint256 balance) {
         balance = _licenseLockUp[tokenId];
@@ -125,10 +133,13 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     }
 
     /**
-     * in case funds get send to this contract as part of a donation attack, etc
+     * @dev in case funds get send to this contract as part of a donation attack, etc
+     * only able to withdraw the difference btwn total lock, and balance of this contract.
      */
-    function adminWithdraw(uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
-        //TODO: only able to withdraw the difference btwn total lock, and balance of this contract.
+    function adminWithdraw(address to) external onlyRole(LICENSE_ADMIN_ROLE) {
+
+        uint256 balaceOf = _dimoToken.balanceOf(address(this));
+        uint256 amount = balaceOf - _totalLockUp;
         _dimoToken.transfer(to, amount);
     }
 
