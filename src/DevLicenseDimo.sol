@@ -29,6 +29,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
                             Events
     //////////////////////////////////////////////////////////////*/
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
+    event RedirectUriDisabled(uint256 indexed tokenId, string uri); //disableRedirectUri
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
     /*//////////////////////////////////////////////////////////////
@@ -58,16 +59,18 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /**
      * 
      */
-    function disableRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
-        _redirectUris[tokenId][uri] = false;
-        //emit RedirectUriEnabled(tokenId, uri);
+    function setStatusRedirectUri(
+            uint256 tokenId, 
+            bool status, 
+            string calldata uri
+        ) onlyTokenOwner(tokenId) external {
+            if(status) {
+                emit RedirectUriEnabled(tokenId, uri);
+            } else {
+                emit RedirectUriDisabled(tokenId, uri);
+            }
+        _redirectUris[tokenId][uri] = status;
     }
-
-    function enableRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
-        _redirectUris[tokenId][uri] = true;
-        emit RedirectUriEnabled(tokenId, uri);
-    }
-
 
     /*//////////////////////////////////////////////////////////////
                             License Logic
