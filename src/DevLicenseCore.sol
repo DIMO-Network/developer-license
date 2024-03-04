@@ -29,7 +29,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     IDimoToken public _dimoToken; //define in constructor TODO
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
-    ILicenseAccountFactory public _laf; //better name
+    ILicenseAccountFactory public _licenseAccountFactory;
     uint256 public _periodValidity; ///@dev signer validity expiration
     uint256 public _licenseCostInUsd;
     uint256 public _counter;
@@ -68,7 +68,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     }
 
     constructor(
-        address laf_,
+        address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
@@ -82,7 +82,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
     
-        _laf = ILicenseAccountFactory(laf_);
+        _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCostInUsd = licenseCostInUsd_;
     }

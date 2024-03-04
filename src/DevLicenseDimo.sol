@@ -40,13 +40,13 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
     /* * */
 
     constructor(
-        address laf_, //TODO: semantic naming
+        address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) 
     DevLicenseLock(
-        laf_,
+        licenseAccountFactory_,
         provider_,
         dimoTokenAddress_, 
         dimoCreditAddress_,
@@ -112,7 +112,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
      */
     function _issue(address to) private returns (uint256 tokenId, address clientId) {
         tokenId = ++_counter;
-        clientId = _laf.create(tokenId);
+        clientId = _licenseAccountFactory.create(tokenId);
 
         _tokenIdToClientId[tokenId] = clientId;
         _clientIdToTokenId[clientId] = tokenId;
