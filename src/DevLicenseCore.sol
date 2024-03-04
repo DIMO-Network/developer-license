@@ -16,7 +16,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 /** 
  * TODO: remove Ownable2Step in favor of Default Admin
  */
-contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
+contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     /*//////////////////////////////////////////////////////////////
                              Access Controls
@@ -72,9 +72,9 @@ contract DevLicenseCore is Ownable2Step, IDevLicenseDimo, AccessControl {
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd_) Ownable(msg.sender) {
+        uint256 licenseCostInUsd_) {
 
-        _grantRole(DEFAULT_ADMIN_ROLE, owner());
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         
         _periodValidity = 365 days;
 
