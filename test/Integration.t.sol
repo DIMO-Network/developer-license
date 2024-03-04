@@ -28,7 +28,7 @@ contract IntegrationTest is BaseSetUp {
 
         ///@dev add redirect url
         string memory uri = "https://www.test.com/";
-        license.enableRedirectUri(tokenId, uri);
+        license.setStatusRedirectUri(tokenId, true, uri);
 
         ///@notice check that the backend has that
 
