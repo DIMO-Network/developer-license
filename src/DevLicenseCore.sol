@@ -162,6 +162,10 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
                               NFT Logic
     //////////////////////////////////////////////////////////////*/
 
+    function totalSupply() external view returns (uint256 totalSupply_) {
+        totalSupply_ = _counter;
+    } 
+
     function ownerOf(uint256 tokenId) public view virtual returns (address owner) {
         require((owner = _ownerOf[tokenId]) != address(0), INVALID_TOKEN_ID);
     }
