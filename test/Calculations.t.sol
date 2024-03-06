@@ -18,7 +18,7 @@ contract CalculationsTest is BaseSetUp {
 
     function test_licenseCostInUsd() public {
 
-        (uint256 tokenId, address clientId) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo();
 
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
