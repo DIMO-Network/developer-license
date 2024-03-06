@@ -5,14 +5,13 @@ import {console2} from "forge-std/Test.sol";
 
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
-import {Metadata} from "./metadata/Metadata.sol"; //TODO: investigate replacement with OZ impl
+import {DevLicenseMeta} from "./DevLicenseMeta.sol"; //TODO: investigate replacement with OZ impl
 import {DevLicenseCore} from "./DevLicenseCore.sol";
-import {DevLicenseLock} from "./DevLicenseLock.sol";
 
 /** 
  * 
  */
-contract DevLicenseDimo is DevLicenseLock, Metadata {
+contract DevLicenseDimo is DevLicenseMeta {
 
     /*//////////////////////////////////////////////////////////////
                              Access Controls
@@ -45,7 +44,7 @@ contract DevLicenseDimo is DevLicenseLock, Metadata {
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) 
-    DevLicenseLock(
+    DevLicenseMeta(
         licenseAccountFactory_,
         provider_,
         dimoTokenAddress_, 

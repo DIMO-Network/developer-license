@@ -14,7 +14,6 @@ import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /** 
- * TODO: remove Ownable2Step in favor of Default Admin
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
