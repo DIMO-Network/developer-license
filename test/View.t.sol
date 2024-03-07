@@ -5,6 +5,7 @@ import {console2} from "forge-std/Test.sol";
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
 import {IERC5192} from "../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
+import {TestOracleSource} from "./helper/TestOracleSource.sol";
 
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -76,8 +77,13 @@ contract ViewTest is BaseSetUp {
 
     function test_isSignerExpired() public {
         address to = address(0x1989);
-        uint256 amountIn = 100 ether;
+        uint256 amountIn = 1 ether;
         bytes memory data = "";
+
+        TestOracleSource testOracleSource = new TestOracleSource();
+        testOracleSource.setAmountUsdPerToken(1000 ether);
+        provider.addOracleSource(address(testOracleSource));
+        provider.setPrimaryOracleSource(1);
 
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
@@ -85,25 +91,26 @@ contract ViewTest is BaseSetUp {
         vm.stopPrank();
         dimoCredit.mint(to, amountIn, data);
 
-        // dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.setLicenseCost(1 ether);
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
         
-        // (uint256 tokenId, address clientId) = license.issueInDc(to);
+        (uint256 tokenId, address clientId) = license.issueInDc(to);
+        ///@notice ^mint license to a user other than the caller (using DC)
 
-        // ///@notice ^mint license to a user other than the caller (using DC)
-
-        // address signer = address(0x123);
+        address signer = address(0x123);
         
-        // vm.startPrank(to);
-        // license.enableSigner(tokenId, signer);
-        // vm.stopPrank();
+        vm.startPrank(to);
+        license.enableSigner(tokenId, signer);
+        vm.stopPrank();
 
-        // bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
-        // assertEq(isSigner00, true);
+        bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner00, true);
 
-        // vm.warp(block.timestamp + 366 days);
+        vm.warp(block.timestamp + 366 days);
 
-        // bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
-        // assertEq(isSigner01, false);
+        bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner01, false);
     }
 
     function test_supportsInterface() public {
@@ -142,33 +149,34 @@ contract ViewTest is BaseSetUp {
         assertEq(isSigner01, false);  
 
         assertEq(license._periodValidity(), periodValidity01);
-         
     }
 
     function test_licenseCostInUsd() public {
         license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
         
         uint256 licenseCostInUsd00 = license._licenseCostInUsd1e18();
-        console2.log("licenseCostInUsd00: %s", licenseCostInUsd00);
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.setLicenseCost(0.5 ether);
 
         assertEq(licenseCostInUsd00, _licenseCostInUsd); 
 
-        // uint256 licenseCostInUsd01 = 1;
-        // license.setLicenseCost(licenseCostInUsd01);
+        uint256 licenseCostInUsd01 = 0.1 ether;
+        license.setLicenseCost(licenseCostInUsd01);
 
-        // address user = address(0x1999);
+        address user = address(0x1999);
 
-        // vm.startPrank(user);
-        // dimoToken.approve(address(license), 1);
-        // license.issueInDimo();
-        // vm.stopPrank();
+        vm.startPrank(user);
+        dimoToken.approve(address(license), 0.05 ether);
+        license.issueInDimo();
+        vm.stopPrank();
 
-        // license.setLicenseCost(1);
+        license.setLicenseCost(1_000_000 ether);
 
-        // vm.startPrank(user);
-        // vm.expectRevert();
-        // license.issueInDimo();
-        // vm.stopPrank();
+        vm.startPrank(user);
+        vm.expectRevert();
+        license.issueInDimo();
+        vm.stopPrank();
     }
     
 }

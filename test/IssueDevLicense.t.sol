@@ -25,19 +25,20 @@ contract IssueDevLicenseTest is BaseSetUp {
         assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = 1 ether / (amountUsdPerToken * 100);
-        //console2.log("tokenTransferAmount %s", tokenTransferAmount);
+        //console2.log("  amountUsdPerToken: %s", amountUsdPerToken);
+        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
+        //console2.log("tokenTransferAmount: %s", tokenTransferAmount);
         assertEq(dimoToken.balanceOf(dimoCredit.receiver()), tokenTransferAmount);
     }
 
     /**
-     * TODO: Do we want to send $DIMO to the DC receiver? 
+     * @dev We send $DIMO to the DC receiver
      */
     function test_issueInDimoSenderSuccess() public {
         address licenseHolder = address(0x999);
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = 1 ether / (amountUsdPerToken * 100);
+        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
         deal(address(dimoToken), licenseHolder, tokenTransferAmount);
         vm.startPrank(licenseHolder);
         dimoToken.approve(address(license), tokenTransferAmount);
@@ -53,9 +54,8 @@ contract IssueDevLicenseTest is BaseSetUp {
     }
 
     function test_issueInDc() public {  
-
-        uint256 tokenTransferAmount = dimoCredit.dimoCreditRate() * 100;
-        console2.log("tokenTransferAmount %s", tokenTransferAmount); 
+        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
+        //console2.log("tokenTransferAmount %s", tokenTransferAmount); 
 
         dimoToken.approve(address(dimoCredit), 1_000_000 ether);
         dimoCredit.mintAmountDc(address(this), tokenTransferAmount, "");
@@ -74,7 +74,7 @@ contract IssueDevLicenseTest is BaseSetUp {
     function test_issueInDcSenderSuccess() public {
         address licenseHolder = address(0x999);
 
-        uint256 tokenTransferAmount = dimoCredit.dimoCreditRate() * 100;
+        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
         
         deal(address(dimoToken), licenseHolder, 1_000_000 ether);
         vm.startPrank(licenseHolder);
