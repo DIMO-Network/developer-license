@@ -12,13 +12,18 @@ contract TestOracleSource is OracleSource {
         _updateTimestamp = 1701349809;
     }
 
-    function amountUsdPerToken() external view returns (uint256 amountUsdPerToken_) {
-        amountUsdPerToken_ = _amountUsdPerToken;
+    function setAmountUsdPerToken(uint256 amountUsdPerToken_) external {
+        _amountUsdPerToken = amountUsdPerToken_;
     }
 
     /** 
      * 
      */
+
+    function amountUsdPerToken() external view returns (uint256 amountUsdPerToken_) {
+        amountUsdPerToken_ = _amountUsdPerToken;
+    }
+    
     function getAmountUsdPerToken() external view returns (uint256 amountUsdPerToken_, uint256 updateTimestamp) {
         return (_amountUsdPerToken, _updateTimestamp);
     }

@@ -83,8 +83,11 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @dev transfer spent $DIMO to the DimoCredit receiver
      */
     function issueInDimo(address to) public returns (uint256 tokenId, address clientId) {
+        
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = _licenseCostInUsd * amountUsdPerToken;
+        
+        uint256 tokenTransferAmount = 1 ether / (_licenseCostInUsd * amountUsdPerToken);
+        
         _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
 
         return _issue(to);
