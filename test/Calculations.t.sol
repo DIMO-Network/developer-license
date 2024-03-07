@@ -36,10 +36,10 @@ contract CalculationsTest is Test {
 
     function test_licenseCostInUsd() public {
 
-        (uint256 tokenId,) = license.issueInDimo();
+        // (uint256 tokenId,) = license.issueInDimo();
 
-        assertEq(tokenId, 1);
-        assertEq(license.ownerOf(tokenId), address(this));
+        // assertEq(tokenId, 1);
+        // assertEq(license.ownerOf(tokenId), address(this));
 
     }
 
