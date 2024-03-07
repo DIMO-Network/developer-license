@@ -8,8 +8,8 @@ import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol
 import {TestOracleSource} from "./helper/TestOracleSource.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
-import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
+import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -35,14 +35,12 @@ contract CalculationsTest is Test {
         provider = new NormalizedPriceProvider();
         provider.addOracleSource(address(testOracleSource));
 
-        receiver = address(0x123);
-
         LicenseAccountFactory factory = new LicenseAccountFactory();
 
+        receiver = address(0x123);
         dimoCredit = new DimoCredit(receiver, address(provider));
 
         licenseCostInUsd = 0;
-    
         license = new DevLicenseDimo(
             address(factory), 
             address(provider), 
@@ -54,16 +52,35 @@ contract CalculationsTest is Test {
         factory.setLicense(address(license));
     }
 
-    function test_licenseCostInUsd() public {
+    function test_1to1simpleCase() public {
+        address invoker = vm.addr(0x666);
+        address admin = vm.addr(0x999);
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin); 
 
-        deal(address(dimoToken), address(this), 1);
+        uint256 licenseCostUpdate = 1;
+        
+        vm.startPrank(admin);
+        license.setLicenseCost(licenseCostUpdate);
+        vm.stopPrank();
+        
+        deal(address(dimoToken), invoker, 1);
+
+        ///@dev before
+        uint256 balanceOf00a = dimoToken.balanceOf(invoker);
+        assertEq(balanceOf00a, 1);
+        uint256 balanceOf00b = dimoToken.balanceOf(receiver);
+        assertEq(balanceOf00b, 0);
+        
+        vm.startPrank(invoker);
         dimoToken.approve(address(license), 1);
+        license.issueInDimo();
+        vm.stopPrank();
 
-        // (uint256 tokenId,) = license.issueInDimo();
-
-        // assertEq(tokenId, 1);
-        // assertEq(license.ownerOf(tokenId), address(this));
-
+        ///@dev after
+        uint256 balanceOf01a = dimoToken.balanceOf(invoker);
+        assertEq(balanceOf01a, 0);
+        uint256 balanceOf01b = dimoToken.balanceOf(receiver);
+        assertEq(balanceOf01b, 1);
     }
 
 }

@@ -48,7 +48,7 @@ contract MetadataTest is BaseSetUp {
 
     function test_adminResetDescriptionImage() public {
         bytes32 LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
-        console2.logBytes32(LICENSE_ADMIN_ROLE);
+        //console2.logBytes32(LICENSE_ADMIN_ROLE);
 
         address admin = vm.addr(0x999);
 
@@ -73,8 +73,7 @@ contract MetadataTest is BaseSetUp {
                             "data:image/svg+xml;base64,",
                             Base64.encode("image"),
                             '",' '"external_link": "https://dimo.zone/",'
-                            '"seller_fee_basis_points": 0,'
-                            '"fee_recipient": "0x0000000000000000000000000000000000000000"}'
+                            '"collaborators": ["0x0000000000000000000000000000000000000000"]}'
                         )
                     )
                 )
