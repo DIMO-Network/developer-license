@@ -86,7 +86,7 @@ contract DevLicenseDimo is DevLicenseMeta {
         
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         
-        uint256 tokenTransferAmount = 1 ether / (_licenseCostInUsd1e18 * amountUsdPerToken);
+        uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
         
         _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
 

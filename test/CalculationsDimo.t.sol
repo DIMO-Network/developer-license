@@ -52,61 +52,30 @@ contract CalculationsDimoTest is Test {
         factory.setLicense(address(license));
     }
 
-    // function test_1to1simpleCase() public {
-    //     address invoker = vm.addr(0x666);
-    //     address admin = vm.addr(0x999);
-    //     license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin); 
-
-    //     uint256 licenseCostUpdate = 1;
-        
-    //     vm.startPrank(admin);
-    //     license.setLicenseCost(licenseCostUpdate);
-    //     vm.stopPrank();
-        
-    //     deal(address(dimoToken), invoker, 1);
-
-    //     ///@dev before
-    //     uint256 balanceOf00a = dimoToken.balanceOf(invoker);
-    //     assertEq(balanceOf00a, 1);
-    //     uint256 balanceOf00b = dimoToken.balanceOf(receiver);
-    //     assertEq(balanceOf00b, 0);
-        
-    //     vm.startPrank(invoker);
-    //     dimoToken.approve(address(license), 1);
-    //     license.issueInDimo();
-    //     vm.stopPrank();
-
-    //     ///@dev after
-    //     uint256 balanceOf01a = dimoToken.balanceOf(invoker);
-    //     assertEq(balanceOf01a, 0);
-    //     uint256 balanceOf01b = dimoToken.balanceOf(receiver);
-    //     assertEq(balanceOf01b, 1);
-    // }
-
-    function test_xxx() public {
+    function test_1to1simpleCase() public {
         address invoker = vm.addr(0x666);
         address admin = vm.addr(0x999);
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin); 
 
-        uint256 amountUsdPerToken = 0.1 ether; //100000000000000000
+        uint256 amountUsdPerToken = 1 ether;
         testOracleSource.setAmountUsdPerToken(amountUsdPerToken);
 
-        uint256 licenseCostUpdate = 1;
+        uint256 licenseCostUpdate = 1 ether;
         
         vm.startPrank(admin);
         license.setLicenseCost(licenseCostUpdate);
         vm.stopPrank();
         
-        deal(address(dimoToken), invoker, 10);
+        deal(address(dimoToken), invoker, 1 ether);
 
         ///@dev before
         uint256 balanceOf00a = dimoToken.balanceOf(invoker);
-        assertEq(balanceOf00a, 10);
+        assertEq(balanceOf00a, 1 ether);
         uint256 balanceOf00b = dimoToken.balanceOf(receiver);
         assertEq(balanceOf00b, 0);
         
         vm.startPrank(invoker);
-        dimoToken.approve(address(license), 10);
+        dimoToken.approve(address(license), 1 ether);
         license.issueInDimo();
         vm.stopPrank();
 
@@ -114,7 +83,41 @@ contract CalculationsDimoTest is Test {
         uint256 balanceOf01a = dimoToken.balanceOf(invoker);
         assertEq(balanceOf01a, 0);
         uint256 balanceOf01b = dimoToken.balanceOf(receiver);
-        assertEq(balanceOf01b, 10);
+        assertEq(balanceOf01b, 1 ether);
+    }
+
+    function test_calculate() public {
+        address invoker = vm.addr(0x666);
+        address admin = vm.addr(0x999);
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin); 
+
+        uint256 amountUsdPerToken = 0.25 ether; //250000000000000000
+        testOracleSource.setAmountUsdPerToken(amountUsdPerToken);
+
+        uint256 licenseCostUpdate = 2 ether;
+        
+        vm.startPrank(admin);
+        license.setLicenseCost(licenseCostUpdate);
+        vm.stopPrank();
+        
+        deal(address(dimoToken), invoker, 8 ether);
+
+        ///@dev before
+        uint256 balanceOf00a = dimoToken.balanceOf(invoker);
+        assertEq(balanceOf00a, 8 ether);
+        uint256 balanceOf00b = dimoToken.balanceOf(receiver);
+        assertEq(balanceOf00b, 0);
+        
+        vm.startPrank(invoker);
+        dimoToken.approve(address(license), 8 ether);
+        license.issueInDimo();
+        vm.stopPrank();
+
+        ///@dev after
+        uint256 balanceOf01a = dimoToken.balanceOf(invoker);
+        assertEq(balanceOf01a, 0);
+        uint256 balanceOf01b = dimoToken.balanceOf(receiver);
+        assertEq(balanceOf01b, 8 ether);
     }
 
 }

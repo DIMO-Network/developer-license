@@ -19,7 +19,7 @@ contract TwapV3 is OracleSource, Ownable2Step {
     uint32 _twapIntervalUsdc;
     uint32 _twapIntervalDimo;
 
-    uint256 constant SCALING_FACTOR = 10**18;
+    uint256 constant SCALING_FACTOR = 1 ether;
 
     constructor() Ownable(msg.sender) {
         _twapIntervalUsdc = 1 minutes;
