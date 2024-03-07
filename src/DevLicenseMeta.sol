@@ -72,8 +72,7 @@ contract DevLicenseMeta is DevLicenseLock {
                             "data:image/svg+xml;base64,",
                             _imageContract,
                             '",' '"external_link": "https://dimo.zone/",'
-                            '"seller_fee_basis_points": 0,'
-                            '"fee_recipient": "0x0000000000000000000000000000000000000000"}'
+                            '"collaborators": ["0x0000000000000000000000000000000000000000"]}'
                         )
                     )
                 )

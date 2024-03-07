@@ -8,6 +8,8 @@ import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol
 import {TestOracleSource} from "./helper/TestOracleSource.sol";
 import {DimoCredit} from "../src/DimoCredit.sol";
 import {IDimoToken} from "../src/interface/IDimoToken.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -16,8 +18,12 @@ contract CalculationsTest is Test {
 
     DimoCredit dimoCredit;
     IDimoToken dimoToken;
+    DevLicenseDimo license;
+
     NormalizedPriceProvider provider;
     TestOracleSource testOracleSource;
+
+    uint256 licenseCostInUsd;
 
     address receiver;
 
@@ -31,10 +37,27 @@ contract CalculationsTest is Test {
 
         receiver = address(0x123);
 
+        LicenseAccountFactory factory = new LicenseAccountFactory();
+
         dimoCredit = new DimoCredit(receiver, address(provider));
+
+        licenseCostInUsd = 0;
+    
+        license = new DevLicenseDimo(
+            address(factory), 
+            address(provider), 
+            address(dimoToken), 
+            address(dimoCredit),
+            licenseCostInUsd
+        );
+
+        factory.setLicense(address(license));
     }
 
     function test_licenseCostInUsd() public {
+
+        deal(address(dimoToken), address(this), 1);
+        dimoToken.approve(address(license), 1);
 
         // (uint256 tokenId,) = license.issueInDimo();
 
