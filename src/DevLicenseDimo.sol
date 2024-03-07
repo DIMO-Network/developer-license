@@ -86,7 +86,7 @@ contract DevLicenseDimo is DevLicenseMeta {
         
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
         
-        uint256 tokenTransferAmount = 1 ether / (_licenseCostInUsd * amountUsdPerToken);
+        uint256 tokenTransferAmount = 1 ether / (_licenseCostInUsd1e18 * amountUsdPerToken);
         
         _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
 
@@ -103,7 +103,7 @@ contract DevLicenseDimo is DevLicenseMeta {
      * invoke from an EOA account, persist to a smart contract account
      */
     function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
-        uint256 dcTransferAmount = _licenseCostInUsd * _dimoCredit.dimoCreditRate();
+        uint256 dcTransferAmount = _licenseCostInUsd1e18 * _dimoCredit.dimoCreditRate();
         _dimoCredit.burn(to, dcTransferAmount);
 
         return _issue(to);

@@ -25,7 +25,7 @@ contract DevLicenseDimoTest is BaseSetUp {
         assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+        uint256 tokenTransferAmount = 1 ether / (amountUsdPerToken * 100);
         assertEq(dimoToken.balanceOf(address(dimoCredit.receiver())), tokenTransferAmount);
     }
 

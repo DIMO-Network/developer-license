@@ -44,12 +44,14 @@ contract BaseSetUp is Test {
 
         dimoCredit = new DimoCredit(address(0x123), address(provider));
 
+        uint256 licenseCostInUsd1e18 = 100 ether;
+
         license = new DevLicenseDimo(
             address(laf), 
             address(provider), 
             address(dimoToken), 
             address(dimoCredit),
-            100
+            licenseCostInUsd1e18
         );
 
         laf.setLicense(address(license));

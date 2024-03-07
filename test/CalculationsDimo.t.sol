@@ -13,8 +13,8 @@ import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-//forge test --match-path ./test/Calculations.t.sol -vv
-contract CalculationsTest is Test {
+//forge test --match-path ./test/CalculationsDimo.t.sol -vv
+contract CalculationsDimoTest is Test {
 
     DimoCredit dimoCredit;
     IDimoToken dimoToken;

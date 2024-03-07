@@ -34,8 +34,8 @@ contract DimoCredit is Ownable2Step, AccessControl {
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
 
-    uint256 constant SCALING_FACTOR = 10**18;
-    uint256 constant DIMO_CREDIT_RATE = 10**3;
+    uint256 constant SCALING_FACTOR = 1 ether;
+    uint256 constant DIMO_CREDIT_RATE = 0.001 ether;
 
     function dimoCreditRate() external pure returns (uint256) {
         return DIMO_CREDIT_RATE;

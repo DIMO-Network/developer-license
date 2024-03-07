@@ -25,7 +25,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+        uint256 tokenTransferAmount = 1 ether / (amountUsdPerToken * 100);
         //console2.log("tokenTransferAmount %s", tokenTransferAmount);
         assertEq(dimoToken.balanceOf(dimoCredit.receiver()), tokenTransferAmount);
     }
@@ -37,7 +37,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         address licenseHolder = address(0x999);
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = amountUsdPerToken * 100;
+        uint256 tokenTransferAmount = 1 ether / (amountUsdPerToken * 100);
         deal(address(dimoToken), licenseHolder, tokenTransferAmount);
         vm.startPrank(licenseHolder);
         dimoToken.approve(address(license), tokenTransferAmount);

@@ -30,7 +30,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _licenseAccountFactory;
     uint256 public _periodValidity; ///@dev signer validity expiration
-    uint256 public _licenseCostInUsd;
+    uint256 public _licenseCostInUsd1e18;
     uint256 public _counter;
 
     /*//////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd_) {
+        uint256 licenseCostInUsd1e18_) {
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         
@@ -83,7 +83,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     
         _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
-        _licenseCostInUsd = licenseCostInUsd_;
+        _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
     }
 
     /* * */
@@ -116,14 +116,14 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
 
-    function setLicenseCost(uint256 licenseCostInUsd_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _licenseCostInUsd = licenseCostInUsd_;
-        emit UpdateLicenseCost(_licenseCostInUsd);
+    function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+        emit UpdateLicenseCost(_licenseCostInUsd1e18);
     }
 
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _periodValidity = periodValidity_;
-        emit UpdatePeriodValidity(_licenseCostInUsd);
+        emit UpdatePeriodValidity(_periodValidity);
     }
 
     /*//////////////////////////////////////////////////////////////
