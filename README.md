@@ -1,32 +1,23 @@
-## Dev License 
+# DIMO Developer License
 
-Lorem ipsum...
+This is an NFT collection minted for developers building on the DIMO Network.
 
+## Deployment Script
+
+Using `TestToken` instead of `$DIMO`.
+
+```
+npx ts-node ./script/test_deploy.ts
+```
+
+Using `$DIMO`. 
+
+```
+npx ts-node ./script/prod_deploy.ts
+```
+
+
+## Resources
+
+* [PRD](https://docs.google.com/document/d/1V7qlsMj8GgujmnHYlQ1ZiW_DDkxHWkvkDQ70itPtRsg/edit)
 * [Spec #0](https://docs.google.com/document/d/1fFXOi_lmVBGG-vYmwSCZVd9nRRf3d0jP1hZjJq-G8MA/edit)
-
-
-* ABI
-* Address (License contract)
-* Events
-
-Workflow
----
-
-0. create license
-    - oauth client created for you on the backend
-    - add redirect url, and check that the backend has that
-    - add a signer, with a known pk
-    - use that signer to sign a challenge message for that license
-    - check that you can log in as the license address
-1.
-
----
---> grant license address privledge on a vehicle
---> check that the login can use that privledge on the backend
-
-
-
-### deploy
-```
-npx ts-node ./script/deploy.ts
-```
