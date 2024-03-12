@@ -23,7 +23,8 @@ contract BaseSetUp is Test {
     NormalizedPriceProvider public provider;
 
     function _setUp() public {
-        vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
+        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
+        vm.createSelectFork('https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28', 50573735);
         dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         LicenseAccountFactory laf = new LicenseAccountFactory();
