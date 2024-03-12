@@ -36,6 +36,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
 
     uint256 constant SCALING_FACTOR = 1 ether;
     uint256 constant DIMO_CREDIT_RATE = 0.001 ether;
+    //TODO: ^make this settable!
 
     function dimoCreditRate() external pure returns (uint256) {
         return DIMO_CREDIT_RATE;

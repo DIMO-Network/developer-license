@@ -30,7 +30,7 @@ contract DevLicenseMeta is DevLicenseLock {
         _imageToken = Base64.encode(bytes(image));
         _imageContract = Base64.encode(bytes(image));
 
-        string memory description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+        string memory description = "This is an NFT collection minted for developers building on the DIMO Network.";
         _descriptionToken = description;
         _descriptionContract = description;
     }

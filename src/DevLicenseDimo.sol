@@ -56,7 +56,7 @@ contract DevLicenseDimo is DevLicenseMeta {
     }
 
     /**
-     * 
+     * TODO: test this!!!
      */
     function setStatusRedirectUri(
             uint256 tokenId, 

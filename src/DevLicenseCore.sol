@@ -25,7 +25,8 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
-    IDimoToken public _dimoToken; //define in constructor TODO
+    IDimoToken public _dimoToken; 
+    //TODO: ^define in constructor 
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _licenseAccountFactory;
