@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+//import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+//import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 import {FixedPoint96} from "@uniswap/v4-core/src/libraries/FixedPoint96.sol";
 import {OracleSource} from "./OracleSource.sol";
 
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
 /** 
  * TODO: fully understand intervals...
  */
-contract TwapV3 is OracleSource, Ownable2Step {
+//contract TwapV3 is OracleSource, Ownable2Step {
+contract TwapV3 is OracleSource, AccessControl {
     address poolWmaticUsdc;
     address poolWmaticDimo;
 
@@ -21,7 +24,8 @@ contract TwapV3 is OracleSource, Ownable2Step {
 
     uint256 constant SCALING_FACTOR = 1 ether;
 
-    constructor() Ownable(msg.sender) {
+    //constructor() Ownable(msg.sender) {
+    constructor() {
         _twapIntervalUsdc = 1 minutes;
         _twapIntervalDimo = 1 minutes;
 
@@ -31,16 +35,19 @@ contract TwapV3 is OracleSource, Ownable2Step {
 
     function initialize(
         uint32 twapIntervalUsdc_, 
-        uint32 twapIntervalDimo_) onlyOwner external {
+        uint32 twapIntervalDimo_) external {
+        //uint32 twapIntervalDimo_) onlyOwner external {
         _twapIntervalUsdc = twapIntervalUsdc_;
         _twapIntervalDimo = twapIntervalDimo_;
     }
 
-    function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) onlyOwner external {
+    //function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) onlyOwner external {
+    function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) external {
         _twapIntervalUsdc = twapIntervalUsdc_;
     }
 
-    function setTwapIntervalDimo(uint32 twapIntervalDimo_) onlyOwner external {
+    //function setTwapIntervalDimo(uint32 twapIntervalDimo_) onlyOwner external {
+    function setTwapIntervalDimo(uint32 twapIntervalDimo_) external {
         _twapIntervalDimo = twapIntervalDimo_;
     }
 

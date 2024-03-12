@@ -16,6 +16,10 @@ Using `$DIMO`.
 npx ts-node ./script/prod_deploy.ts
 ```
 
+## Normalized Price Provider
+
+
+
 
 ## Resources
 

@@ -3,8 +3,8 @@ pragma solidity 0.8.22;
 
 import {console2} from "forge-std/Test.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+//import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+//import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IOracleSource} from "./IOracleSource.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -12,7 +12,8 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 /**
  * @notice Normalize the format of different oracle sources into a common source.
  */
-contract NormalizedPriceProvider is Ownable2Step, AccessControl {
+//contract NormalizedPriceProvider is Ownable2Step, AccessControl {
+contract NormalizedPriceProvider is AccessControl {
 
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
@@ -27,18 +28,21 @@ contract NormalizedPriceProvider is Ownable2Step, AccessControl {
     string constant private ERROR_INVALID_INDEX = "NormalizedPriceProvider: invalid index";
     string constant private ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
 
-    constructor() Ownable(msg.sender) {
+    //constructor() Ownable(msg.sender) {
+    constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function addOracleSource(address source) onlyOwner external {
+    //function addOracleSource(address source) onlyOwner external {
+    function addOracleSource(address source) external {
         require(source != address(0), "NormalizedPriceProvider: invalid source address");
         require(_oracleSources.length < MAX_ORACLE_SOURCES, ERROR_MAX_ORACLES_REACHED);
         _oracleSources.push(IOracleSource(source));
         emit OracleSourceAdded(source);
     }
 
-    function setPrimaryOracleSource(uint256 index) onlyOwner external {
+    //function setPrimaryOracleSource(uint256 index) onlyOwner external {
+    function setPrimaryOracleSource(uint256 index) external {
         require(index < _oracleSources.length, ERROR_INVALID_INDEX);
         _primaryIndex = index;
         emit PrimaryOracleSourceSet(_primaryIndex);
@@ -48,7 +52,8 @@ contract NormalizedPriceProvider is Ownable2Step, AccessControl {
      * Remove the oracle source from the array by swapping it with 
      * the last element and then popping from the array
      */
-    function removeOracleSource(uint256 indexToRemove) onlyOwner external {
+    //function removeOracleSource(uint256 indexToRemove) onlyOwner external {
+    function removeOracleSource(uint256 indexToRemove) external {
         require(indexToRemove < _oracleSources.length && 
                 indexToRemove != _primaryIndex, ERROR_INVALID_INDEX);
 
