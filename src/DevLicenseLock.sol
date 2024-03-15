@@ -15,18 +15,21 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
+    
     uint256 public _totalLockUp;
     uint256 public _minimumStake;
 
     /*//////////////////////////////////////////////////////////////
                               Mappings
     //////////////////////////////////////////////////////////////*/
+
     mapping(uint256 => uint256) public _licenseLockUp;
     mapping(uint256 => bool) public _licenseLockUpFrozen;
 
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
+
     event UpdateMinimumStake(uint256 amount);
     event AssetFreezeUpdate(uint256 indexed tokenId, uint256 amount, bool frozen);
     event AssetForfeit(uint256 indexed tokenId, uint256 amount);
@@ -36,6 +39,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
+
     string INVALID_PARAM = "DevLicenseDimo: invalid param";
 
     constructor(

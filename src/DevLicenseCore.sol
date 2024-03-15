@@ -40,7 +40,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
     mapping(address => uint256) public _clientIdToTokenId;
-    mapping(uint256 => mapping(address => uint256)) public _signers; ///@dev Expiration determined by block.timestamp
+    mapping(uint256 => mapping(address => uint256)) public _signers; ///@dev expiration determined by block.timestamp
 
     /*//////////////////////////////////////////////////////////////
                             Events
@@ -49,7 +49,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event UpdateLicenseCost(uint256 indexed licenseCost);
     event UpdatePeriodValidity(uint256 indexed periodValidity);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); ///@dev On mint & burn
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); ///@dev on mint & burn
 
     /*//////////////////////////////////////////////////////////////
                             Error Messages
@@ -133,6 +133,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                              NO-OP NFT Logic
     //////////////////////////////////////////////////////////////*/
+
     function approve(address /*spender*/, uint256 /*id*/) public virtual {
         revert(INVALID_OPERATION);
     }
@@ -189,6 +190,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                          Private Helper Functions
     //////////////////////////////////////////////////////////////*/
+
     function _exists(uint256 tokenId) private view returns (bool) {
         return _ownerOf[tokenId] != address(0);
     }
@@ -196,6 +198,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
+    
     function supportsInterface(bytes4 interfaceId) public override pure returns (bool) {
         return
             interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
