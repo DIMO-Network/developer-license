@@ -52,7 +52,6 @@ contract LicenseAccountTest is Test {
     }
 
     function test_initTemplateNotEffectClone() public { 
-        
         DimoDeveloperLicenseAccount(factory._template()).initialize(1, address(0x999));
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
@@ -68,7 +67,6 @@ contract LicenseAccountTest is Test {
         (uint256 tokenId01,) = devLicense.issueInDimo();
         //console2.log("tokenId01: %s", tokenId01);
         assertEq(tokenId01, 2);
-
     }
 
     /**
@@ -81,6 +79,29 @@ contract LicenseAccountTest is Test {
 
         vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
         DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
+    }
+
+    function test_redirectUri() public { 
+
+        deal(address(dimoToken), address(this), 1_000_000 ether);
+        dimoToken.approve(address(devLicense), 1_000_000 ether);
+
+        (uint256 tokenId,) = devLicense.issueInDimo();   
+
+        string memory uri = "https://www.dimo.zone";
+        bool enabled = true;
+
+        devLicense.setRedirectUri(tokenId, enabled, uri); 
+
+        bool status = devLicense.redirectUriStatus(tokenId, uri);
+        //console2.log("status: %s", status);
+        assertEq(status, true);
+
+        enabled = false;
+        devLicense.setRedirectUri(tokenId, enabled, uri); 
+
+        status = devLicense.redirectUriStatus(tokenId, uri);
+        assertEq(status, false);
     }
     
 }

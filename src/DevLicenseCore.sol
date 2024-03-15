@@ -118,7 +118,6 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     /*//////////////////////////////////////////////////////////////
                             Admin Functions
-
     //////////////////////////////////////////////////////////////*/
 
     function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {

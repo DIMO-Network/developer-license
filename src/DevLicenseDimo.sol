@@ -28,7 +28,7 @@ contract DevLicenseDimo is DevLicenseMeta {
                                 Events
     //////////////////////////////////////////////////////////////*/
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
-    event RedirectUriDisabled(uint256 indexed tokenId, string uri); //disableRedirectUri
+    event RedirectUriDisabled(uint256 indexed tokenId, string uri); 
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
     /*//////////////////////////////////////////////////////////////
@@ -55,20 +55,32 @@ contract DevLicenseDimo is DevLicenseMeta {
         name = "DIMO Developer License";
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            Redirect URI
+    //////////////////////////////////////////////////////////////*/
+
+    function redirectUriStatus(uint256 tokenId, string calldata uri) external view returns (bool enabled) {
+        enabled = _redirectUris[tokenId][uri];
+    }
+
     /**
-     * TODO: test this!!!
      */
-    function setStatusRedirectUri(
+    function setRedirectUri(
             uint256 tokenId, 
-            bool status, 
+            bool enabled, 
             string calldata uri
         ) onlyTokenOwner(tokenId) external {
-            if(status) {
+            if(enabled) {
                 emit RedirectUriEnabled(tokenId, uri);
             } else {
                 emit RedirectUriDisabled(tokenId, uri);
             }
-        _redirectUris[tokenId][uri] = status;
+        _redirectUris[tokenId][uri] = enabled;
+    }
+
+    function removeRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
+        delete _redirectUris[tokenId][uri];
+        emit RedirectUriDisabled(tokenId, uri);
     }
 
     /*//////////////////////////////////////////////////////////////
