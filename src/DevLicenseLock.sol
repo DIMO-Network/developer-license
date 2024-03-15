@@ -122,7 +122,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     /**
      * TODO: do we want this generalized transfer function?
      */
-    function reallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
+    function adminReallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
@@ -144,7 +144,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function burnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
+    function adminBurnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
@@ -155,7 +155,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
 
     /**
      */
-    function freeze(uint256 tokenId, bool frozen) external onlyRole(LICENSE_ADMIN_ROLE) {
+    function adminFreeze(uint256 tokenId, bool frozen) external onlyRole(LICENSE_ADMIN_ROLE) {
         _licenseLockUpFrozen[tokenId] = frozen;
         emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
     }

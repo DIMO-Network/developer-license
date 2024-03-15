@@ -19,7 +19,6 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
      * enableRedirectUri(uint256 tokenId, string calldata uri)
      */
 
-    //TODO: test re-init
     function initialize(uint256 tokenId_, address license_) public {
         require(!_initialized, "DimoDeveloperLicenseAccount: invalid operation");
         _license = IDevLicenseDimo(license_);

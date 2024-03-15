@@ -44,7 +44,7 @@ contract DevLicenseDimoTest is BaseSetUp {
 
         assertEq(license.balanceOf(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
-        license.burnLockedFunds(tokenId, amount00);
+        license.adminBurnLockedFunds(tokenId, amount00);
         
         assertEq(dimoToken.balanceOf(address(license)), 0);
     }

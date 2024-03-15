@@ -113,7 +113,7 @@ contract RevokeBurnReallocateTest is Test {
         vm.stopPrank();
 
         vm.startPrank(_dimoAdmin);
-        license.reallocate(tokenId, amount00, to);
+        license.adminReallocate(tokenId, amount00, to);
         vm.stopPrank();
 
         uint256 amount02 = license.balanceOf(tokenId);

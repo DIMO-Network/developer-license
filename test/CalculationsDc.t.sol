@@ -62,7 +62,7 @@ contract CalculationsDcTest is Test {
 
         uint256 licenseCostUpdate = 1 ether;
 
-        TestOracleSource testOracleSource = new TestOracleSource();
+        //TestOracleSource testOracleSource = new TestOracleSource();
         // testOracleSource.setAmountUsdPerToken(1000 ether);
         // provider.addOracleSource(address(testOracleSource));
         // provider.setPrimaryOracleSource(1);
