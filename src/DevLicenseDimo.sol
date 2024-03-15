@@ -5,7 +5,7 @@ import {console2} from "forge-std/Test.sol";
 
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
-import {DevLicenseMeta} from "./DevLicenseMeta.sol"; //TODO: investigate replacement with OZ impl
+import {DevLicenseMeta} from "./DevLicenseMeta.sol";
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 
 /** 
