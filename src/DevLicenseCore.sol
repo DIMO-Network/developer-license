@@ -87,12 +87,15 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
     }
 
-    /* * */
+    /*//////////////////////////////////////////////////////////////
+                       Signer a.k.a. API Key
+    //////////////////////////////////////////////////////////////*/
 
     /**
-     * signer aka api key
-     * 
-     * @notice signer/owner/minter???
+     * @notice License can be minted by any EOA and assigned an owner, 
+     * or by the owner directly. the owner then enables a key and/or set
+     * of keys to act as a signer, to sign challenges from the backend 
+     * to access API resources.
      */
     function enableSigner(uint256 tokenId, address signer) onlyTokenOwner(tokenId) external {
         _enableSigner(tokenId, signer);
@@ -115,6 +118,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     /*//////////////////////////////////////////////////////////////
                             Admin Functions
+
     //////////////////////////////////////////////////////////////*/
 
     function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {

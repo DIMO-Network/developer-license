@@ -19,20 +19,20 @@ contract DevLicenseDimo is DevLicenseMeta {
     bytes32 public constant REVOKER_ROLE = keccak256("REVOKER_ROLE");
 
     /*//////////////////////////////////////////////////////////////
-                              Member Variables
+                            Member Variables
     //////////////////////////////////////////////////////////////*/
     string public name;
     string public symbol;
 
     /*//////////////////////////////////////////////////////////////
-                            Events
+                                Events
     //////////////////////////////////////////////////////////////*/
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     event RedirectUriDisabled(uint256 indexed tokenId, string uri); //disableRedirectUri
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
     /*//////////////////////////////////////////////////////////////
-                              Mappings
+                               Mappings
     //////////////////////////////////////////////////////////////*/
     mapping(uint256 => mapping(string => bool)) private _redirectUris;
 

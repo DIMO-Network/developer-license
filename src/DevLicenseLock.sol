@@ -89,10 +89,9 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
         require(validAmount && validMin, INVALID_PARAM);
 
-        _licenseLockUp[tokenId] -= amount;
+        _transferOut(tokenId, amount);
+        
         _dimoToken.transferFrom(address(this), msg.sender, amount);
-
-        _totalLockUp -= amount;
 
         emit Withdraw(tokenId, msg.sender, amount);
     }
@@ -126,7 +125,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     function reallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] <= amount, INVALID_PARAM);
 
-        _licenseLockUp[tokenId] -= amount;
+        _transferOut(tokenId, amount);
 
         _dimoToken.transfer(to, amount);
         emit AssetForfeit(tokenId, amount);
@@ -148,7 +147,7 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     function burnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
         require(_licenseLockUp[tokenId] >= amount, INVALID_PARAM);
 
-        _licenseLockUp[tokenId] -= amount;
+        _transferOut(tokenId, amount);
 
         _dimoToken.burn(address(this), amount);
         emit AssetForfeit(tokenId, amount);
@@ -159,6 +158,17 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
     function freeze(uint256 tokenId, bool frozen) external onlyRole(LICENSE_ADMIN_ROLE) {
         _licenseLockUpFrozen[tokenId] = frozen;
         emit AssetFreezeUpdate(tokenId, _licenseLockUp[tokenId], frozen);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         Private Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     */
+    function _transferOut(uint256 tokenId, uint256 amount) private {
+        _licenseLockUp[tokenId] -= amount;
+        _totalLockUp -= amount;
     }
 
 }
