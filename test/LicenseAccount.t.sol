@@ -102,6 +102,10 @@ contract LicenseAccountTest is Test {
 
         status = devLicense.redirectUriStatus(tokenId, uri);
         assertEq(status, false);
+
+        devLicense.removeRedirectUri(tokenId, uri);
+        status = devLicense.redirectUriStatus(tokenId, uri);
+        assertEq(status, false);
     }
     
 }
