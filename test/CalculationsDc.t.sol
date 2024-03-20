@@ -54,52 +54,60 @@ contract CalculationsDcTest is Test {
         factory.setLicense(address(license));
     }
 
-    function test_xxx() public {
-        address invoker = vm.addr(0x666);
+    function test_setDimoCreditRate() public {
+
         address admin = vm.addr(0x999);
-        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin); 
 
-        uint256 amountDcPerUsd = dimoCredit.dimoCreditRate();
+        dimoCredit.grantRole(keccak256("DC_ADMIN_ROLE"), admin); 
 
+        vm.startPrank(admin);
+        dimoCredit.setDimoCreditRate(1 ether);
+        vm.stopPrank();
+
+    }
+
+    function test_calcOneToOne() public {
+
+        address admin = vm.addr(0x666);
+
+        dimoCredit.grantRole(keccak256("DC_ADMIN_ROLE"), admin); 
+
+        vm.startPrank(admin);
+        dimoCredit.setDimoCreditRate(1 ether);
+        vm.stopPrank();
+
+        address to = vm.addr(0x123);
+        
         uint256 licenseCostUpdate = 1 ether;
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), admin);
+        vm.startPrank(admin);
+        license.setLicenseCost(licenseCostUpdate); 
+        vm.stopPrank();
 
-        //TestOracleSource testOracleSource = new TestOracleSource();
-        // testOracleSource.setAmountUsdPerToken(1000 ether);
-        // provider.addOracleSource(address(testOracleSource));
-        // provider.setPrimaryOracleSource(1);
+        testOracleSource = new TestOracleSource();
+        testOracleSource.setAmountUsdPerToken(1 ether);
 
-        // deal(address(dimoToken), to, amountIn);
-        // vm.startPrank(to);
-        // dimoToken.approve(address(dimoCredit), amountIn);
-        // vm.stopPrank();
-        // dimoCredit.mint(to, amountIn, data);
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
+        provider.addOracleSource(address(testOracleSource));
+        provider.setPrimaryOracleSource(1);
 
-        // license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
-        // license.setLicenseCost(1 ether);
-        // dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), to, amountIn);
+        vm.startPrank(to);
+        dimoToken.approve(address(dimoCredit), amountIn);
+        vm.stopPrank();
+    
+        dimoCredit.mint(to, amountIn, "");
+
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
         
-        // vm.startPrank(admin);
-        // license.setLicenseCost(licenseCostUpdate);
-        // vm.stopPrank();
-        
-        // deal(address(dimoToken), invoker, 1_000 ether);
+        vm.startPrank(to);
+        (uint256 tokenId,) = license.issueInDc();
+        vm.stopPrank();
 
-        // ///@dev before
-        // uint256 balanceOf00a = dimoToken.balanceOf(invoker);
-        // assertEq(balanceOf00a, 8 ether);
-        // uint256 balanceOf00b = dimoToken.balanceOf(receiver);
-        // assertEq(balanceOf00b, 0);
-        
-        // vm.startPrank(invoker);
-        // dimoToken.approve(address(license), 8 ether);
-        // license.issueInDimo();
-        // vm.stopPrank();
+        assertEq(tokenId, 1);
 
-        // ///@dev after
-        // uint256 balanceOf01a = dimoToken.balanceOf(invoker);
-        // assertEq(balanceOf01a, 0);
-        // uint256 balanceOf01b = dimoToken.balanceOf(receiver);
-        // assertEq(balanceOf01b, 8 ether);
     }
 
 }
