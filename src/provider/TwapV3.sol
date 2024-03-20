@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-//import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-//import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
@@ -14,7 +12,6 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 /** 
  * TODO: fully understand intervals...
  */
-//contract TwapV3 is OracleSource, Ownable2Step {
 contract TwapV3 is OracleSource, AccessControl {
     address poolWmaticUsdc;
     address poolWmaticDimo;
@@ -24,10 +21,11 @@ contract TwapV3 is OracleSource, AccessControl {
 
     uint256 constant SCALING_FACTOR = 1 ether;
 
-    //constructor() Ownable(msg.sender) {
     constructor() {
         _twapIntervalUsdc = 1 minutes;
         _twapIntervalDimo = 1 minutes;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         poolWmaticUsdc = 0xB6e57ed85c4c9dbfEF2a68711e9d6f36c56e0FcB;
         poolWmaticDimo = 0x41e64a5Bc929fA8E6a9C8d7E3b81A13b21Ff3045;
@@ -35,19 +33,16 @@ contract TwapV3 is OracleSource, AccessControl {
 
     function initialize(
         uint32 twapIntervalUsdc_, 
-        uint32 twapIntervalDimo_) external {
-        //uint32 twapIntervalDimo_) onlyOwner external {
+        uint32 twapIntervalDimo_) external onlyRole(ORACLE_ADMIN_ROLE) {
         _twapIntervalUsdc = twapIntervalUsdc_;
         _twapIntervalDimo = twapIntervalDimo_;
     }
 
-    //function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) onlyOwner external {
-    function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) external {
+    function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) external onlyRole(ORACLE_ADMIN_ROLE) {
         _twapIntervalUsdc = twapIntervalUsdc_;
     }
 
-    //function setTwapIntervalDimo(uint32 twapIntervalDimo_) onlyOwner external {
-    function setTwapIntervalDimo(uint32 twapIntervalDimo_) external {
+    function setTwapIntervalDimo(uint32 twapIntervalDimo_) external onlyRole(ORACLE_ADMIN_ROLE) {
         _twapIntervalDimo = twapIntervalDimo_;
     }
 

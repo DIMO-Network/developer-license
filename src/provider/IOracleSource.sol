@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-//TODO: ERC-1154 is out of date
 interface IOracleSource {
 
     function updatePrice() external;

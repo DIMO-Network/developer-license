@@ -3,8 +3,6 @@ pragma solidity 0.8.22;
 
 import {console2} from "forge-std/Test.sol";
 
-//import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-//import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IOracleSource} from "./IOracleSource.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -12,10 +10,13 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 /**
  * @notice Normalize the format of different oracle sources into a common source.
  */
-//contract NormalizedPriceProvider is Ownable2Step, AccessControl {
 contract NormalizedPriceProvider is AccessControl {
 
+    /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
+    bytes32 public constant PROVIDER_ADMIN_ROLE = keccak256("PROVIDER_ADMIN_ROLE");
 
     uint256 public _primaryIndex;
     IOracleSource[] public _oracleSources;
@@ -28,21 +29,18 @@ contract NormalizedPriceProvider is AccessControl {
     string constant private ERROR_INVALID_INDEX = "NormalizedPriceProvider: invalid index";
     string constant private ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
 
-    //constructor() Ownable(msg.sender) {
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    //function addOracleSource(address source) onlyOwner external {
-    function addOracleSource(address source) external {
+    function addOracleSource(address source) external onlyRole(PROVIDER_ADMIN_ROLE) {
         require(source != address(0), "NormalizedPriceProvider: invalid source address");
         require(_oracleSources.length < MAX_ORACLE_SOURCES, ERROR_MAX_ORACLES_REACHED);
         _oracleSources.push(IOracleSource(source));
         emit OracleSourceAdded(source);
     }
 
-    //function setPrimaryOracleSource(uint256 index) onlyOwner external {
-    function setPrimaryOracleSource(uint256 index) external {
+    function setPrimaryOracleSource(uint256 index) external onlyRole(PROVIDER_ADMIN_ROLE) {
         require(index < _oracleSources.length, ERROR_INVALID_INDEX);
         _primaryIndex = index;
         emit PrimaryOracleSourceSet(_primaryIndex);
@@ -52,8 +50,7 @@ contract NormalizedPriceProvider is AccessControl {
      * Remove the oracle source from the array by swapping it with 
      * the last element and then popping from the array
      */
-    //function removeOracleSource(uint256 indexToRemove) onlyOwner external {
-    function removeOracleSource(uint256 indexToRemove) external {
+    function removeOracleSource(uint256 indexToRemove) external onlyRole(PROVIDER_ADMIN_ROLE) {
         require(indexToRemove < _oracleSources.length && 
                 indexToRemove != _primaryIndex, ERROR_INVALID_INDEX);
 
@@ -64,10 +61,9 @@ contract NormalizedPriceProvider is AccessControl {
     }
 
     /**
-     * This shouldn't be permissioned, it'll cost us $LINK, but it'll cost
-     * the caller gas.
+     * This function costs us $LINK and costs the caller gas.
      */
-    function updatePrice() onlyRole(UPDATER_ROLE)  external {
+    function updatePrice() onlyRole(UPDATER_ROLE) external {
         _oracleSources[_primaryIndex].updatePrice();
     }
 

@@ -11,6 +11,11 @@ import {IOracleSource} from "./IOracleSource.sol";
  */
 abstract contract OracleSource {
 
+    /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
+    bytes32 public constant ORACLE_ADMIN_ROLE = keccak256("ORACLE_ADMIN_ROLE");
+
     uint256 public _updateTimestamp;
     uint256 public _amountUsdPerToken;
 
