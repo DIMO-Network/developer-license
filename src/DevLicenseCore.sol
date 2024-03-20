@@ -14,8 +14,23 @@ import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
 /**
+ *                    _..-------++._
+ *                _.-'/ |      _||  \"--._
+ *          __.--'`._/_\j_____/_||___\    `----.
+ *     _.--'_____    |          \     _____    /
+ *  _j    /,---.\   |        =o |   /,---.\   |_
+ * [__]==// .-. \\==`===========/==// .-. \\=[__]
+ *   `-._|\ `-' /|___\_________/___|\ `-' /|_.'
+ *         `---'                     `---'
  * @title DIMO Developer License
+ * @custom:version 1.0
  * @author Sean Matt English (@smatthewenglish)
+ * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Yevgeny Khessin (@zer0stars)
+ * @custom:coauthor Rob Solomon (@robmsolomon)
+ * @custom:contributor Allyson English (@aesdfghjkl666)
+ * @custom:contributor James Li (@ilsemaj)
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
