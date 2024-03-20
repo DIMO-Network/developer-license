@@ -6,6 +6,10 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
+/**
+ * @title DIMO Developer License Account Factory
+ * @author Sean Matt English (@smatthewenglish)
+ */
 contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { 
 
     address public _template;

@@ -3,20 +3,33 @@ pragma solidity ^0.8.20;
 
 import {console2} from "forge-std/Test.sol";
 
+import {IDimoToken} from "./interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-import {IDimoToken} from "./interface/IDimoToken.sol";
-
-/** 
+/**
+ *               ______--------___
+ *              /|             / |
+ *   o___________|_\__________/__|
+ *  ]|___     |  |=   ||  =|___  |"
+ *  //   \\    |  |____||_///   \\|"
+ * |  X  |\--------------/|  X  |\"
+ *  \___/                  \___/
+ * @title DIMO Credit
+ * @custom:version 1.0
+ * @author Sean Matt English (@smatthewenglish)
+ * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Yevgeny Khessin (@zer0stars)
+ * @custom:coauthor Rob Solomon (@robmsolomon)
+ * @custom:contributor Allyson English (@aesdfghjkl666)
+ * @custom:contributor James Li (@ilsemaj)
  * 
- * @dev they're not transferable, so there's no approve logic.
- * 
+ * @dev non-transferable, ipso facto no approve logic
  * @notice approve this contract on $DIMO token before minting
- * address is 0xE261D618a959aFfFd53168Cd07D12E37B26761db
- * 
- * 1 DC == $0.001 USD
+ *         address is 0xE261D618a959aFfFd53168Cd07D12E37B26761db
+ *         1 DC == $0.001 USD
  */
 contract DimoCredit is AccessControl {
 

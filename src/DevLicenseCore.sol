@@ -13,7 +13,9 @@ import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 
-/** 
+/**
+ * @title DIMO Developer License
+ * @author Sean Matt English (@smatthewenglish)
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
