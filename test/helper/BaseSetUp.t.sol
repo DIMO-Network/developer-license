@@ -30,8 +30,11 @@ contract BaseSetUp is Test {
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
         provider = new NormalizedPriceProvider();
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
 
         TwapV3 twap = new TwapV3();
+        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
+        
         uint32 intervalUsdc = 30 minutes;
         //console2.log("intervalUsdc: %s", intervalUsdc);
         uint32 intervalDimo = 4 minutes; 

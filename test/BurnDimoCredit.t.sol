@@ -26,11 +26,14 @@ contract BurnDimoCreditTest is Test {
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TwapV3 twap = new TwapV3();
+        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
+
         uint32 intervalUsdc = 30 minutes;
         uint32 intervalDimo = 4 minutes; 
         twap.initialize(intervalUsdc, intervalDimo);
 
         npp = new NormalizedPriceProvider();
+        npp.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
         npp.addOracleSource(address(twap));
 
         dc = new DimoCredit(address(0x123), address(npp));
@@ -81,7 +84,6 @@ contract BurnDimoCreditTest is Test {
         vm.stopPrank();
     }
 
-
     function test_burnSuccessAddAddressBurnAgainSuccess() public { 
         address user = address(0x1337); 
         uint256 amountIn = 1 ether;
@@ -110,6 +112,4 @@ contract BurnDimoCreditTest is Test {
         assertEq(dc.balanceOf(user), amountDc - 1 - 1);
     }
 
-
-    
 }

@@ -34,6 +34,7 @@ contract CalculationsDcTest is Test {
 
         testOracleSource = new TestOracleSource();
         provider = new NormalizedPriceProvider();
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
         provider.addOracleSource(address(testOracleSource));
 
         LicenseAccountFactory factory = new LicenseAccountFactory();

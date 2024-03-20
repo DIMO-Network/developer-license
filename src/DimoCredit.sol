@@ -4,8 +4,6 @@ pragma solidity ^0.8.20;
 import {console2} from "forge-std/Test.sol";
 
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -20,26 +18,35 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  * 
  * 1 DC == $0.001 USD
  */
-contract DimoCredit is Ownable2Step, AccessControl {
+contract DimoCredit is AccessControl {
 
+    /*//////////////////////////////////////////////////////////////
+                             Access Controls
+    //////////////////////////////////////////////////////////////*/
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
 
-    address private _receiver; ///@notice receives proceeds from sale of license
-
-    function receiver() external view returns (address) {
-        return _receiver;
-    }
+    address public _receiver; ///@notice receives proceeds from sale of license
 
     IDimoToken public _dimo;
     NormalizedPriceProvider public _provider;
     uint256 public _periodValidity;
 
-    uint256 constant SCALING_FACTOR = 1 ether;
-    uint256 constant DIMO_CREDIT_RATE = 0.001 ether;
-    //TODO: ^make this settable!
+    uint256 constant public SCALING_FACTOR = 1 ether;
 
-    function dimoCreditRate() external pure returns (uint256) {
-        return DIMO_CREDIT_RATE;
+    uint256 public _dimoCreditRate;
+
+    function receiver() external view returns (address receiver_) {
+        receiver_ = _receiver;
+    }
+
+    function dimoCreditRate() external view returns (uint256 dimoCreditRate_) {
+        dimoCreditRate_ = _dimoCreditRate;
+    }
+
+    function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
+        _dimoCreditRate = dimoCreditRate_;
+        emit UpdateDimoCreditRate(_dimoCreditRate);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -50,6 +57,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
+    event UpdateDimoCreditRate(uint256 rate);
     ///@dev only used in mint and burn, not transferable
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
@@ -71,15 +79,17 @@ contract DimoCredit is Ownable2Step, AccessControl {
     
     /**
      */
-    constructor(address receiver_, address provider_) Ownable(msg.sender) {
+    constructor(address receiver_, address provider_) {
         
-        _grantRole(DEFAULT_ADMIN_ROLE, owner());
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _provider = NormalizedPriceProvider(provider_);
         _periodValidity = 1 days;
 
         _receiver = receiver_;
+
+        _dimoCreditRate = 0.001 ether;
     
         decimals = 18;
         symbol = "DCX";
@@ -100,7 +110,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         uint256 usdAmount = (amountIn * amountUsdPerToken) / SCALING_FACTOR;
 
         // Convert USD amount to data credits
-        dimoCredits = usdAmount * DIMO_CREDIT_RATE;
+        dimoCredits = usdAmount * _dimoCreditRate;
         
         _mint(amountIn, dimoCredits, to);
     }
@@ -114,7 +124,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
 
         // Calculate the equivalent USD amount from data credits
-        uint256 usdAmount = dimoCredits / DIMO_CREDIT_RATE;
+        uint256 usdAmount = dimoCredits / _dimoCreditRate;
 
         // Adjust for precision
         amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
@@ -125,7 +135,7 @@ contract DimoCredit is Ownable2Step, AccessControl {
     /**
      * @dev permissioned because it could cost $LINK to invoke
      */
-    function updatePrice(bytes calldata data) onlyOwner public {
+    function updatePrice(bytes calldata data) external onlyRole(DC_ADMIN_ROLE) {
         (,uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
         bool invalid = (block.timestamp - updateTimestamp) < _periodValidity;
         bool updatable = _provider.isUpdatable();

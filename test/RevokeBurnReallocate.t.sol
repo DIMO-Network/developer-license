@@ -37,8 +37,10 @@ contract RevokeBurnReallocateTest is Test {
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         provider = new NormalizedPriceProvider();
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
 
         TwapV3 twap = new TwapV3();
+        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
         uint32 intervalUsdc = 30 minutes;
         uint32 intervalDimo = 4 minutes; 
         twap.initialize(intervalUsdc, intervalDimo);

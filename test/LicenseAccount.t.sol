@@ -32,6 +32,7 @@ contract LicenseAccountTest is Test {
         testOracleSource.setAmountUsdPerToken(amountUsdPerToken);
 
         NormalizedPriceProvider provider = new NormalizedPriceProvider();
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
         provider.addOracleSource(address(testOracleSource));
 
         dimoCredit = new DimoCredit(address(0x123), address(provider)); 
