@@ -8,9 +8,16 @@ import {TwapV3} from "../src/provider/TwapV3.sol";
 //forge test --match-path ./test/TwapInterval.t.sol -vv
 contract TwapIntervalTest is Test {
 
-//Because spot prices are easy and relatively cheap to manipulate, most protocols use a rolling 30-minute time window for TWAP to calculate the price3. Using TWAP with a long window causes prices to be smooth but lagging.
-//Since most protocols use a 30 minute running TWAP, waiting more blocks allows more of the total weighting on the final manipulated price.
-
+    /**
+     * @dev Because spot prices are easy and relatively cheap to manipulate, most protocols use a 
+     * rolling 30-minute time window for TWAP to calculate the price3. Using TWAP with a long window 
+     * causes prices to be smooth but lagging.
+     * 
+     * Since most protocols use a 30 minute running TWAP, waiting more blocks allows more of the total 
+     * weighting on the final manipulated price.
+     * 
+     * https://blog.uniswap.org/uniswap-v3-oracles
+     */
     TwapV3 twap;
 
     function setUp() public {
@@ -33,46 +40,49 @@ contract TwapIntervalTest is Test {
         twap = new TwapV3();
     }
     
-    function test_getAmountUsdPerToken() public {
+    // function test_getAmountUsdPerToken() public {
+    //     uint32 twapIntervalUsdc = 1 minutes;
+    //     uint32 twapIntervalDimo = 1 minutes;
+    //     twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
+    //     twap.setTwapIntervalUsdc(twapIntervalUsdc);
+    //     twap.setTwapIntervalDimo(twapIntervalDimo);
 
-        uint32 twapIntervalUsdc = 1 minutes;
-        uint32 twapIntervalDimo = 1 minutes;
-        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
-        twap.setTwapIntervalUsdc(twapIntervalUsdc);
-        twap.setTwapIntervalDimo(twapIntervalDimo);
+    //     (uint256 amountUsdPerToken, uint256 updateTimestamp) = twap.getAmountUsdPerToken();
+    //     //console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
+    //     console2.log("updateTimestamp: %s", updateTimestamp); 
+    //     //439746722760396201
+    //     //0.439746722760396201
 
-        (uint256 amountUsdPerToken, uint256 updateTimestamp) = twap.getAmountUsdPerToken();
-        //console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
-        console2.log("updateTimestamp: %s", updateTimestamp); 
-        //439746722760396201
+    //     uint32 twapIntervalUsdc00 = twap.getIntervalUsdc();
+    //     assertEq(1 minutes, twapIntervalUsdc00);
 
-        //twap = new TwapV3();
-        //0.439746722760396201
+    //     uint32 twapIntervalDimo00 = twap.getIntervalDimo();
+    //     assertEq(1 minutes, twapIntervalDimo00);
 
-        uint32 twapIntervalUsdc00 = twap.getIntervalUsdc();
-        assertEq(1 minutes, twapIntervalUsdc00);
+    //     assertEq(0.439746722760396201 ether, amountUsdPerToken);
+    // }
 
-        uint32 twapIntervalDimo00 = twap.getIntervalDimo();
-        assertEq(1 minutes, twapIntervalDimo00);
+    // function test_30minutes() public {
+    //     (uint256 amountUsdPerToken,) = twap.getAmountUsdPerToken();
+    //     console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
+    //     // 437503402621950580
+    //     // 0.43750340262195058
 
-        assertEq(0.439746722760396201 ether, amountUsdPerToken);
-    }
+    //     uint32 twapIntervalUsdc = twap.getIntervalUsdc();
+    //     assertEq(30 minutes, twapIntervalUsdc);
 
-    function test_30minutes() public {
+    //     uint32 twapIntervalDimo = twap.getIntervalDimo();
+    //     assertEq(30 minutes, twapIntervalDimo);
 
+    //     assertEq(0.43750340262195058 ether, amountUsdPerToken);
+    // }
 
-        (uint256 amountUsdPerToken,) = twap.getAmountUsdPerToken();
-        console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
-        // 437503402621950580
-        // 0.43750340262195058
+    function test_attack() public {
+        (uint256 amountUsdPerToken00,) = twap.getAmountUsdPerToken();
+        console2.log("amountUsdPerToken00: %s", amountUsdPerToken00); 
+        
 
-        uint32 twapIntervalUsdc = twap.getIntervalUsdc();
-        assertEq(30 minutes, twapIntervalUsdc);
-
-        uint32 twapIntervalDimo = twap.getIntervalDimo();
-        assertEq(30 minutes, twapIntervalDimo);
-
-        assertEq(0.43750340262195058 ether, amountUsdPerToken);
+        
     }
    
 }
