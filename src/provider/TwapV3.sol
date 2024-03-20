@@ -38,8 +38,16 @@ contract TwapV3 is OracleSource, AccessControl {
         _twapIntervalDimo = twapIntervalDimo_;
     }
 
+    function getIntervalUsdc() external view returns (uint32 twapIntervalUsdc_) {
+        twapIntervalUsdc_ = _twapIntervalUsdc;
+    }
+
     function setTwapIntervalUsdc(uint32 twapIntervalUsdc_) external onlyRole(ORACLE_ADMIN_ROLE) {
         _twapIntervalUsdc = twapIntervalUsdc_;
+    }
+
+    function getIntervalDimo() external view returns (uint32 twapIntervalDimo_) {
+        twapIntervalDimo_ = _twapIntervalDimo;
     }
 
     function setTwapIntervalDimo(uint32 twapIntervalDimo_) external onlyRole(ORACLE_ADMIN_ROLE) {
