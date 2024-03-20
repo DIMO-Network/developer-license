@@ -22,8 +22,8 @@ contract TwapV3 is OracleSource, AccessControl {
     uint256 constant SCALING_FACTOR = 1 ether;
 
     constructor() {
-        _twapIntervalUsdc = 1 minutes;
-        _twapIntervalDimo = 1 minutes;
+        _twapIntervalUsdc = 30 minutes;
+        _twapIntervalDimo = 30 minutes;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
