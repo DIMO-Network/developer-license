@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
@@ -45,99 +46,97 @@ contract TwapIntervalTest is Test {
         twap = new TwapV3();
     }
     
-    // function test_getAmountUsdPerToken() public {
-    //     uint32 twapIntervalUsdc = 1 minutes;
-    //     uint32 twapIntervalDimo = 1 minutes;
-    //     twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
-    //     twap.setTwapIntervalUsdc(twapIntervalUsdc);
-    //     twap.setTwapIntervalDimo(twapIntervalDimo);
+    function test_getAmountUsdPerToken() public {
+        uint32 twapIntervalUsdc = 1 minutes;
+        uint32 twapIntervalDimo = 1 minutes;
+        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
+        twap.setTwapIntervalUsdc(twapIntervalUsdc);
+        twap.setTwapIntervalDimo(twapIntervalDimo);
 
-    //     (uint256 amountUsdPerToken, uint256 updateTimestamp) = twap.getAmountUsdPerToken();
-    //     //console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
-    //     console2.log("updateTimestamp: %s", updateTimestamp); 
-    //     //439746722760396201
-    //     //0.439746722760396201
+        (uint256 amountUsdPerToken, uint256 updateTimestamp) = twap.getAmountUsdPerToken();
+        //console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
+        console2.log("updateTimestamp: %s", updateTimestamp); 
+        //439746722760396201
+        //0.439746722760396201
 
-    //     uint32 twapIntervalUsdc00 = twap.getIntervalUsdc();
-    //     assertEq(1 minutes, twapIntervalUsdc00);
+        uint32 twapIntervalUsdc00 = twap.getIntervalUsdc();
+        assertEq(1 minutes, twapIntervalUsdc00);
 
-    //     uint32 twapIntervalDimo00 = twap.getIntervalDimo();
-    //     assertEq(1 minutes, twapIntervalDimo00);
+        uint32 twapIntervalDimo00 = twap.getIntervalDimo();
+        assertEq(1 minutes, twapIntervalDimo00);
 
-    //     assertEq(0.439746722760396201 ether, amountUsdPerToken);
-    // }
+        assertEq(0.439746722760396201 ether, amountUsdPerToken);
+    }
 
-    // function test_30minutes() public {
-    //     (uint256 amountUsdPerToken,) = twap.getAmountUsdPerToken();
-    //     console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
-    //     // 437503402621950580
-    //     // 0.43750340262195058
+    function test_30minutes() public {
+        (uint256 amountUsdPerToken,) = twap.getAmountUsdPerToken();
+        console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
+        // 437503402621950580
+        // 0.43750340262195058
 
-    //     uint32 twapIntervalUsdc = twap.getIntervalUsdc();
-    //     assertEq(30 minutes, twapIntervalUsdc);
+        uint32 twapIntervalUsdc = twap.getIntervalUsdc();
+        assertEq(30 minutes, twapIntervalUsdc);
 
-    //     uint32 twapIntervalDimo = twap.getIntervalDimo();
-    //     assertEq(30 minutes, twapIntervalDimo);
+        uint32 twapIntervalDimo = twap.getIntervalDimo();
+        assertEq(30 minutes, twapIntervalDimo);
 
-    //     assertEq(0.43750340262195058 ether, amountUsdPerToken);
-    // }
+        assertEq(0.43750340262195058 ether, amountUsdPerToken);
+    }
 
 
-    ///  notice Swap token0 for token1, or token1 for token0
-    ///  dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
-    ///  param recipient The address to receive the output of the swap
-    ///  param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
-    ///  param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
-    ///  param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
-    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
-    ///  param data Any data to be passed through to the callback
-    ///  return amount0 The delta of the balance of token0 of the pool, exact when negative, minimum when positive
-    ///  return amount1 The delta of the balance of token1 of the pool, exact when negative, minimum when positive
-    // function swap(
-    //     address recipient,
-    //     bool zeroForOne,
-    //     int256 amountSpecified,
-    //     uint160 sqrtPriceLimitX96,
-    //     bytes calldata data
-    // ) external returns (int256 amount0, int256 amount1);
+    /**
+     * demonstrates how trading against the pool at different levels manipulates the price
+     * https://docs.uniswap.org/contracts/v3/guides/swaps/single-swaps
+     */
     function test_attack() public {
         (uint256 amountUsdPerToken00,) = twap.getAmountUsdPerToken();
         console2.log("amountUsdPerToken00: %s", amountUsdPerToken00); 
 
-        // The address to receive the output of the swap
         address recipient = address(0x123);
-        // The direction of the swap, true for token0 to token1, false for token1 to token0
-        bool zeroForOne = true;
-        // The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
-        int256 amountSpecified = 1 ether;
-        // The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
-        // value after the swap. If one for zero, the price cannot be greater than this value after the swap
-        uint160 sqrtPriceLimitX96 = 0;
-        bytes memory data = "";
 
+        uint256 balanceOf0 = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(recipient);
+        console2.log("balanceOf0: %s", balanceOf0); 
+        
         deal(address(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270), address(this), 1_000_000 ether);
 
-        IUniswapV3Pool(twap.poolWmaticDimo()).swap(
-            recipient,
-            zeroForOne,
-            amountSpecified,
-            sqrtPriceLimitX96,
-            data
-        );
-
-        //IUniswapV3Pool(twap.poolWmaticDimo()).swap0ForExact1();
+        // Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
+        // We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
+        ISwapRouter.ExactInputSingleParams memory params =
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270,
+                tokenOut: 0xE261D618a959aFfFd53168Cd07D12E37B26761db,
+                fee: 10000,
+                recipient: recipient,
+                deadline: block.timestamp,
+                amountIn: 1_000 ether,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
         
+        ERC20(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270).approve(address(0xE592427A0AEce92De3Edee1F18E0157C05861564), 1_000_000 ether);
 
+        // The call to `exactInputSingle` executes the swap.
+        uint256 amountOut = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564).exactInputSingle(params);
+        console2.log("amountOut: %s", amountOut); 
+        
+        uint256 balanceOf1 = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db).balanceOf(recipient);
+        console2.log("balanceOf1: %s", balanceOf1); 
+
+        (uint256 amountUsdPerToken01,) = twap.getAmountUsdPerToken();
+        console2.log("amountUsdPerToken01: %s", amountUsdPerToken01); 
+
+        //437503402621950580 (0.43750340262195058) //1 in
+        //437503946151832219 (0.437503946151832219)
+
+        //437503402621950580 (0.43750340262195058) //100 in
+        //437557757281360307 (0.437557757281360307)
+
+        //437503402621950580 (0.43750340262195058) //1_000 in
+        //438047101147491277 (0.438047101147491277)
+
+        //437503402621950580 (0.43750340262195058) //1_000_000 in 
+        //124693893367524554976331 (124693.893367524554976331)
         
     }
-
-    // function swapExact0For1(
-    //     address pool,
-    //     uint256 amount0In,
-    //     address recipient,
-    //     uint160 sqrtPriceLimitX96
-    // ) external {
-    //     IUniswapV3Pool(pool).swap(recipient, true, amount0In.toInt256(), sqrtPriceLimitX96, abi.encode(msg.sender));
-    // }
    
 }
