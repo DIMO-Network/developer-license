@@ -9,8 +9,15 @@ import {OracleSource} from "./OracleSource.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-/** 
- * TODO: fully understand intervals...
+/**
+ * @title TwapV3
+ * @custom:version 1.0.0
+ * @author Sean Matt English (@smatthewenglish)
+ * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Yevgeny Khessin (@zer0stars)
+ * @custom:coauthor Rob Solomon (@robmsolomon)
+ * @custom:contributor Allyson English (@aesdfghjkl666)
  */
 contract TwapV3 is OracleSource, AccessControl {
     address public immutable poolWmaticUsdc;

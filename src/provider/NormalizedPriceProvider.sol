@@ -8,7 +8,16 @@ import {IOracleSource} from "./IOracleSource.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
- * @notice Normalize the format of different oracle sources into a common source.
+ * @title NormalizedPriceProvider
+ * @custom:version 1.0.0
+ * @author Sean Matt English (@smatthewenglish) 
+ * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Yevgeny Khessin (@zer0stars)
+ * @custom:coauthor Rob Solomon (@robmsolomon)
+ * @custom:contributor Allyson English (@aesdfghjkl666)
+ * 
+ * @dev Normalize the format of different oracle sources into a common source.
  */
 contract NormalizedPriceProvider is AccessControl {
 
