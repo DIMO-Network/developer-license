@@ -59,13 +59,14 @@ contract IntegrationStakeTest is Test, ForkProvider {
     }
     
     function test_fuzzStake(uint256 amount) public {
+        amount = bound(amount, 1.1 ether, type(uint256).max);
         
         address user = address(0x1337);
         
-        deal(address(dimoToken), user, amount + 1 ether);
+        deal(address(dimoToken), user, amount);
 
         uint256 balanceOf00 = ERC20(address(dimoToken)).balanceOf(user);
-        assertEq(balanceOf00, 1 ether); 
+        assertEq(balanceOf00, amount);  
 
         vm.startPrank(user);
         dimoToken.approve(address(license), 1 ether);
@@ -76,10 +77,11 @@ contract IntegrationStakeTest is Test, ForkProvider {
         assertEq(balanceOf01, amount - 1 ether);
 
         vm.startPrank(user);
-        license.lock(tokenId, amount);
+        dimoToken.approve(address(license), amount - 1 ether);
+        license.lock(tokenId, amount - 1 ether);
         vm.stopPrank();
-        
-        
+
+        assertEq(license.licenseStaked(tokenId), amount - 1 ether);
     }
 
   
