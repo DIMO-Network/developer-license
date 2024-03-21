@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import {console2} from "forge-std/Test.sol";
-
 import {IOracleSource} from "./IOracleSource.sol";
-
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**

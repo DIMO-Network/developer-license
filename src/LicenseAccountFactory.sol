@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.22;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
@@ -7,9 +7,14 @@ import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 
 /**
- * TODO: ASCII ART co-authors
  * @title DIMO Developer License Account Factory
+ * @custom:version 1.0.0
  * @author Sean Matt English (@smatthewenglish)
+ * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Yevgeny Khessin (@zer0stars)
+ * @custom:coauthor Rob Solomon (@robmsolomon)
+ * @custom:contributor Allyson English (@aesdfghjkl666)
  */
 contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { 
 

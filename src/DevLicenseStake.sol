@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-import {console2} from "forge-std/Test.sol";
+pragma solidity 0.8.22;
 
 import {DevLicenseCore} from "./DevLicenseCore.sol";
-
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /** 
