@@ -13,8 +13,8 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * TODO: fully understand intervals...
  */
 contract TwapV3 is OracleSource, AccessControl {
-    address poolWmaticUsdc;
-    address poolWmaticDimo;
+    address public immutable poolWmaticUsdc;
+    address public immutable poolWmaticDimo;
 
     uint32 _twapIntervalUsdc;
     uint32 _twapIntervalDimo;
