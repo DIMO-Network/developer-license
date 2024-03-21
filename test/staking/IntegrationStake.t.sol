@@ -82,6 +82,18 @@ contract IntegrationStakeTest is Test, ForkProvider {
         vm.stopPrank();
 
         assertEq(license.licenseStaked(tokenId), amount - 1 ether);
+
+        vm.startPrank(_dimoAdmin);
+        license.grantRole(license.LICENSE_ADMIN_ROLE(), _dimoAdmin);
+        bool frozen = true;
+        license.adminFreeze(tokenId, frozen);
+        vm.stopPrank();
+
+        vm.startPrank(user);
+        uint256 amountWithdraw = license.licenseStaked(tokenId);
+        vm.expectRevert("DevLicenseDimo: funds inaccessible");
+        license.withdraw(tokenId, amountWithdraw);
+        vm.stopPrank();
     }
 
   
