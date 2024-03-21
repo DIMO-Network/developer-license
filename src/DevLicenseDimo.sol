@@ -130,9 +130,6 @@ contract DevLicenseDimo is DevLicenseMeta {
     }
 
     /**
-     * TODO: is this math correct? do we need to normalize it... 
-     * 
-     * invoke from an EOA account, persist to a smart contract account
      */
     function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
         uint256 dcTransferAmount = (_licenseCostInUsd1e18 / _dimoCredit.dimoCreditRate()) * 1 ether;
@@ -161,7 +158,7 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @notice only admin enabled addresses are allowed to revoke/burn licenses
      */
     function revoke(uint256 tokenId) external onlyRole(REVOKER_ROLE) {
-        require(_licenseLockUp[tokenId] == 0, "DevLicenseDimo: resolve lock");
+        require(_stakeLicense[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
 
         address tokenOwner = _ownerOf[tokenId];
         delete _ownerOf[tokenId];
@@ -172,7 +169,5 @@ contract DevLicenseDimo is DevLicenseMeta {
 
         emit Transfer(tokenOwner, address(0), tokenId); ///@dev ERC721
     }
-
-
 
 }

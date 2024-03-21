@@ -24,7 +24,6 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
                               Member Variables
     //////////////////////////////////////////////////////////////*/
     IDimoToken public _dimoToken; 
-    //TODO: ^define in constructor 
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _licenseAccountFactory;
@@ -76,7 +75,6 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         
         _periodValidity = 365 days;
 
-        _dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
         _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
     

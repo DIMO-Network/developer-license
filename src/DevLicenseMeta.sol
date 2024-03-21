@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {DevLicenseLock} from "./DevLicenseLock.sol";
+import {DevLicenseStake} from "./DevLicenseStake.sol";
 
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract DevLicenseMeta is DevLicenseLock {
+contract DevLicenseMeta is DevLicenseStake {
 
     string public _imageToken;
     string public _imageContract;
@@ -19,7 +19,7 @@ contract DevLicenseMeta is DevLicenseLock {
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) 
-    DevLicenseLock(
+    DevLicenseStake(
         licenseAccountFactory_,
         provider_,
         dimoTokenAddress_, 
