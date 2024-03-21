@@ -17,7 +17,7 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * |  X  |\--------------/|  X  |\"
  *  \___/                  \___/
  * @title DIMO Credit
- * @custom:version 1.0
+ * @custom:version 1.0.0
  * @author Sean Matt English (@smatthewenglish)
  * @custom:coauthor Dylan Moreland (@elffjs)
  * @custom:coauthor Lorran Sutter (@LorranSutter)

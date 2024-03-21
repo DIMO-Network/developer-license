@@ -23,7 +23,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  *   `-._|\ `-' /|___\_________/___|\ `-' /|_.'
  *         `---'                     `---'
  * @title DIMO Developer License
- * @custom:version 1.0
+ * @custom:version 1.0.0
  * @author Sean Matt English (@smatthewenglish)
  * @custom:coauthor Dylan Moreland (@elffjs)
  * @custom:coauthor Lorran Sutter (@LorranSutter)

@@ -82,6 +82,10 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         emit Deposit(tokenId, owner, amount);
     }
 
+    function minAmountLocked(uint256 tokenId) external view {
+        //TODO: iplement me...
+    }
+
     /**
      */
     function withdraw(uint256 tokenId, uint256 amount) public nonReentrant {
@@ -90,8 +94,10 @@ contract DevLicenseLock is DevLicenseCore, ReentrancyGuard {
         require(!_licenseLockUpFrozen[tokenId], "DevLicenseDimo: funds inaccessible");
 
         bool validAmount = _licenseLockUp[tokenId] >= amount;
-        bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
-        require(validAmount && validMin, INVALID_PARAM);
+        require(validAmount, INVALID_PARAM);
+
+        //bool validMin = _licenseLockUp[tokenId] >= _minimumStake;
+        //require(validAmount && validMin, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
         
