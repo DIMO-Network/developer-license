@@ -19,8 +19,8 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @title DIMO Credit
  * @custom:version 1.0.0
  * @author Sean Matt English (@smatthewenglish)
- * @custom:coauthor Dylan Moreland (@elffjs)
  * @custom:coauthor Lorran Sutter (@LorranSutter)
+ * @custom:coauthor Dylan Moreland (@elffjs)
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
  * @custom:contributor Allyson English (@aesdfghjkl666)
