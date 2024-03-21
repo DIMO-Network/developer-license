@@ -2,15 +2,15 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
-import {TwapV3} from "../src/provider/TwapV3.sol";
-import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
-import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
-import {DimoCredit} from "../src/DimoCredit.sol";
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
+import {TwapV3} from "../../src/provider/TwapV3.sol";
+import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
+import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
+import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 //forge test --match-path ./test/BurnDimoCredit.t.sol -vv

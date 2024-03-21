@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {console2} from "forge-std/Test.sol";
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 
-import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 //forge test --match-path ./test/IssueDevLicense.t.sol -vv
 contract IssueDevLicenseTest is BaseSetUp {

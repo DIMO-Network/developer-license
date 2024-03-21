@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {console2} from "forge-std/Test.sol";
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import {IERC5192} from "../src/interface/IERC5192.sol";
+import {IERC5192} from "../../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
-import {TestOracleSource} from "./helper/TestOracleSource.sol";
+import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
-import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 //forge test --match-path ./test/View.t.sol -vv
 contract ViewTest is BaseSetUp {

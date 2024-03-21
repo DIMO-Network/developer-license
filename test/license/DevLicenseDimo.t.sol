@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 //forge test --match-path ./test/DevLicenseDimo.t.sol -vv
 contract DevLicenseDimoTest is BaseSetUp {

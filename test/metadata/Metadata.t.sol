@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {console2} from "forge-std/Test.sol";
 
-import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/Metadata.t.sol -vv
 contract MetadataTest is BaseSetUp {

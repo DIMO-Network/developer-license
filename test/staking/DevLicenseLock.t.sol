@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 
-import {BaseSetUp} from "./helper/BaseSetUp.t.sol";
+import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 interface IGrantRole {
     function grantRole(bytes32 role, address account) external;

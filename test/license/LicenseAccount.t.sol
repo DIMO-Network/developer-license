@@ -2,17 +2,17 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DimoDeveloperLicenseAccount} from "../src/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
-import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
-import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
-import {DimoCredit} from "../src/DimoCredit.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
+import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
+import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
+import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {TestOracleSource} from "./helper/TestOracleSource.sol";
+import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
@@ -108,5 +108,6 @@ contract LicenseAccountTest is Test {
         status = devLicense.redirectUriStatus(tokenId, uri);
         assertEq(status, false);
     }
+
     
 }

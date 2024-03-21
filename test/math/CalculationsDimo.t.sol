@@ -5,13 +5,13 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {TestOracleSource} from "./helper/TestOracleSource.sol";
-import {DimoCredit} from "../src/DimoCredit.sol";
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
-import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
-import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {TestOracleSource} from "../helper/TestOracleSource.sol";
+import {DimoCredit} from "../../src/DimoCredit.sol";
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
+import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/CalculationsDimo.t.sol -vv
 contract CalculationsDimoTest is Test {

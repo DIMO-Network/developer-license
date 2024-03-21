@@ -4,19 +4,19 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import {IERC5192} from "../src/interface/IERC5192.sol";
+import {IERC5192} from "../../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-import {NormalizedPriceProvider} from "../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../src/LicenseAccountFactory.sol";
-import {TwapV3} from "../src/provider/TwapV3.sol";
+import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {TwapV3} from "../../src/provider/TwapV3.sol";
 
-import {DimoCredit} from "../src/DimoCredit.sol";
-import {IDimoCredit} from "../src/interface/IDimoCredit.sol";
-import {DevLicenseDimo} from "../src/DevLicenseDimo.sol";
-import {IDimoToken} from "../src/interface/IDimoToken.sol";
-import {IDimoDeveloperLicenseAccount} from "../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {DimoCredit} from "../../src/DimoCredit.sol";
+import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
+import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/RevokeBurnReallocate.t.sol -vv
 contract RevokeBurnReallocateTest is Test {
@@ -62,6 +62,9 @@ contract RevokeBurnReallocateTest is Test {
         laf.setLicense(address(license));
     }
     
+    /**
+     * revoke/burn a license
+     */
     function test_burnSuccess() public {
         address user = address(0x2024);
         deal(address(dimoToken), user, 10_000 ether);
@@ -89,6 +92,9 @@ contract RevokeBurnReallocateTest is Test {
         license.ownerOf(tokenId);
     }
 
+    /**
+     * reallocate someone's staked tokens
+     */
     function test_reallocate() public {
         address owner = address(0x2024);
         deal(address(dimoToken), owner, 10_000 ether);

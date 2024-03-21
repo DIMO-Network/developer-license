@@ -9,7 +9,7 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import {TwapV3} from "../src/provider/TwapV3.sol";
+import {TwapV3} from "../../src/provider/TwapV3.sol";
 
 //forge test --match-path ./test/TwapInterval.t.sol -vv
 contract TwapIntervalTest is Test {
