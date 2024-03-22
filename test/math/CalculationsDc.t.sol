@@ -44,6 +44,7 @@ contract CalculationsDcTest is Test {
 
         licenseCostInUsd = 0;
         license = new DevLicenseDimo(
+            address(0x888),
             address(factory), 
             address(provider), 
             address(dimoToken), 

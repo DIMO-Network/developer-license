@@ -8,14 +8,20 @@ import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol
 
 import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
-//forge test --match-path ./test/DevLicenseDimo.t.sol -vv
+//forge test --match-path ./test/license/DevLicenseDimo.t.sol -vv
 contract DevLicenseDimoTest is BaseSetUp {
 
     function setUp() public {
         _setUp();
     }
 
-    function test_mintLicenseSuccess() public {   
+    function test_mintLicenseSuccess() public { 
+
+        address receiver = address(0x999);
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.setReceiverAddress(receiver);
+
         vm.expectEmit(true, true, false, false);
         emit DevLicenseDimo.Issued(1, address(this), address(0));
          
@@ -27,7 +33,7 @@ contract DevLicenseDimoTest is BaseSetUp {
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
         uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
 
-        assertEq(dimoToken.balanceOf(address(dimoCredit.receiver())), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(receiver), tokenTransferAmount);
     }
 
     function test_developerLicenseAccount() public {

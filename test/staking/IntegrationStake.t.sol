@@ -47,6 +47,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
         vm.startPrank(_dimoAdmin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
         license = new DevLicenseDimo(
+            address(0x888),
             address(laf), 
             address(provider), 
             address(dimoToken), 

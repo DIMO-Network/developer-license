@@ -17,6 +17,11 @@ contract IssueDevLicenseTest is BaseSetUp {
     /**
      */
     function test_issueInDimoSuccess() public {   
+
+        address receiver = address(0x333);
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.setReceiverAddress(receiver);
+
         vm.expectEmit(true, true, false, false);
         emit DevLicenseDimo.Issued(1, address(this), address(0));
 
@@ -28,13 +33,18 @@ contract IssueDevLicenseTest is BaseSetUp {
         //console2.log("  amountUsdPerToken: %s", amountUsdPerToken);
         uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
         //console2.log("tokenTransferAmount: %s", tokenTransferAmount);
-        assertEq(dimoToken.balanceOf(dimoCredit.receiver()), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(receiver), tokenTransferAmount);
     }
 
     /**
      * @dev We send $DIMO to the DC receiver
      */
     function test_issueInDimoSenderSuccess() public {
+
+        address receiver = address(0x333);
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.setReceiverAddress(receiver);
+
         address licenseHolder = address(0x999);
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
@@ -50,7 +60,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         (uint256 tokenId,) = license.issueInDimo(licenseHolder);
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), licenseHolder);
-        assertEq(dimoToken.balanceOf(dimoCredit.receiver()), tokenTransferAmount);
+        assertEq(dimoToken.balanceOf(receiver), tokenTransferAmount);
     }
 
     function test_issueInDc() public {  

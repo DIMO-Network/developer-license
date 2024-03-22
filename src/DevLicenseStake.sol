@@ -38,12 +38,13 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
     string INVALID_PARAM = "DevLicenseDimo: invalid param";
 
     constructor(
-        address laf_,
+        address receiver_,
+        address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_
-    ) DevLicenseCore(laf_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) ReentrancyGuard() {}
+    ) DevLicenseCore(receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) ReentrancyGuard() {}
 
     /*//////////////////////////////////////////////////////////////
                          Operative Functions

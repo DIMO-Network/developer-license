@@ -43,7 +43,7 @@ contract DimoCredit is AccessControl {
     uint256 public _dimoCreditRateInWei; 
     uint256 public _periodValidity;
 
-    ///@dev receives proceeds from sale of license
+    ///@dev receives proceeds from sale of credits
     address public _receiver; 
 
     IDimoToken public _dimo;

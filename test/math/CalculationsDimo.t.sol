@@ -13,7 +13,7 @@ import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-//forge test --match-path ./test/CalculationsDimo.t.sol -vv
+//forge test --match-path ./test/math/CalculationsDimo.t.sol -vv
 contract CalculationsDimoTest is Test {
 
     DimoCredit dimoCredit;
@@ -44,6 +44,7 @@ contract CalculationsDimoTest is Test {
 
         licenseCostInUsd = 0;
         license = new DevLicenseDimo(
+            receiver,
             address(factory), 
             address(provider), 
             address(dimoToken), 

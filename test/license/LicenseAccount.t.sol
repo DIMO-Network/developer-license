@@ -42,6 +42,7 @@ contract LicenseAccountTest is Test {
         uint256 licenseCostInUsd1e18 = 100 ether;
 
         devLicense = new DevLicenseDimo(
+            address(0x888),
             address(factory), 
             address(provider), 
             address(dimoToken), 

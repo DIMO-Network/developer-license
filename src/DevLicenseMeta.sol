@@ -14,12 +14,14 @@ contract DevLicenseMeta is DevLicenseStake {
     string public _descriptionContract;
 
     constructor(
+        address receiver_,
         address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) 
     DevLicenseStake(
+        receiver_,
         licenseAccountFactory_,
         provider_,
         dimoTokenAddress_, 

@@ -32,6 +32,8 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     uint256 public _periodValidity; 
     uint256 public _licenseCostInUsd1e18;
     uint256 public _counter;
+    ///@dev receives proceeds from sale of license
+    address public _receiver;
 
     /*//////////////////////////////////////////////////////////////
                               Mappings
@@ -54,6 +56,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event Locked(uint256 indexed tokenId);
 
     event UpdateLicenseCost(uint256 licenseCost);
+    event UpdateReceiverAddress(address receiver_);
     event UpdateDimoTokenAddress(address dimoToken_);
     event UpdatePeriodValidity(uint256 periodValidity);
     event UpdatePriceProviderAddress(address provider);
@@ -78,6 +81,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     }
 
     constructor(
+        address receiver_,
         address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
@@ -87,6 +91,8 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         
         _periodValidity = 365 days;
+
+        _receiver = receiver_;
 
         _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
@@ -131,6 +137,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
+
+    function setReceiverAddress(address receiver_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _receiver = receiver_;
+        emit UpdateReceiverAddress(_receiver);
+    }
 
     function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _licenseCostInUsd1e18 = licenseCostInUsd1e18_;

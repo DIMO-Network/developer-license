@@ -57,12 +57,14 @@ contract DevLicenseDimo is DevLicenseMeta {
     /* * */
 
     constructor(
+        address receiver_,
         address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_, 
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_) 
     DevLicenseMeta(
+        receiver_,
         licenseAccountFactory_,
         provider_,
         dimoTokenAddress_, 
@@ -118,7 +120,7 @@ contract DevLicenseDimo is DevLicenseMeta {
         
         uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
         
-        _dimoToken.transferFrom(to, _dimoCredit.receiver(), tokenTransferAmount);
+        _dimoToken.transferFrom(to, _receiver, tokenTransferAmount);
 
         return _issue(to);
     }

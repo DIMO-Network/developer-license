@@ -51,6 +51,7 @@ contract BaseSetUp is Test {
         uint256 licenseCostInUsd1e18 = 100 ether;
 
         license = new DevLicenseDimo(
+            address(0x888),
             address(laf), 
             address(provider), 
             address(dimoToken), 
