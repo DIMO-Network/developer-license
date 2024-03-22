@@ -69,7 +69,7 @@ contract NormalizedPriceProvider is AccessControl {
     /**
      * This function costs us $LINK and costs the caller gas.
      */
-    function updatePrice() onlyRole(UPDATER_ROLE) external {
+    function updatePrice() external onlyRole(UPDATER_ROLE) {
         _oracleSources[_primaryIndex].updatePrice();
     }
 

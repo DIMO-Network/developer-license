@@ -79,6 +79,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+
+        emit UpdatePeriodValidity(_periodValidity);
+        emit UpdateLicenseCost(_licenseCostInUsd1e18);
     }
 
     /*//////////////////////////////////////////////////////////////
