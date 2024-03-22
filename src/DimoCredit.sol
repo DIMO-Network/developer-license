@@ -36,19 +36,43 @@ contract DimoCredit is AccessControl {
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
 
-    address public _receiver; ///@notice receives proceeds from sale of license
+    /*//////////////////////////////////////////////////////////////
+                              Member Variables
+    //////////////////////////////////////////////////////////////*/
+
+    uint256 constant public SCALING_FACTOR = 1 ether;
+    
+    ///@dev 1 DC == $0.001 USD
+    uint256 public _dimoCreditRate; 
+    uint256 public _periodValidity;
+
+    ///@dev receives proceeds from sale of license
+    address public _receiver; 
 
     IDimoToken public _dimo;
     NormalizedPriceProvider public _provider;
-    uint256 public _periodValidity;
 
-    uint256 constant public SCALING_FACTOR = 1 ether;
+    /*//////////////////////////////////////////////////////////////
+                            METADATA STORAGE
+    //////////////////////////////////////////////////////////////*/
+    
+    uint8 public immutable decimals;
 
-    uint256 public _dimoCreditRate; ///@notice 1 DC == $0.001 USD
+    string public name;
+    string public symbol;
 
+    /*//////////////////////////////////////////////////////////////
+                              ERC20 STORAGE
+    //////////////////////////////////////////////////////////////*/
+    
+    mapping(address => uint256) public balanceOf;
+
+    uint256 public totalSupply;
+    
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
+    
     string INVALID_OPERATION = "DimoCredit: invalid operation";
 
     /*//////////////////////////////////////////////////////////////
@@ -60,26 +84,9 @@ contract DimoCredit is AccessControl {
     event UpdateReceiverAddress(address receiver_);
     event UpdatePeriodValidity(uint256 periodValidity);
     event UpdatePriceProviderAddress(address provider);
-    
     ///@dev only used in mint and burn, not transferable
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
-    /*//////////////////////////////////////////////////////////////
-                            METADATA STORAGE
-    //////////////////////////////////////////////////////////////*/
-    string public name;
-
-    string public symbol;
-
-    uint8 public immutable decimals;
-
-    /*//////////////////////////////////////////////////////////////
-                              ERC20 STORAGE
-    //////////////////////////////////////////////////////////////*/
-    uint256 public totalSupply;
-
-    mapping(address => uint256) public balanceOf;
-    
     /**
      */
     constructor(address receiver_, address provider_) {
@@ -91,7 +98,6 @@ contract DimoCredit is AccessControl {
         _periodValidity = 1 days;
 
         _receiver = receiver_;
-
         _dimoCreditRate = 0.001 ether;
     
         decimals = 18;
@@ -133,19 +139,6 @@ contract DimoCredit is AccessControl {
         amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
 
         _mint(amountIn, dimoCredits, to);
-    }
-
-    /**
-     * @dev permissioned because it could cost $LINK to invoke
-     */
-    function updatePrice(bytes calldata data) external onlyRole(DC_ADMIN_ROLE) {
-        (,uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
-        bool invalid = (block.timestamp - updateTimestamp) < _periodValidity;
-        bool updatable = _provider.isUpdatable();
-        
-        if(invalid && updatable){
-            _provider.updatePrice();
-        }
     }
 
     function _mint(uint256 amountDimo, uint256 amountDataCredits, address to) private {
@@ -202,6 +195,19 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                           Admin Functions
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev permissioned because it could cost $LINK to invoke
+     */
+    function updatePrice(bytes calldata data) external onlyRole(DC_ADMIN_ROLE) {
+        (,uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
+        bool invalid = (block.timestamp - updateTimestamp) < _periodValidity;
+        bool updatable = _provider.isUpdatable();
+        
+        if(invalid && updatable){
+            _provider.updatePrice();
+        }
+    }
 
     function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
         _dimoCreditRate = dimoCreditRate_;
