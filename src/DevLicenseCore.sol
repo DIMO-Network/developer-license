@@ -16,35 +16,51 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
+    
     bytes32 public constant LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
+    
     IDimoToken public _dimoToken; 
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _licenseAccountFactory;
-    uint256 public _periodValidity; ///@dev signer validity expiration
+    
+    ///@dev signer validity expiration
+    uint256 public _periodValidity; 
     uint256 public _licenseCostInUsd1e18;
     uint256 public _counter;
 
     /*//////////////////////////////////////////////////////////////
                               Mappings
     //////////////////////////////////////////////////////////////*/
+    
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
     mapping(address => uint256) public _clientIdToTokenId;
-    mapping(uint256 => mapping(address => uint256)) public _signers; ///@dev expiration determined by block.timestamp
+    
+    ///@dev expiration determined by block.timestamp
+    mapping(uint256 => mapping(address => uint256)) public _signers; 
 
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
+    
     event Locked(uint256 indexed tokenId);
-    event UpdateLicenseCost(uint256 indexed licenseCost);
-    event UpdatePeriodValidity(uint256 indexed periodValidity);
+    
+    event UpdateLicenseCost(uint256 licenseCost);
+    event UpdateDimoTokenAddress(address dimoToken_);
+    event UpdatePeriodValidity(uint256 periodValidity);
+    event UpdatePriceProviderAddress(address provider);
+    event UpdateDimoCreditAddress(address dimoCredit_);
+    event UpdateLicenseAccountFactoryAddress(address licenseAccountFactory_);
+
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); ///@dev on mint & burn
+
+    ///@dev on mint & burn
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); 
 
     /*//////////////////////////////////////////////////////////////
                             Error Messages
@@ -125,6 +141,26 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _periodValidity = periodValidity_;
         emit UpdatePeriodValidity(_periodValidity);
+    }
+
+    function setPriceProviderAddress(address providerAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _provider = NormalizedPriceProvider(providerAddress_);
+        emit UpdatePriceProviderAddress(providerAddress_);
+    }
+
+    function setDimoCreditAddress(address dimoCreditAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _dimoCredit = IDimoCredit(dimoCreditAddress_);
+        emit UpdateDimoCreditAddress(dimoCreditAddress_);
+    }
+
+    function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _dimoToken = IDimoToken(dimoTokenAddress_);
+        emit UpdateDimoTokenAddress(dimoTokenAddress_);
+    }
+    
+    function setLicenseFactoryAddress(address licenseAccountFactory_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+        emit UpdateLicenseAccountFactoryAddress(licenseAccountFactory_);
     }
 
     /*//////////////////////////////////////////////////////////////
