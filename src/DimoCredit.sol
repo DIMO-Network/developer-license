@@ -39,10 +39,7 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
-
-    uint256 constant public SCALING_FACTOR = 1 ether;
     
-    ///@dev 1 DC == $0.001 USD
     uint256 public _dimoCreditRateInWei; 
     uint256 public _periodValidity;
 
@@ -98,6 +95,8 @@ contract DimoCredit is AccessControl {
         _periodValidity = 1 days;
 
         _receiver = receiver_;
+
+        ///@dev 1 DC == $0.001 USD (1000000000000000)
         _dimoCreditRateInWei = 0.001 ether;
     
         decimals = 18;
@@ -116,10 +115,10 @@ contract DimoCredit is AccessControl {
         (uint256 amountUsdPerTokenInWei,) = _provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
-        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei) / SCALING_FACTOR;
+        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei) / 1 ether;
 
         // Convert USD amount to data credits
-        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei) * SCALING_FACTOR;
+        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei) * 1 ether;
         
         _mint(amountIn, dimoCredits, to);
     }
