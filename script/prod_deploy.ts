@@ -3,7 +3,6 @@ import * as fs from 'fs'
 import dotenv from 'dotenv'
 import path from 'path'
 import { exec } from 'child_process'
-import BigNumber from 'bignumber.js'
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -79,13 +78,14 @@ async function main() {
     // * ====== Dev License ========= *
     // ********************************
 
-    const licenseCostInUsd = BigNumber("1000000000000000000")
+    const licenseCostInUsd = BigInt("1000000000000000000")
     const dimoTokenAddress = "0xE261D618a959aFfFd53168Cd07D12E37B26761db"
 
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 
     const factoryDl = new ethers.ContractFactory(outDl.abi, outDl.bytecode.object, signer)
     const devLicense: ethers.BaseContract = await factoryDl.deploy(
+        addressReceiver,
         addressLaf,
         addressNpp,
         dimoTokenAddress,
@@ -100,6 +100,7 @@ async function main() {
     const addressDl = await devLicense.getAddress();
     console.log(`${nameDl}: ` + addressDl);
     let encodeArgsDl = factoryDl.interface.encodeDeploy([
+        addressReceiver,
         addressLaf,
         addressNpp,
         dimoTokenAddress,
