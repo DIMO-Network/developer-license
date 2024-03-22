@@ -26,7 +26,6 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @dev non-transferable, ipso facto no approve logic
  * @notice approve this contract on $DIMO token before minting
  *         address is 0xE261D618a959aFfFd53168Cd07D12E37B26761db
- *         1 DC == $0.001 USD
  */
 contract DimoCredit is AccessControl {
 
@@ -44,7 +43,7 @@ contract DimoCredit is AccessControl {
 
     uint256 constant public SCALING_FACTOR = 1 ether;
 
-    uint256 public _dimoCreditRate;
+    uint256 public _dimoCreditRate; ///@notice 1 DC == $0.001 USD
 
     function receiver() external view returns (address receiver_) {
         receiver_ = _receiver;
@@ -57,6 +56,10 @@ contract DimoCredit is AccessControl {
     function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
         _dimoCreditRate = dimoCreditRate_;
         emit UpdateDimoCreditRate(_dimoCreditRate);
+    }
+
+    function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(DC_ADMIN_ROLE) {
+        _dimo = IDimoToken(dimoTokenAddress_);
     }
 
     /*//////////////////////////////////////////////////////////////
