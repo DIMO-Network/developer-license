@@ -43,7 +43,7 @@ contract DimoCredit is AccessControl {
     uint256 constant public SCALING_FACTOR = 1 ether;
     
     ///@dev 1 DC == $0.001 USD
-    uint256 public _dimoCreditRate; 
+    uint256 public _dimoCreditRateInWei; 
     uint256 public _periodValidity;
 
     ///@dev receives proceeds from sale of license
@@ -98,7 +98,7 @@ contract DimoCredit is AccessControl {
         _periodValidity = 1 days;
 
         _receiver = receiver_;
-        _dimoCreditRate = 0.001 ether;
+        _dimoCreditRateInWei = 0.001 ether;
     
         decimals = 18;
         symbol = "DCX";
@@ -110,40 +110,22 @@ contract DimoCredit is AccessControl {
      */
     function mint(
         address to, 
-        uint256 amountIn,
+        uint256 amountIn, 
         bytes calldata data
         ) external returns(uint256 dimoCredits) {
-        (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
+        (uint256 amountUsdPerTokenInWei,) = _provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
-        uint256 usdAmount = (amountIn * amountUsdPerToken) / SCALING_FACTOR;
+        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei) / SCALING_FACTOR;
 
         // Convert USD amount to data credits
-        dimoCredits = usdAmount * _dimoCreditRate;
+        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei) * SCALING_FACTOR;
         
         _mint(amountIn, dimoCredits, to);
     }
 
-    function mintAmountDc(
-        address to, 
-        uint256 dimoCredits,
-        bytes calldata data
-        ) external returns(uint256 amountIn) {
-
-        (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken(data);
-
-        // Calculate the equivalent USD amount from data credits
-        uint256 usdAmount = dimoCredits / _dimoCreditRate;
-
-        // Adjust for precision
-        amountIn = (usdAmount * SCALING_FACTOR) / amountUsdPerToken;
-
-        _mint(amountIn, dimoCredits, to);
-    }
-
     function _mint(uint256 amountDimo, uint256 amountDataCredits, address to) private {
-        require(_dimo.balanceOf(to) >= amountDimo, "DimoCredit: insufficient amount");
-
+        
         _dimo.transferFrom(to, _receiver, amountDimo);
 
         totalSupply += amountDataCredits;
@@ -209,9 +191,9 @@ contract DimoCredit is AccessControl {
         }
     }
 
-    function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
-        _dimoCreditRate = dimoCreditRate_;
-        emit UpdateDimoCreditRate(_dimoCreditRate);
+    function setDimoCreditRate(uint256 dimoCreditRateInWei_) external onlyRole(DC_ADMIN_ROLE) {
+        _dimoCreditRateInWei = dimoCreditRateInWei_;
+        emit UpdateDimoCreditRate(_dimoCreditRateInWei);
     }
 
     function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(DC_ADMIN_ROLE) {
@@ -242,8 +224,8 @@ contract DimoCredit is AccessControl {
         receiver_ = _receiver;
     }
 
-    function dimoCreditRate() external view returns (uint256 dimoCreditRate_) {
-        dimoCreditRate_ = _dimoCreditRate;
+    function dimoCreditRate() external view returns (uint256 dimoCreditRateInWei_) {
+        dimoCreditRateInWei_ = _dimoCreditRateInWei;
     }
 
 }
