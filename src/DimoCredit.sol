@@ -76,13 +76,13 @@ contract DimoCredit is AccessControl {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
+    ///@dev only used in mint and burn, not transferable
+    event Transfer(address indexed from, address indexed to, uint256 amount);
     event UpdateDimoCreditRate(uint256 rate);
     event UpdateDimoTokenAddress(address dimo_);
     event UpdateReceiverAddress(address receiver_);
     event UpdatePeriodValidity(uint256 periodValidity);
     event UpdatePriceProviderAddress(address provider);
-    ///@dev only used in mint and burn, not transferable
-    event Transfer(address indexed from, address indexed to, uint256 amount);
 
     /**
      */
