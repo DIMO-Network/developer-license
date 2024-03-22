@@ -48,8 +48,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
                             Events
     //////////////////////////////////////////////////////////////*/
     
+    ///@dev on mint & burn
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); 
+    event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
-    
+
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdateDimoTokenAddress(address dimoToken_);
     event UpdatePeriodValidity(uint256 periodValidity);
@@ -57,14 +60,10 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event UpdateDimoCreditAddress(address dimoCredit_);
     event UpdateLicenseAccountFactoryAddress(address licenseAccountFactory_);
 
-    event SignerEnabled(uint256 indexed tokenId, address indexed signer);
-
-    ///@dev on mint & burn
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); 
-
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
+    
     string INVALID_TOKEN_ID = "DevLicenseDimo: invalid tokenId";
     string INVALID_OPERATION = "DevLicenseDimo: invalid operation";
     string INVALID_MSG_SENDER = "DevLicenseDimo: invalid msg.sender";
