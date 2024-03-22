@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import dotenv from 'dotenv'
 import path from 'path'
 import { exec } from 'child_process'
+import BigNumber from 'bignumber.js'
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -123,8 +124,8 @@ async function main() {
     // ********************************
     // * ====== Dev License ========= *
     // ********************************
-
-    const licenseCostInUsd = 100;
+    
+    const licenseCostInUsd = BigNumber("1000000000000000000")
 
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 

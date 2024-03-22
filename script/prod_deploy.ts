@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import dotenv from 'dotenv'
 import path from 'path'
 import { exec } from 'child_process'
+import BigNumber from 'bignumber.js'
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -45,29 +46,11 @@ async function main() {
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
     await contractNpp.addOracleSource(addressTwap);
 
-    // ******************************************
-    // * ====== TEST ONLY - REMOVE ME ========= *
-    // ******************************************
-
-    const nameMos = 'MockOracleSource'
-    const outMos = JSON.parse(fs.readFileSync(`./out/${nameMos}.sol/${nameMos}.json`, 'utf8')) 
-    const factoryMos = new ethers.ContractFactory(outMos.abi, outMos.bytecode.object, signer)
-    const mockOracleSource: ethers.BaseContract = await factoryMos.deploy({gasPrice: gasPrice})
-    await mockOracleSource.waitForDeployment()
-    const addressMos = await mockOracleSource.getAddress()
-    console.log(`${nameMos}: ` + addressMos)
-    await verifyContractUntilSuccess(addressMos, nameMos, chainId, etherscanApiKey)
-    /* * */
-    const transaction = await contractNpp.addOracleSource(addressMos);
-    await transaction.wait();
-    const primaryOracleSourceIndex = 1;
-    await contractNpp.setPrimaryOracleSource(primaryOracleSourceIndex);
-
     // ********************************
     // * ====== DIMO Credit ========= *
     // ********************************
 
-    const addressReceiver = '0x2332A085461391595C3127472046EDC39996e141';
+    const addressReceiver = '0xA2f0fD6A9411f4911b992C2389A53FfAb1E2BE88';
 
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8')) 
@@ -92,25 +75,12 @@ async function main() {
     console.log(`${nameLaf}: ` + addressLaf);
     await verifyContractUntilSuccess(addressLaf, nameLaf, chainId, etherscanApiKey)
 
-
-    // ******************************************
-    // * ====== TEST ONLY - REMOVE ME ========= *
-    // ******************************************
-
-    const nameTt = 'TestToken'
-    const outTt = JSON.parse(fs.readFileSync(`./out/${nameTt}.sol/${nameTt}.json`, 'utf8')) 
-    const factoryTt = new ethers.ContractFactory(outTt.abi, outTt.bytecode.object, signer)
-    const testToken: ethers.BaseContract = await factoryTt.deploy({gasPrice: gasPrice})
-    await testToken.waitForDeployment()
-    const addressTt = await testToken.getAddress()
-    console.log(`${nameTt}: ` + addressTt)
-    await verifyContractUntilSuccess(addressTt, nameTt, chainId, etherscanApiKey)
-
     // ********************************
     // * ====== Dev License ========= *
     // ********************************
 
-    const licenseCostInUsd = 100;
+    const licenseCostInUsd = BigNumber("1000000000000000000")
+    const dimoTokenAddress = "0xE261D618a959aFfFd53168Cd07D12E37B26761db"
 
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 
@@ -118,7 +88,7 @@ async function main() {
     const devLicense: ethers.BaseContract = await factoryDl.deploy(
         addressLaf,
         addressNpp,
-        addressTt,
+        dimoTokenAddress,
         addressDc,
         licenseCostInUsd,
         {
@@ -132,7 +102,7 @@ async function main() {
     let encodeArgsDl = factoryDl.interface.encodeDeploy([
         addressLaf,
         addressNpp,
-        addressTt,
+        dimoTokenAddress,
         addressDc,
         licenseCostInUsd
     ])
@@ -142,10 +112,6 @@ async function main() {
     const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
     await contractLaf.setLicense(addressDl)
     /* * */
-    const contractTt = new ethers.Contract(addressTt, outTt.abi, signer)
-    const value = 1000000000000000000000000n
-    await contractTt.approve(addressDl, value)
-
 
     process.exit();
 }
