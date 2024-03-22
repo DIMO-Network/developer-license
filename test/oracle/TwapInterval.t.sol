@@ -11,7 +11,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 
-//forge test --match-path ./test/TwapInterval.t.sol -vv
+//forge test --match-path ./test/oracle/TwapInterval.t.sol -vv
 contract TwapIntervalTest is Test {
 
     /**
@@ -50,11 +50,15 @@ contract TwapIntervalTest is Test {
         uint32 twapIntervalUsdc = 1 minutes;
         uint32 twapIntervalDimo = 1 minutes;
         twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this)); 
+
+
+        console2.logBytes32(keccak256("ORACLE_ADMIN_ROLE")); 
+
         twap.setTwapIntervalUsdc(twapIntervalUsdc);
         twap.setTwapIntervalDimo(twapIntervalDimo);
 
         (uint256 amountUsdPerToken, uint256 updateTimestamp) = twap.getAmountUsdPerToken();
-        //console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
+        console2.log("amountUsdPerToken: %s", amountUsdPerToken); 
         console2.log("updateTimestamp: %s", updateTimestamp); 
         //439746722760396201
         //0.439746722760396201

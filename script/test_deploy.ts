@@ -32,9 +32,14 @@ async function main() {
     console.log(`${nameTwap}: ` + addressTwap)
     await verifyContractUntilSuccess(addressTwap, nameTwap, chainId, etherscanApiKey)
     /* * */
+    const contractTwap = new ethers.Contract(addressTwap, outTwap.abi, signer)
+    //                       0xc307c44629779eb8fc0b85f224c3d22f5876a6c84de0ee42d481eb7814f0d3a8
+    const oracleAdminRole = "0xc307c44629779eb8fc0b85f224c3d22f5876a6c84de0ee42d481eb7814f0d3a8"
+    const txn00 = await contractTwap.grantRole(oracleAdminRole, wallet.address)
+    await txn00.wait()
+
     const intervalUsdc: number = 1800
     const intervalDimo: number = 240
-    const contractTwap = new ethers.Contract(addressTwap, outTwap.abi, signer)
     await contractTwap.initialize(intervalUsdc, intervalDimo)
 
     const nameNpp = 'NormalizedPriceProvider'
@@ -47,6 +52,11 @@ async function main() {
     await verifyContractUntilSuccess(addressNpp, nameNpp, chainId, etherscanApiKey)
     /* * */
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
+
+    let providerAdminRole = "0x9d2b5027b19aca88f2f1800508f7464c1461521b1a4fd3efe3ebd10aff8cee19"
+    const txn01 = await contractNpp.grantRole(providerAdminRole, wallet.address)
+    await txn01.wait()
+
     await contractNpp.addOracleSource(addressTwap);
 
     // ******************************************
