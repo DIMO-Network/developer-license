@@ -115,10 +115,10 @@ contract DimoCredit is AccessControl {
         (uint256 amountUsdPerTokenInWei,) = _provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
-        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei) / 1 ether;
+        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei) / 1e18;
 
         // Convert USD amount to data credits
-        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei) * 1 ether;
+        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei) * 1e18;
         
         _mint(amountIn, dimoCredits, to);
     }
