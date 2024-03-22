@@ -32,6 +32,7 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
+    
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
 
@@ -45,23 +46,6 @@ contract DimoCredit is AccessControl {
 
     uint256 public _dimoCreditRate; ///@notice 1 DC == $0.001 USD
 
-    function receiver() external view returns (address receiver_) {
-        receiver_ = _receiver;
-    }
-
-    function dimoCreditRate() external view returns (uint256 dimoCreditRate_) {
-        dimoCreditRate_ = _dimoCreditRate;
-    }
-
-    function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
-        _dimoCreditRate = dimoCreditRate_;
-        emit UpdateDimoCreditRate(_dimoCreditRate);
-    }
-
-    function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(DC_ADMIN_ROLE) {
-        _dimo = IDimoToken(dimoTokenAddress_);
-    }
-
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
@@ -70,7 +54,13 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
+
     event UpdateDimoCreditRate(uint256 rate);
+    event UpdateDimoTokenAddress(address dimo_);
+    event UpdateReceiverAddress(address receiver_);
+    event UpdatePeriodValidity(uint256 periodValidity);
+    event UpdatePriceProviderAddress(address provider);
+    
     ///@dev only used in mint and burn, not transferable
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
@@ -207,6 +197,47 @@ contract DimoCredit is AccessControl {
 
     function allowance(address /*_owner*/, address /*_spender*/) public view returns (uint256 /*remaining*/) {
         revert(INVALID_OPERATION);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          Admin Functions
+    //////////////////////////////////////////////////////////////*/
+
+    function setDimoCreditRate(uint256 dimoCreditRate_) external onlyRole(DC_ADMIN_ROLE) {
+        _dimoCreditRate = dimoCreditRate_;
+        emit UpdateDimoCreditRate(_dimoCreditRate);
+    }
+
+    function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(DC_ADMIN_ROLE) {
+        _dimo = IDimoToken(dimoTokenAddress_);
+        emit UpdateDimoTokenAddress(dimoTokenAddress_);
+    }
+
+    function setPriceProviderAddress(address providerAddress_) external onlyRole(DC_ADMIN_ROLE) {
+        _provider = NormalizedPriceProvider(providerAddress_);
+        emit UpdatePriceProviderAddress(providerAddress_);
+    }
+
+    function setReceiverAddress(address receiver_) external onlyRole(DC_ADMIN_ROLE) {
+        _receiver = receiver_;
+        emit UpdateReceiverAddress(_receiver);
+    }
+
+    function setPeriodValidity(uint256 periodValidity_) external onlyRole(DC_ADMIN_ROLE) {
+        _periodValidity = periodValidity_;
+        emit UpdatePeriodValidity(_periodValidity);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            View Functions
+    //////////////////////////////////////////////////////////////*/
+
+    function receiver() external view returns (address receiver_) {
+        receiver_ = _receiver;
+    }
+
+    function dimoCreditRate() external view returns (uint256 dimoCreditRate_) {
+        dimoCreditRate_ = _dimoCreditRate;
     }
 
 }

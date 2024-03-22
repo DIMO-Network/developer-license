@@ -6,7 +6,7 @@ import { exec } from 'child_process'
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-let url: string = process.env.POLYGON_MUMBAI_RPC_URL as string
+let url: string = process.env.POLYGON_MAINNET_RPC_URL as string
 const provider = ethers.getDefaultProvider(url)
 
 let key: string = process.env.PRIVATE_KEY as string
@@ -16,7 +16,7 @@ const signer = wallet.connect(provider)
 async function main() {
 
     const gasPrice = (await provider.getFeeData()).gasPrice
-    const chainId: number = parseInt(process.env.CHAIN_ID as string)
+    const chainId: number = parseInt(process.env.MAIN_CHAIN_ID as string)
     const etherscanApiKey: string = process.env.ETHERSCAN_API_KEY_POLYGON as string
 
     // ***************************
@@ -32,10 +32,6 @@ async function main() {
     console.log(`${nameTwap}: ` + addressTwap)
     await verifyContractUntilSuccess(addressTwap, nameTwap, chainId, etherscanApiKey)
     /* * */
-    const intervalUsdc: number = 1800
-    const intervalDimo: number = 240
-    const contractTwap = new ethers.Contract(addressTwap, outTwap.abi, signer)
-    await contractTwap.initialize(intervalUsdc, intervalDimo)
 
     const nameNpp = 'NormalizedPriceProvider'
     const outNpp = JSON.parse(fs.readFileSync(`./out/${nameNpp}.sol/${nameNpp}.json`, 'utf8')) 
