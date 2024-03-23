@@ -57,11 +57,11 @@ async function main() {
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8')) 
     const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
-    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, "0x5F513c292BfF13C6c4c369a6f370A7A8da1332B7", {gasPrice: gasPrice})
+    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, {gasPrice: gasPrice})
     await dimoCredit.waitForDeployment()
     const addressDc = await dimoCredit.getAddress()
     console.log(`${nameDc}: ` + addressDc);
-    let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, "0x5F513c292BfF13C6c4c369a6f370A7A8da1332B7"])
+    let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
     await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey, encodeArgsDc)
 
     // ********************************************
@@ -82,7 +82,7 @@ async function main() {
     // ********************************
 
     const licenseCostInUsd = BigInt("1000000000000000000")
-    const dimoTokenAddress = "0xE261D618a959aFfFd53168Cd07D12E37B26761db"
+    const addressDimoToken = "0xE261D618a959aFfFd53168Cd07D12E37B26761db"
 
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8')) 
@@ -91,7 +91,7 @@ async function main() {
         addressReceiver,
         addressLaf,
         addressNpp,
-        dimoTokenAddress,
+        addressDimoToken,
         addressDc,
         licenseCostInUsd,
         {
@@ -106,7 +106,7 @@ async function main() {
         addressReceiver,
         addressLaf,
         addressNpp,
-        dimoTokenAddress,
+        addressDimoToken,
         addressDc,
         licenseCostInUsd
     ])

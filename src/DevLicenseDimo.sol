@@ -54,8 +54,6 @@ contract DevLicenseDimo is DevLicenseMeta {
     
     mapping(uint256 => mapping(string => bool)) private _redirectUris;
 
-    /* * */
-
     constructor(
         address receiver_,
         address licenseAccountFactory_,
