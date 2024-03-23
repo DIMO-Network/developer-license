@@ -61,10 +61,10 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                               ERC20 STORAGE
     //////////////////////////////////////////////////////////////*/
-    
-    mapping(address => uint256) public balanceOf;
 
     uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf; 
     
     /*//////////////////////////////////////////////////////////////
                             Error Messages
