@@ -19,9 +19,9 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @author Sean Matt English (@smatthewenglish)
  * @custom:coauthor Lorran Sutter (@LorranSutter)
  * @custom:coauthor Dylan Moreland (@elffjs)
+ * @custom:coauthor Allyson English (@aesdfghjkl666)
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
- * @custom:contributor Allyson English (@aesdfghjkl666)
  * 
  * @dev non-transferable, ipso facto no approve logic
  * @notice approve this contract on $DIMO token before minting
