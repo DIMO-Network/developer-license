@@ -43,7 +43,10 @@ async function main() {
     await verifyContractUntilSuccess(addressNpp, nameNpp, chainId, etherscanApiKey)
     /* * */
     const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
-    await contractNpp.addOracleSource(addressTwap);
+    const providerAdminRole = "0x9d2b5027b19aca88f2f1800508f7464c1461521b1a4fd3efe3ebd10aff8cee19"
+    const txn0x = await contractNpp.grantRole(providerAdminRole, signer.address)
+    await txn0x.wait()
+    await contractNpp.addOracleSource("0xfC1dc4c16DDF92a38733DE1657E4193292a0765f")
 
     // ********************************
     // * ====== DIMO Credit ========= *
@@ -54,11 +57,11 @@ async function main() {
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8')) 
     const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
-    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, {gasPrice: gasPrice})
+    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, "0x5F513c292BfF13C6c4c369a6f370A7A8da1332B7", {gasPrice: gasPrice})
     await dimoCredit.waitForDeployment()
     const addressDc = await dimoCredit.getAddress()
     console.log(`${nameDc}: ` + addressDc);
-    let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
+    let encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, "0x5F513c292BfF13C6c4c369a6f370A7A8da1332B7"])
     await verifyContractUntilSuccess(addressDc, nameDc, chainId, etherscanApiKey, encodeArgsDc)
 
     // ********************************************
