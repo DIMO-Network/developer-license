@@ -46,7 +46,7 @@ async function main() {
     const providerAdminRole = "0x9d2b5027b19aca88f2f1800508f7464c1461521b1a4fd3efe3ebd10aff8cee19"
     const txn0x = await contractNpp.grantRole(providerAdminRole, signer.address)
     await txn0x.wait()
-    await contractNpp.addOracleSource("0xfC1dc4c16DDF92a38733DE1657E4193292a0765f")
+    await contractNpp.addOracleSource(addressTwap)
 
     // ********************************
     // * ====== DIMO Credit ========= *
