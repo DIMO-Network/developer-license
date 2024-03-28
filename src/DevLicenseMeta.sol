@@ -6,6 +6,10 @@ import {DevLicenseStake} from "./DevLicenseStake.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+/**
+ * @title DevLicenseMeta
+ * @dev Extends DevLicenseStake to add metadata functionality, including image and description handling.
+ */
 contract DevLicenseMeta is DevLicenseStake {
 
     string public _imageToken;
@@ -13,6 +17,15 @@ contract DevLicenseMeta is DevLicenseStake {
     string public _descriptionToken;
     string public _descriptionContract;
 
+    /**
+     * @dev Sets initial metadata for tokens and the contract itself.
+     * @param receiver_ Address to receive payments.
+     * @param licenseAccountFactory_ Factory address for license account creation.
+     * @param provider_ Address of the price provider.
+     * @param dimoTokenAddress_ Address of the DIMO token.
+     * @param dimoCreditAddress_ Address of the DIMO credit.
+     * @param licenseCostInUsd_ Cost of a license in USD.
+     */
     constructor(
         address receiver_,
         address licenseAccountFactory_,
@@ -41,18 +54,38 @@ contract DevLicenseMeta is DevLicenseStake {
                           Admin Functions
     //////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Updates the token image.
+     * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
+     * @param image_ New image data for the tokens.
+     */
     function setImageToken(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _imageToken = Base64.encode(bytes(image_));
     }
 
+    /**
+     * @notice Updates the contract image.
+     * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
+     * @param image_ New image data for the contract.
+     */
     function setImageContract(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _imageContract = Base64.encode(bytes(image_));
     }
 
+    /**
+     * @notice Updates the token description.
+     * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
+     * @param description_ New description for the tokens.
+     */
     function setDescriptionToken(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _descriptionToken = description_;
     }
 
+    /**
+     * @notice Updates the contract description.
+     * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
+     * @param description_ New description for the contract.
+     */
     function setDescriptionContract(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
         _descriptionContract = description_;
     }
@@ -61,6 +94,10 @@ contract DevLicenseMeta is DevLicenseStake {
                             NFT Metadata
     //////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice Generates the contract URI for marketplace display.
+     * @return string URI of the contract metadata.
+     */
     function contractURI() external view returns (string memory) {
         return string(
             abi.encodePacked(
@@ -82,6 +119,12 @@ contract DevLicenseMeta is DevLicenseStake {
         );
     }
 
+    /**
+     * @notice Generates the token URI for a given token ID.
+     * @dev Concatenates base data with the token-specific ID to create unique metadata for each token.
+     * @param tokenId The ID of the token.
+     * @return string URI of the token's metadata.
+     */
     function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
         return string(
             abi.encodePacked(

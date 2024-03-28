@@ -2,6 +2,12 @@
 
 This is an NFT collection minted for developers building on the DIMO Network.
 
+## Documentation
+
+```
+forge doc --serve --port 40000
+```
+
 ## Deployment Script
 
 Using `TestToken` instead of `$DIMO`.
