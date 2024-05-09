@@ -1,26 +1,27 @@
 {
-  "name": "developer-license-donotus",
+  "name": "developer-license",
   "version": "1.0.0",
-  "description": "Lorem ipsum...",
+  "description": "DIMO Developer License",
   "main": "index.js",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "forge build --sizes",
+    "test": "forge test -vvv"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/smatthewenglish/developer-license-donotus.git"
+    "url": "git+https://github.com/DIMO-Network/developer-license.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/smatthewenglish/developer-license-donotus/issues"
+    "url": "https://github.com/DIMO-Network/developer-license/issues"
   },
-  "homepage": "https://github.com/smatthewenglish/developer-license-donotus#readme",
+  "homepage": "https://github.com/DIMO-Network/developer-license#readme",
   "dependencies": {
     "bignumber.js": "^9.1.2",
     "dotenv": "^16.4.5",
