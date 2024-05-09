@@ -1,66 +1,33 @@
-## Foundry
+# DIMO Developer License
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+This is an NFT collection minted for developers building on the DIMO Network.
 
 ## Documentation
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```
+forge doc --serve --port 40000
 ```
 
-### Test
+## Deployment Script
 
-```shell
-$ forge test
+Using `TestToken` instead of `$DIMO`.
+
+```
+npx ts-node ./script/test_deploy.ts
 ```
 
-### Format
+Using `$DIMO`. 
 
-```shell
-$ forge fmt
+```
+npx ts-node ./script/prod_deploy.ts
 ```
 
-### Gas Snapshots
+## Normalized Price Provider
 
-```shell
-$ forge snapshot
-```
 
-### Anvil
 
-```shell
-$ anvil
-```
 
-### Deploy
+## Resources
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+* [PRD](https://docs.google.com/document/d/1V7qlsMj8GgujmnHYlQ1ZiW_DDkxHWkvkDQ70itPtRsg/edit)
+* [Spec #0](https://docs.google.com/document/d/1fFXOi_lmVBGG-vYmwSCZVd9nRRf3d0jP1hZjJq-G8MA/edit)
