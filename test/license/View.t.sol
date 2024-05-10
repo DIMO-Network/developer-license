@@ -8,12 +8,12 @@ import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC7
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {DevLicenseCore} from "../../src/DevLicenseCore.sol";
 
 import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
 //forge test --match-path ./test/View.t.sol -vv
 contract ViewTest is BaseSetUp {
-
     uint256 _licenseCostInUsd;
 
     function setUp() public {
@@ -54,7 +54,7 @@ contract ViewTest is BaseSetUp {
     function test_isSignerSucceedFail() public {
         address admin = address(0x1337);
         deal(address(dimoToken), admin, 1_000_000 ether);
-        
+
         vm.startPrank(admin);
         dimoToken.approve(address(license), 1_000_000 ether);
         vm.stopPrank();
@@ -71,14 +71,12 @@ contract ViewTest is BaseSetUp {
         assertEq(isSigner00, true);
 
         bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer01);
-        assertEq(isSigner01, false);  
+        assertEq(isSigner01, false);
     }
-
 
     function test_isSignerExpired() public {
         address to = address(0x1989);
         uint256 amountIn = 1 ether;
-        bytes memory data = "";
 
         TestOracleSource testOracleSource = new TestOracleSource();
         testOracleSource.setAmountUsdPerToken(1000 ether);
@@ -89,17 +87,17 @@ contract ViewTest is BaseSetUp {
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
         vm.stopPrank();
-        dimoCredit.mint(to, amountIn, data);
+        dimoCredit.mint(to, amountIn, "");
 
-        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
         license.setLicenseCost(1 ether);
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
-        
+
         (uint256 tokenId, address clientId) = license.issueInDc(to);
         ///@notice ^mint license to a user other than the caller (using DC)
 
         address signer = address(0x123);
-        
+
         vm.startPrank(to);
         license.enableSigner(tokenId, signer);
         vm.stopPrank();
@@ -113,23 +111,128 @@ contract ViewTest is BaseSetUp {
         assertEq(isSigner01, false);
     }
 
+    function test_enableSignerEvent() public {
+        address to = address(0x1989);
+        uint256 amountIn = 1 ether;
+
+        TestOracleSource testOracleSource = new TestOracleSource();
+        testOracleSource.setAmountUsdPerToken(1000 ether);
+        provider.addOracleSource(address(testOracleSource));
+        provider.setPrimaryOracleSource(1);
+
+        deal(address(dimoToken), to, amountIn);
+        vm.startPrank(to);
+        dimoToken.approve(address(dimoCredit), amountIn);
+        vm.stopPrank();
+        dimoCredit.mint(to, amountIn, "");
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
+        license.setLicenseCost(1 ether);
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+
+        (uint256 tokenId,) = license.issueInDc(to);
+        ///@notice ^mint license to a user other than the caller (using DC)
+
+        address signer = address(0x123);
+
+        vm.expectEmit();
+        emit DevLicenseCore.SignerEnabled(tokenId, signer);
+
+        vm.startPrank(to);
+        license.enableSigner(tokenId, signer);
+        vm.stopPrank();
+    }
+
+    function test_disableSigner() public {
+        address to = address(0x1989);
+        uint256 amountIn = 1 ether;
+
+        TestOracleSource testOracleSource = new TestOracleSource();
+        testOracleSource.setAmountUsdPerToken(1000 ether);
+        provider.addOracleSource(address(testOracleSource));
+        provider.setPrimaryOracleSource(1);
+
+        deal(address(dimoToken), to, amountIn);
+        vm.startPrank(to);
+        dimoToken.approve(address(dimoCredit), amountIn);
+        vm.stopPrank();
+        dimoCredit.mint(to, amountIn, "");
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
+        license.setLicenseCost(1 ether);
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+
+        (uint256 tokenId, address clientId) = license.issueInDc(to);
+        ///@notice ^mint license to a user other than the caller (using DC)
+
+        address signer = address(0x123);
+
+        vm.startPrank(to);
+        license.enableSigner(tokenId, signer);
+        vm.stopPrank();
+
+        bool isSigner = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner, true);
+
+        vm.startPrank(to);
+        license.disableSigner(tokenId, signer);
+        vm.stopPrank();
+
+        isSigner = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
+        assertEq(isSigner, false);
+    }
+
+    function test_disableSignerEvent() public {
+        address to = address(0x1989);
+        uint256 amountIn = 1 ether;
+
+        TestOracleSource testOracleSource = new TestOracleSource();
+        testOracleSource.setAmountUsdPerToken(1000 ether);
+        provider.addOracleSource(address(testOracleSource));
+        provider.setPrimaryOracleSource(1);
+
+        deal(address(dimoToken), to, amountIn);
+        vm.startPrank(to);
+        dimoToken.approve(address(dimoCredit), amountIn);
+        vm.stopPrank();
+        dimoCredit.mint(to, amountIn, "");
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
+        license.setLicenseCost(1 ether);
+        dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
+
+        (uint256 tokenId,) = license.issueInDc(to);
+        ///@notice ^mint license to a user other than the caller (using DC)
+
+        address signer = address(0x123);
+
+        vm.startPrank(to);
+        license.enableSigner(tokenId, signer);
+
+        vm.expectEmit();
+        emit DevLicenseCore.SignerDisabled(tokenId, signer);
+
+        license.disableSigner(tokenId, signer);
+        vm.stopPrank();
+    }
+
     function test_supportsInterface() public {
         bytes4 interface721 = type(IERC721).interfaceId;
         bool supports721 = license.supportsInterface(interface721);
         assertEq(supports721, true);
-    
+
         bytes4 interface5192 = type(IERC5192).interfaceId;
         bool supports5192 = license.supportsInterface(interface5192);
         assertEq(supports5192, true);
 
         bytes4 interface721Metadata = type(IERC721Metadata).interfaceId;
         bool supports721Metadata = license.supportsInterface(interface721Metadata);
-        assertEq(supports721Metadata, true);         
+        assertEq(supports721Metadata, true);
     }
 
     function test_periodValidity() public {
         license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
-        
+
         address signer = address(0x123);
         (uint256 tokenId, address clientId) = license.issueInDimo();
         license.enableSigner(tokenId, signer);
@@ -146,20 +249,20 @@ contract ViewTest is BaseSetUp {
         vm.warp(block.timestamp + 2);
 
         bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
-        assertEq(isSigner01, false);  
+        assertEq(isSigner01, false);
 
         assertEq(license._periodValidity(), periodValidity01);
     }
 
     function test_licenseCostInUsd() public {
         license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
-        
+
         uint256 licenseCostInUsd00 = license._licenseCostInUsd1e18();
 
-        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this)); 
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
         license.setLicenseCost(0.5 ether);
 
-        assertEq(licenseCostInUsd00, _licenseCostInUsd); 
+        assertEq(licenseCostInUsd00, _licenseCostInUsd);
 
         uint256 licenseCostInUsd01 = 0.1 ether;
         license.setLicenseCost(licenseCostInUsd01);
@@ -178,5 +281,4 @@ contract ViewTest is BaseSetUp {
         license.issueInDimo();
         vm.stopPrank();
     }
-    
 }
