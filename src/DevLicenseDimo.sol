@@ -24,12 +24,11 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * @custom:coauthor Rob Solomon (@robmsolomon)
  * @custom:contributor Allyson English (@aesdfghjkl666)
  * @custom:contributor James Li (@ilsemaj)
- * @dev Implements the DIMO Developer License system, enabling the minting, management, and revocation of developer 
- *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance 
+ * @dev Implements the DIMO Developer License system, enabling the minting, management, and revocation of developer
+ *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
  */
 contract DevLicenseDimo is DevLicenseMeta {
-
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
@@ -53,14 +52,14 @@ contract DevLicenseDimo is DevLicenseMeta {
     /// @notice Emitted when a redirect URI is enabled for a license.
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
     /// @notice Emitted when a redirect URI is disabled for a license.
-    event RedirectUriDisabled(uint256 indexed tokenId, string uri); 
+    event RedirectUriDisabled(uint256 indexed tokenId, string uri);
     /// @notice Emitted when a license is issued to an owner and associated with a clientId.
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
     /*//////////////////////////////////////////////////////////////
                                Mappings
     //////////////////////////////////////////////////////////////*/
-    
+
     /// @dev Tracks the enabled status of redirect URIs for each tokenId.
     mapping(uint256 => mapping(string => bool)) private _redirectUris;
 
@@ -71,17 +70,19 @@ contract DevLicenseDimo is DevLicenseMeta {
         address receiver_,
         address licenseAccountFactory_,
         address provider_,
-        address dimoTokenAddress_, 
+        address dimoTokenAddress_,
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd_) 
-    DevLicenseMeta(
-        receiver_,
-        licenseAccountFactory_,
-        provider_,
-        dimoTokenAddress_, 
-        dimoCreditAddress_,
-        licenseCostInUsd_
-    ) {
+        uint256 licenseCostInUsd_
+    )
+        DevLicenseMeta(
+            receiver_,
+            licenseAccountFactory_,
+            provider_,
+            dimoTokenAddress_,
+            dimoCreditAddress_,
+            licenseCostInUsd_
+        )
+    {
         symbol = "DLX";
         name = "DIMO Developer License";
     }
@@ -107,28 +108,14 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @param enabled True to enable the URI, false to disable it.
      * @param uri The redirect URI to modify.
      */
-    function setRedirectUri(
-            uint256 tokenId, 
-            bool enabled, 
-            string calldata uri
-        ) onlyTokenOwner(tokenId) external {
-            if(enabled) {
-                emit RedirectUriEnabled(tokenId, uri);
-            } else {
-                emit RedirectUriDisabled(tokenId, uri);
-            }
-        _redirectUris[tokenId][uri] = enabled;
-    }
-
-    /**
-     * @notice Removes a redirect URI for a specific token.
-     * @dev Only the token owner can call this function.
-     * @param tokenId The ID of the token.
-     * @param uri The URI to remove.
-     */
-    function removeRedirectUri(uint256 tokenId, string calldata uri) onlyTokenOwner(tokenId) external {
-        delete _redirectUris[tokenId][uri];
-        emit RedirectUriDisabled(tokenId, uri);
+    function setRedirectUri(uint256 tokenId, bool enabled, string calldata uri) external onlyTokenOwner(tokenId) {
+        if (enabled) {
+            _redirectUris[tokenId][uri] = enabled;
+            emit RedirectUriEnabled(tokenId, uri);
+        } else {
+            delete _redirectUris[tokenId][uri];
+            emit RedirectUriDisabled(tokenId, uri);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -152,11 +139,10 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return clientId The address of the license account holding the new license.
      */
     function issueInDimo(address to) public returns (uint256 tokenId, address clientId) {
-        
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
-        
+
         uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
-        
+
         _dimoToken.transferFrom(to, _receiver, tokenTransferAmount);
 
         return _issue(to);
@@ -216,12 +202,13 @@ contract DevLicenseDimo is DevLicenseMeta {
 
         address tokenOwner = _ownerOf[tokenId];
         delete _ownerOf[tokenId];
-        
+
         address clientId = _tokenIdToClientId[tokenId];
         delete _tokenIdToClientId[tokenId];
         delete _clientIdToTokenId[clientId];
 
-        emit Transfer(tokenOwner, address(0), tokenId); ///@dev ERC721
-    }
+        emit Transfer(tokenOwner, address(0), tokenId);
 
+        ///@dev ERC721
+    }
 }

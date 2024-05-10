@@ -16,7 +16,6 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
-
     IDimoToken dimoToken;
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
@@ -24,7 +23,7 @@ contract LicenseAccountTest is Test {
 
     function setUp() public {
         //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork('https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28', 50573735);
+        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TestOracleSource testOracleSource = new TestOracleSource();
@@ -32,10 +31,10 @@ contract LicenseAccountTest is Test {
         testOracleSource.setAmountUsdPerToken(amountUsdPerToken);
 
         NormalizedPriceProvider provider = new NormalizedPriceProvider();
-        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        dimoCredit = new DimoCredit(address(0x123), address(provider)); 
+        dimoCredit = new DimoCredit(address(0x123), address(provider));
 
         factory = new LicenseAccountFactory();
 
@@ -43,9 +42,9 @@ contract LicenseAccountTest is Test {
 
         devLicense = new DevLicenseDimo(
             address(0x888),
-            address(factory), 
-            address(provider), 
-            address(dimoToken), 
+            address(factory),
+            address(provider),
+            address(dimoToken),
             address(dimoCredit),
             licenseCostInUsd1e18
         );
@@ -53,7 +52,7 @@ contract LicenseAccountTest is Test {
         factory.setLicense(address(devLicense));
     }
 
-    function test_initTemplateNotEffectClone() public { 
+    function test_initTemplateNotEffectClone() public {
         DimoDeveloperLicenseAccount(factory._template()).initialize(1, address(0x999));
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
@@ -73,7 +72,7 @@ contract LicenseAccountTest is Test {
 
     /**
      */
-    function test_ReInitFail() public { 
+    function test_ReInitFail() public {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
@@ -83,32 +82,41 @@ contract LicenseAccountTest is Test {
         DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
     }
 
-    function test_redirectUri() public { 
-
+    function test_redirectUri() public {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
-        (uint256 tokenId,) = devLicense.issueInDimo();   
+        (uint256 tokenId,) = devLicense.issueInDimo();
 
         string memory uri = "https://www.dimo.zone";
-        bool enabled = true;
 
-        devLicense.setRedirectUri(tokenId, enabled, uri); 
+        devLicense.setRedirectUri(tokenId, true, uri);
 
         bool status = devLicense.redirectUriStatus(tokenId, uri);
-        //console2.log("status: %s", status);
         assertEq(status, true);
 
-        enabled = false;
-        devLicense.setRedirectUri(tokenId, enabled, uri); 
+        devLicense.setRedirectUri(tokenId, false, uri);
 
-        status = devLicense.redirectUriStatus(tokenId, uri);
-        assertEq(status, false);
-
-        devLicense.removeRedirectUri(tokenId, uri);
         status = devLicense.redirectUriStatus(tokenId, uri);
         assertEq(status, false);
     }
 
-    
+    function test_redirectUriEvent() public {
+        deal(address(dimoToken), address(this), 1_000_000 ether);
+        dimoToken.approve(address(devLicense), 1_000_000 ether);
+
+        (uint256 tokenId,) = devLicense.issueInDimo();
+
+        string memory uri = "https://www.dimo.zone";
+
+        vm.expectEmit();
+        emit DevLicenseDimo.RedirectUriEnabled(tokenId, uri);
+
+        devLicense.setRedirectUri(tokenId, true, uri);
+
+        vm.expectEmit();
+        emit DevLicenseDimo.RedirectUriDisabled(tokenId, uri);
+
+        devLicense.setRedirectUri(tokenId, false, uri);
+    }
 }
