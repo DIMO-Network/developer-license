@@ -10,7 +10,6 @@ import {IOracleSource} from "./IOracleSource.sol";
  * a new smart contract for it
  */
 abstract contract OracleSource {
-
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
@@ -19,17 +18,13 @@ abstract contract OracleSource {
     uint256 public _updateTimestamp;
     uint256 public _amountUsdPerToken;
 
-    event NewPrice(
-        address source,
-        uint256 amountUsdPerToken,
-        uint256 updateTimestamp
-    );
+    event NewPrice(address source, uint256 amountUsdPerToken, uint256 updateTimestamp);
 
     function _newPrice() internal {
         emit NewPrice(address(this), _amountUsdPerToken, _updateTimestamp);
     }
 
-    function isUpdatable() external virtual pure returns (bool updatable) {
+    function isUpdatable() external pure virtual returns (bool updatable) {
         updatable = false;
     }
 
@@ -37,6 +32,8 @@ abstract contract OracleSource {
 
     function getAmountNativePerToken() external returns (uint256 amountNativePerToken, uint256 updateTimestamp) {}
 
-    function getAmountNativePerToken(bytes calldata data) external returns (uint256 amountNativePerToken, uint256 updateTimestamp) {}
-
+    function getAmountNativePerToken(bytes calldata data)
+        external
+        returns (uint256 amountNativePerToken, uint256 updateTimestamp)
+    {}
 }

@@ -4,7 +4,7 @@ pragma solidity 0.8.22;
 import {IDimoToken} from "./interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-  
+
 //               ______--------___
 //              /|             / |
 //   o___________|_\__________/__|
@@ -21,30 +21,29 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @custom:coauthor Allyson English (@aesdfghjkl666)
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
- * 
+ *
  * @dev Contract for managing non-transferable tokens for use within the DIMO developer ecosystem.
- * @notice This contract manages the issuance (minting) and destruction (burning) of DIMO Credits, 
- *         leveraging the $DIMO token and a price provider for exchange rate information. Approve 
+ * @notice This contract manages the issuance (minting) and destruction (burning) of DIMO Credits,
+ *         leveraging the $DIMO token and a price provider for exchange rate information. Approve
  *         this contract on $DIMO token (0xE261D618a959aFfFd53168Cd07D12E37B26761db) before minting.
  */
 contract DimoCredit is AccessControl {
-
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
-    
+
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
-    
-    uint256 public _dimoCreditRateInWei; 
+
+    uint256 public _dimoCreditRateInWei;
     uint256 public _periodValidity;
 
     ///@dev receives proceeds from sale of credits
-    address public _receiver; 
+    address public _receiver;
 
     IDimoToken public _dimo;
     NormalizedPriceProvider public _provider;
@@ -52,7 +51,7 @@ contract DimoCredit is AccessControl {
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
-    
+
     uint8 public immutable decimals;
 
     string public name;
@@ -64,12 +63,12 @@ contract DimoCredit is AccessControl {
 
     uint256 public totalSupply;
 
-    mapping(address => uint256) public balanceOf; 
-    
+    mapping(address => uint256) public balanceOf;
+
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
-    
+
     string INVALID_OPERATION = "DimoCredit: invalid operation";
 
     /*//////////////////////////////////////////////////////////////
@@ -88,10 +87,9 @@ contract DimoCredit is AccessControl {
      * @notice Initializes the contract with specified receiver and price provider addresses.
      *         Exchange rate determined to be 1 DC == $0.001 USD (1000000000000000 Wei).
      * @param receiver_ The address where proceeds from the sale of credits are sent.
-     * @param provider_ The address of the price provider used to determine the exchange rate for DIMO Credits. 
+     * @param provider_ The address of the price provider used to determine the exchange rate for DIMO Credits.
      */
     constructor(address receiver_, address provider_) {
-        
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
@@ -100,7 +98,7 @@ contract DimoCredit is AccessControl {
 
         _receiver = receiver_;
         _dimoCreditRateInWei = 0.001 ether;
-    
+
         decimals = 18;
         symbol = "DCX";
         name = "Dimo Credit";
@@ -114,11 +112,7 @@ contract DimoCredit is AccessControl {
      * @param data Additional data required by the price provider to determine the exchange rate (Optional).
      * @return dimoCredits The amount of DIMO Credits minted.
      */
-    function mint(
-        address to, 
-        uint256 amountIn, 
-        bytes calldata data
-        ) external returns(uint256 dimoCredits) {
+    function mint(address to, uint256 amountIn, bytes calldata data) external returns (uint256 dimoCredits) {
         (uint256 amountUsdPerTokenInWei,) = _provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
@@ -126,7 +120,7 @@ contract DimoCredit is AccessControl {
 
         // Convert USD amount to data credits
         dimoCredits = (usdAmountInWei / _dimoCreditRateInWei);
-        
+
         _mint(amountIn, dimoCredits, to);
     }
 
@@ -137,7 +131,6 @@ contract DimoCredit is AccessControl {
      * @param to The address to receive the minted credits.
      */
     function _mint(uint256 amountDimo, uint256 amountDataCredits, address to) private {
-        
         _dimo.transferFrom(to, _receiver, amountDimo);
 
         totalSupply += amountDataCredits;
@@ -174,22 +167,26 @@ contract DimoCredit is AccessControl {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Prevents transferring of DIMO Credits.
-    function transfer(address /*_to*/, uint256 /*_value*/) public view returns (bool /*success*/) {
+    function transfer(address, /*_to*/ uint256 /*_value*/ ) public view returns (bool /*success*/ ) {
         revert(INVALID_OPERATION);
     }
 
     /// @notice Prevents transferring of DIMO Credits from one address to another.
-    function transferFrom(address /*_from*/, address /*_to*/, uint256 /*_value*/) public view returns (bool /*success*/) {
+    function transferFrom(address, /*_from*/ address, /*_to*/ uint256 /*_value*/ )
+        public
+        view
+        returns (bool /*success*/ )
+    {
         revert(INVALID_OPERATION);
     }
 
     /// @notice Prevents approval of DIMO Credits for spending by third parties.
-    function approve(address /*_spender*/, uint256 /*_value*/) public view returns (bool /*success*/) {
+    function approve(address, /*_spender*/ uint256 /*_value*/ ) public view returns (bool /*success*/ ) {
         revert(INVALID_OPERATION);
     }
 
     /// @notice Prevents checking allowance of DIMO Credits.
-    function allowance(address /*_owner*/, address /*_spender*/) public view returns (uint256 /*remaining*/) {
+    function allowance(address, /*_owner*/ address /*_spender*/ ) public view returns (uint256 /*remaining*/ ) {
         revert(INVALID_OPERATION);
     }
 
@@ -198,18 +195,18 @@ contract DimoCredit is AccessControl {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Updates the exchange rate for DIMO Credits based on new data from the price provider. 
-     *         Permissioned because it could cost $LINK to invoke. Can be called by accounts with the 
-     *         DC_ADMIN_ROLE. It checks if the price update is necessary and valid based on the 
+     * @notice Updates the exchange rate for DIMO Credits based on new data from the price provider.
+     *         Permissioned because it could cost $LINK to invoke. Can be called by accounts with the
+     *         DC_ADMIN_ROLE. It checks if the price update is necessary and valid based on the
      *         _periodValidity.
      * @param data The data required by the price provider for updating the exchange rate.
      */
     function updatePrice(bytes calldata data) external onlyRole(DC_ADMIN_ROLE) {
-        (,uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
+        (, uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
         bool invalid = (block.timestamp - updateTimestamp) < _periodValidity;
         bool updatable = _provider.isUpdatable();
-        
-        if(invalid && updatable){
+
+        if (invalid && updatable) {
             _provider.updatePrice();
         }
     }
@@ -268,7 +265,7 @@ contract DimoCredit is AccessControl {
                             View Functions
     //////////////////////////////////////////////////////////////*/
 
-    /** 
+    /**
      * @notice Retrieves the current receiver address for DIMO token proceeds.
      * @return receiver_ The current receiver address.
      */
@@ -276,12 +273,11 @@ contract DimoCredit is AccessControl {
         receiver_ = _receiver;
     }
 
-    /** 
+    /**
      * @notice Gets the current exchange rate for converting DIMO to DIMO Credits.
      * @return dimoCreditRateInWei_ The current exchange rate in wei.
      */
     function dimoCreditRate() external view returns (uint256 dimoCreditRateInWei_) {
         dimoCreditRateInWei_ = _dimoCreditRateInWei;
     }
-
 }
