@@ -198,11 +198,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     function isSigner(uint256 tokenId, address signer) public view returns (bool) {
         uint256 timestampInit = _signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        if (timestampCurrent - timestampInit > _periodValidity) {
-            return false;
-        } else {
-            return true;
-        }
+        return timestampCurrent - timestampInit <= _periodValidity;
     }
 
     /*//////////////////////////////////////////////////////////////
