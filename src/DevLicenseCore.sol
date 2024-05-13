@@ -48,6 +48,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
+    mapping(uint256 => string) public _tokenIdToAlias;
     mapping(address => uint256) public _clientIdToTokenId;
     /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
     mapping(uint256 => mapping(address => uint256)) public _signers;
@@ -61,6 +62,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event SignerDisabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
+    event LicenseAliasSet(uint256 indexed tokenId, string licenseAlias);
 
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdateReceiverAddress(address receiver_);
@@ -160,6 +162,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _disableSigner(tokenId, signer);
     }
 
+    // TODO Documentation
+    function setLicenseAlias(uint256 tokenId, string calldata licenseAlias) public onlyTokenOwner(tokenId) {
+        _setLicenseAlias(tokenId, licenseAlias);
+    }
+
     /**
      * @notice Internally enables a signer for a specific token ID by recording the current block
      *         timestamp as the time of enabling. This function should only be called through `enableSigner`.
@@ -184,6 +191,12 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         emit SignerDisabled(tokenId, signer);
     }
 
+    // TODO Documentation
+    function _setLicenseAlias(uint256 tokenId, string calldata licenseAlias) internal {
+        _tokenIdToAlias[tokenId] = licenseAlias;
+        emit LicenseAliasSet(tokenId, licenseAlias);
+    }
+
     /**
      * @notice Checks whether a given address is currently an enabled signer for a specified token ID.
      *         The signer's enabled status is valid only for the period defined by `_periodValidity`.
@@ -199,6 +212,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         uint256 timestampInit = _signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
         return timestampCurrent - timestampInit <= _periodValidity;
+    }
+
+    // TODO Documentation
+    function getLicenseAlias(uint256 tokenId) public view returns (string memory licenseAlias) {
+        licenseAlias = _tokenIdToAlias[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////

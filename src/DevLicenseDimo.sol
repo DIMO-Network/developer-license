@@ -127,8 +127,8 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return tokenId The ID of the issued license.
      * @return clientId The ID of the client associated with the issued license.
      */
-    function issueInDimo() external returns (uint256 tokenId, address clientId) {
-        return issueInDimo(msg.sender);
+    function issueInDimo(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
+        return issueInDimo(msg.sender, licenseAlias);
     }
 
     /**
@@ -138,14 +138,14 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDimo(address to) public returns (uint256 tokenId, address clientId) {
+    function issueInDimo(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
 
         uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
 
         _dimoToken.transferFrom(to, _receiver, tokenTransferAmount);
 
-        return _issue(to);
+        return _issue(to, licenseAlias);
     }
 
     /**
@@ -154,8 +154,8 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc() external returns (uint256 tokenId, address clientId) {
-        return issueInDc(msg.sender);
+    function issueInDc(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
+        return issueInDc(msg.sender, licenseAlias);
     }
 
     /**
@@ -164,11 +164,11 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc(address to) public returns (uint256 tokenId, address clientId) {
+    function issueInDc(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
         uint256 dcTransferAmount = (_licenseCostInUsd1e18 / _dimoCredit.dimoCreditRate()) * 1 ether;
         _dimoCredit.burn(to, dcTransferAmount);
 
-        return _issue(to);
+        return _issue(to, licenseAlias);
     }
 
     /**
@@ -177,7 +177,7 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function _issue(address to) private returns (uint256 tokenId, address clientId) {
+    function _issue(address to, string calldata licenseAlias) private returns (uint256 tokenId, address clientId) {
         tokenId = ++_counter;
         clientId = _licenseAccountFactory.create(tokenId);
 
@@ -186,6 +186,12 @@ contract DevLicenseDimo is DevLicenseMeta {
         _ownerOf[tokenId] = to;
 
         emit Issued(tokenId, to, clientId);
+
+        /// Calling it here to emit LicenseAliasSet after Issued event
+        if (bytes(licenseAlias).length > 0) {
+            _setLicenseAlias(tokenId, licenseAlias);
+        }
+
         /// @dev Indicates the license is locked according to ERC5192.
         emit Locked(tokenId);
         /// @dev Indicates the transfer of the newly minted token according to ERC721.
@@ -205,10 +211,9 @@ contract DevLicenseDimo is DevLicenseMeta {
 
         address clientId = _tokenIdToClientId[tokenId];
         delete _tokenIdToClientId[tokenId];
+        delete _tokenIdToAlias[tokenId];
         delete _clientIdToTokenId[clientId];
 
         emit Transfer(tokenOwner, address(0), tokenId);
-
-        ///@dev ERC721
     }
 }

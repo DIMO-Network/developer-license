@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
@@ -16,6 +16,8 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
+    string constant LICENSE_ALIAS = "licenseAlias";
+
     IDimoToken dimoToken;
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
@@ -58,14 +60,14 @@ contract LicenseAccountTest is Test {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
-        (uint256 tokenId00, address clientId00) = devLicense.issueInDimo();
+        (uint256 tokenId00, address clientId00) = devLicense.issueInDimo(LICENSE_ALIAS);
         //console2.log("tokenId00: %s", tokenId00);
         assertEq(tokenId00, 1);
 
         vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
         DimoDeveloperLicenseAccount(clientId00).initialize(tokenId00, address(devLicense));
 
-        (uint256 tokenId01,) = devLicense.issueInDimo();
+        (uint256 tokenId01,) = devLicense.issueInDimo(LICENSE_ALIAS);
         //console2.log("tokenId01: %s", tokenId01);
         assertEq(tokenId01, 2);
     }
@@ -76,7 +78,7 @@ contract LicenseAccountTest is Test {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
-        (uint256 tokenId, address clientId) = devLicense.issueInDimo();
+        (uint256 tokenId, address clientId) = devLicense.issueInDimo(LICENSE_ALIAS);
 
         vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
         DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
@@ -86,7 +88,7 @@ contract LicenseAccountTest is Test {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
-        (uint256 tokenId,) = devLicense.issueInDimo();
+        (uint256 tokenId,) = devLicense.issueInDimo(LICENSE_ALIAS);
 
         string memory uri = "https://www.dimo.zone";
 
@@ -105,7 +107,7 @@ contract LicenseAccountTest is Test {
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
 
-        (uint256 tokenId,) = devLicense.issueInDimo();
+        (uint256 tokenId,) = devLicense.issueInDimo(LICENSE_ALIAS);
 
         string memory uri = "https://www.dimo.zone";
 

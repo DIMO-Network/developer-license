@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {console2} from "forge-std/Test.sol";
 
@@ -11,19 +11,18 @@ import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLi
 
 //forge test --match-path ./test/Integration.t.sol -vv
 contract IntegrationTest is BaseSetUp {
-
     uint256 tokenId;
     address clientId;
 
     function setUp() public {
         _setUp();
 
-        (tokenId, clientId) = license.issueInDimo();
+        (tokenId, clientId) = license.issueInDimo(LICENSE_ALIAS);
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), address(this));
     }
 
-    function test_integration00() public {   
+    function test_integration00() public {
         ///@notice oauth client created for you on the backend
 
         ///@dev add redirect url
@@ -35,7 +34,7 @@ contract IntegrationTest is BaseSetUp {
         ///@dev add a signer, with a known pk
         uint256 privateKey = 0x1337;
         address signer = vm.addr(privateKey);
-        
+
         license.enableSigner(tokenId, signer);
 
         bytes32 hashValue = keccak256(
@@ -44,10 +43,10 @@ contract IntegrationTest is BaseSetUp {
                     "\x19Ethereum Signed Message:\n32" //32 length of message...
                 ),
                 keccak256("challenge message")
-            )   
+            )
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
-        bytes memory signature = abi.encodePacked(r, s, v); 
+        bytes memory signature = abi.encodePacked(r, s, v);
         bytes4 output = IDimoDeveloperLicenseAccount(clientId).isValidSignature(hashValue, signature);
 
         ///@dev use that signer to sign a challenge message for that license
@@ -55,5 +54,4 @@ contract IntegrationTest is BaseSetUp {
 
         ///@notice check that you can log in as the license address
     }
-
 }
