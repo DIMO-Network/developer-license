@@ -12,7 +12,6 @@ import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
  * It links a DIMO Developer License to off-chain actions by verifying if signatures are made by authorized signers of the license.
  */
 contract DimoDeveloperLicenseAccount is IERC1271 {
-
     /// @notice Reference to the DIMO Developer License contract.
     IDevLicenseDimo private _license;
     /// @notice Token ID of the DIMO Developer License associated with this account.
@@ -39,7 +38,7 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
      * @param signer The address to check.
      * @return True if the address is an authorized signer, false otherwise.
      */
-    function isSigner(address signer) public view returns(bool) {
+    function isSigner(address signer) public view returns (bool) {
         return _license.isSigner(_tokenId, signer);
     }
 

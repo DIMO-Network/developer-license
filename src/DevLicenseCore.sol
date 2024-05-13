@@ -14,28 +14,27 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 /**
  * @title Developer License Core
  * @dev Implements the core functionalities for managing developer licenses within the DIMO ecosystem.
- * @notice This contract manages the creation, administration, and validation of developer licenses, 
+ * @notice This contract manages the creation, administration, and validation of developer licenses,
  *         integrating with DIMO's token and credit systems.
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
-
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
-    
+
     bytes32 public constant LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
 
     /*//////////////////////////////////////////////////////////////
                               Member Variables
     //////////////////////////////////////////////////////////////*/
-    
-    IDimoToken public _dimoToken; 
+
+    IDimoToken public _dimoToken;
     IDimoCredit public _dimoCredit;
     NormalizedPriceProvider public _provider;
     ILicenseAccountFactory public _licenseAccountFactory;
-    
+
     /// @notice The period after which a signer is considered expired.
-    uint256 public _periodValidity; 
+    uint256 public _periodValidity;
     /// @notice Cost of a single license in USD with 18 decimals.
     uint256 public _licenseCostInUsd1e18;
     /// @notice Counter to keep track of the issued licenses.
@@ -46,20 +45,21 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                               Mappings
     //////////////////////////////////////////////////////////////*/
-    
+
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
     mapping(address => uint256) public _clientIdToTokenId;
     /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
-    mapping(uint256 => mapping(address => uint256)) public _signers; 
+    mapping(uint256 => mapping(address => uint256)) public _signers;
 
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
-    
+
     ///@dev on mint & burn
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId); 
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
+    event SignerDisabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
 
     event UpdateLicenseCost(uint256 licenseCost);
@@ -73,7 +73,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /*//////////////////////////////////////////////////////////////
                             Error Messages
     //////////////////////////////////////////////////////////////*/
-    
+
     string INVALID_TOKEN_ID = "DevLicenseDimo: invalid tokenId";
     string INVALID_OPERATION = "DevLicenseDimo: invalid operation";
     string INVALID_MSG_SENDER = "DevLicenseDimo: invalid msg.sender";
@@ -85,15 +85,15 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /**
      * @dev Ensures the caller is the owner of the specified token ID.
      */
-    modifier onlyTokenOwner(uint256 tokenId) { 
+    modifier onlyTokenOwner(uint256 tokenId) {
         require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
         _;
     }
 
     /**
      * @notice Initializes a new instance of the DevLicenseCore contract.
-     * @dev Sets up the contract with the necessary addresses and parameters for operation, 
-     *      including setting up roles, linking to $DIMO token and credit contracts, and initializing 
+     * @dev Sets up the contract with the necessary addresses and parameters for operation,
+     *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
      *      license cost and validity period.
      * @param receiver_ The address where proceeds from the sale of licenses are sent.
      * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
@@ -106,19 +106,19 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         address receiver_,
         address licenseAccountFactory_,
         address provider_,
-        address dimoTokenAddress_, 
+        address dimoTokenAddress_,
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd1e18_) {
-
+        uint256 licenseCostInUsd1e18_
+    ) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        
+
         _periodValidity = 365 days;
 
         _receiver = receiver_;
 
         _dimoCredit = IDimoCredit(dimoCreditAddress_);
         _provider = NormalizedPriceProvider(provider_);
-    
+
         _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         _dimoToken = IDimoToken(dimoTokenAddress_);
         _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
@@ -132,25 +132,38 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Enables a signer for a specific token ID, granting the signer permission to access 
+     * @notice Enables a signer for a specific token ID, granting the signer permission to access
      *         API functionalities/resources. Only the owner of the token ID can enable a signer.
-     *         License can be minted by any EOA and assigned an owner, or by the owner directly. 
-     *         the owner then enables a key and/or set of keys to act as a signer, to sign challenges 
+     *         License can be minted by any EOA and assigned an owner, or by the owner directly.
+     *         the owner then enables a key and/or set of keys to act as a signer, to sign challenges
      *         from the backend to access API resources.
-     * @dev Emits a `SignerEnabled` event upon successfully adding a signer. This function checks 
-     *      if the caller owns the token ID and then delegates to `_enableSigner` to update the 
+     * @dev Emits a `SignerEnabled` event upon successfully adding a signer. This function checks
+     *      if the caller owns the token ID and then delegates to `_enableSigner` to update the
      *      mapping of signers.
      * @param tokenId The unique identifier for the license token.
      * @param signer The address to be enabled as a signer for the specified token ID.
      */
-    function enableSigner(uint256 tokenId, address signer) onlyTokenOwner(tokenId) external {
+    function enableSigner(uint256 tokenId, address signer) external onlyTokenOwner(tokenId) {
         _enableSigner(tokenId, signer);
     }
 
     /**
-     * @notice Internally enables a signer for a specific token ID by recording the current block 
+     * @notice Disables a signer for a specific token ID.
+     *         Only the owner of the token ID can disable a signer.
+     * @dev Emits a `SignerDisabled` event upon successfully removing a signer. This function checks
+     *      if the caller owns the token ID and then delegates to `_disableSigner` to update the
+     *      mapping of signers.
+     * @param tokenId The unique identifier for the license token.
+     * @param signer The address to be enabled as a signer for the specified token ID.
+     */
+    function disableSigner(uint256 tokenId, address signer) external onlyTokenOwner(tokenId) {
+        _disableSigner(tokenId, signer);
+    }
+
+    /**
+     * @notice Internally enables a signer for a specific token ID by recording the current block
      *         timestamp as the time of enabling. This function should only be called through `enableSigner`.
-     * @dev Updates the `_signers` mapping to mark the `signer` address as enabled for the `tokenId`. 
+     * @dev Updates the `_signers` mapping to mark the `signer` address as enabled for the `tokenId`.
      *      It records the current block timestamp for the signer.
      * @param tokenId The unique identifier for the license token.
      * @param signer The address to be enabled as a signer for the specified token ID.
@@ -161,24 +174,31 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     }
 
     /**
-     * @notice Checks whether a given address is currently an enabled signer for a specified token ID. 
+     * @notice Internally disables a signer for a specific token ID by deleting the time of enabling.
+     * @dev Updates the `_signers` mapping to mark the `signer` address as disabled for the `tokenId`.
+     * @param tokenId The unique identifier for the license token.
+     * @param signer The address to be enabled as a signer for the specified token ID.
+     */
+    function _disableSigner(uint256 tokenId, address signer) internal {
+        delete _signers[tokenId][signer];
+        emit SignerDisabled(tokenId, signer);
+    }
+
+    /**
+     * @notice Checks whether a given address is currently an enabled signer for a specified token ID.
      *         The signer's enabled status is valid only for the period defined by `_periodValidity`.
-     * @dev This function calculates the difference between the current block timestamp and the timestamp 
-     *      when the signer was enabled. If the difference exceeds `_periodValidity`, the signer is 
+     * @dev This function calculates the difference between the current block timestamp and the timestamp
+     *      when the signer was enabled. If the difference exceeds `_periodValidity`, the signer is
      *      considered no longer enabled.
      * @param tokenId The unique identifier for the license token.
      * @param signer The address to check for being an enabled signer for the specified token ID.
-     * @return bool Returns true if the `signer` is currently enabled for the `tokenId` and the period of 
+     * @return bool Returns true if the `signer` is currently enabled for the `tokenId` and the period of
      *         validity has not expired; otherwise, returns false.
      */
     function isSigner(uint256 tokenId, address signer) public view returns (bool) {
         uint256 timestampInit = _signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        if(timestampCurrent - timestampInit > _periodValidity) {
-            return false;
-        } else {
-            return true;
-        }
+        return timestampCurrent - timestampInit <= _periodValidity;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -244,7 +264,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _dimoToken = IDimoToken(dimoTokenAddress_);
         emit UpdateDimoTokenAddress(dimoTokenAddress_);
     }
-    
+
     /**
      * @notice Sets the address of the License Account Factory contract.
      * @dev Can only be called by an account with the `LICENSE_ADMIN_ROLE`. Emits `UpdateLicenseAccountFactoryAddress` event.
@@ -259,42 +279,46 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
                              NO-OP NFT Logic
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Prevents approval of token spending by third parties.
-    /// @dev This contract does not support approvals, attempting to do so will cause a revert.
-    function approve(address /*spender*/, uint256 /*id*/) public virtual {
+    /**
+     * @notice Prevents approval of token spending by third parties.
+     * @dev This contract does not support approvals, attempting to do so will cause a revert.
+     */
+    function approve(address, /*spender*/ uint256 /*id*/ ) public virtual {
         revert(INVALID_OPERATION);
     }
 
-    /// @notice Prevents setting approval for all tokens owned by the caller.
-    /// @dev This contract does not support setting approval for all, attempting to do so will cause a revert.
-    function setApprovalForAll(address /*operator*/, bool /*approved*/) public virtual {
+    /**
+     * @notice Prevents setting approval for all tokens owned by the caller.
+     * @dev This contract does not support setting approval for all, attempting to do so will cause a revert.
+     */
+    function setApprovalForAll(address, /*operator*/ bool /*approved*/ ) public virtual {
         revert(INVALID_OPERATION);
     }
 
-    /// @notice Prevents transferring tokens from one address to another.
-    /// @dev This contract does not support transferring tokens, attempting to do so will cause a revert.
-    function transferFrom(address /*from*/, address /*to*/, uint256 /*id*/) public virtual {
+    /**
+     * @notice Prevents transferring tokens from one address to another.
+     * @dev This contract does not support transferring tokens, attempting to do so will cause a revert.
+     */
+    function transferFrom(address, /*from*/ address, /*to*/ uint256 /*id*/ ) public virtual {
         revert(INVALID_OPERATION);
     }
 
-    /// @notice Prevents safe transferring of tokens from one address to another without data.
-    /// @dev This contract does not support safe transferring of tokens without data, attempting to do so will cause a revert.
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*id*/
-    ) public virtual {
+    /**
+     * @notice Prevents safe transferring of tokens from one address to another without data.
+     * @dev This contract does not support safe transferring of tokens without data, attempting to do so will cause a revert.
+     */
+    function safeTransferFrom(address, /*from*/ address, /*to*/ uint256 /*id*/ ) public virtual {
         revert(INVALID_OPERATION);
     }
 
-    /// @notice Prevents safe transferring of tokens from one address to another with data.
-    /// @dev This contract does not support safe transferring of tokens with data, attempting to do so will cause a revert.
-    function safeTransferFrom(
-        address /*from*/,
-        address /*to*/,
-        uint256 /*id*/,
-        bytes memory /*data*/
-    ) public virtual {
+    /**
+     * @notice Prevents safe transferring of tokens from one address to another with data.
+     * @dev This contract does not support safe transferring of tokens with data, attempting to do so will cause a revert.
+     */
+    function safeTransferFrom(address, /*from*/ address, /*to*/ uint256, /*id*/ bytes memory /*data*/ )
+        public
+        virtual
+    {
         revert(INVALID_OPERATION);
     }
 
@@ -308,7 +332,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      */
     function totalSupply() external view returns (uint256 totalSupply_) {
         totalSupply_ = _counter;
-    } 
+    }
 
     /**
      * @dev Returns the address of the owner of a given tokenId.
@@ -325,7 +349,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev ERC5192: Minimal Soulbound NFTs Minimal interface for 
+     * @dev ERC5192: Minimal Soulbound NFTs Minimal interface for
      * soulbinding EIP-721 NFTs
      */
     function locked(uint256 tokenId) external view returns (bool locked_) {
@@ -353,17 +377,15 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     /**
      * @dev See {IERC165-supportsInterface}.
      * @notice Checks if the contract implements an interface.
-     *         Implements ERC165 to support interface detection for ERC721 (NFT), ERC5192 (Lockable NFT), 
+     *         Implements ERC165 to support interface detection for ERC721 (NFT), ERC5192 (Lockable NFT),
      *         and ERC721Metadata.
      * @param interfaceId The interface identifier, as specified in ERC-165.
-     * @return bool True if the contract implements `interfaceId` and `interfaceId` is not 0xffffffff, 
+     * @return bool True if the contract implements `interfaceId` and `interfaceId` is not 0xffffffff,
      *         false otherwise.
      */
-    function supportsInterface(bytes4 interfaceId) public override pure returns (bool) {
-        return
-            interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
-            interfaceId == 0xb45a3c0e || // ERC165 Interface ID for ERC5192
-            interfaceId == 0x5b5e139f;   // ERC165 Interface ID for ERC721Metadata
+    function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
+        return interfaceId == 0x80ac58cd // ERC165 Interface ID for ERC721
+            || interfaceId == 0xb45a3c0e // ERC165 Interface ID for ERC5192
+            || interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
-
 }

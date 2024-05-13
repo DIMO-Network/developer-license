@@ -15,22 +15,21 @@ import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
  * @custom:contributor Allyson English (@aesdfghjkl666)
- * @notice Manages the creation of DIMO Developer License Account instances, enabling the deployment 
- *         of minimal proxy contracts for each new license account. This factory pattern minimizes the 
+ * @notice Manages the creation of DIMO Developer License Account instances, enabling the deployment
+ *         of minimal proxy contracts for each new license account. This factory pattern minimizes the
  *         gas cost for deploying many instances of license accounts by using EIP-1167 clone contracts.
- * @dev Inherits from Ownable2Step for secure ownership transfer and implements ILicenseAccountFactory 
+ * @dev Inherits from Ownable2Step for secure ownership transfer and implements ILicenseAccountFactory
  *      for creating license accounts.
  */
-contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory { 
-
+contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory {
     /// @notice Address of the license account template for cloning.
     address public _template;
 
     /// @notice Address of the DIMO Developer License contract.
-    address public _license; 
+    address public _license;
 
     /**
-     * @dev Initializes the contract by creating a new DimoDeveloperLicenseAccount as a template 
+     * @dev Initializes the contract by creating a new DimoDeveloperLicenseAccount as a template
      *      for future clones and sets the owner of the contract.
      */
     constructor() Ownable(msg.sender) {
@@ -56,7 +55,7 @@ contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory {
     }
 
     /**
-     * @notice Creates clone of the license account contract, sharing 
+     * @notice Creates clone of the license account contract, sharing
      * business logic from the original,cbut with its own storage.
      *
      * @param target_ address of the contract to clone.
@@ -68,11 +67,8 @@ contract LicenseAccountFactory is Ownable2Step, ILicenseAccountFactory {
             let clone := mload(0x40)
             mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
             mstore(add(clone, 0x14), targetBytes)
-            mstore(
-                add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
+            mstore(add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
             result := create(0, clone, 0x37)
         }
     }
-
 }

@@ -7,17 +7,16 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 /**
  * @title NormalizedPriceProvider
  * @custom:version 1.0.0
- * @author Sean Matt English (@smatthewenglish) 
+ * @author Sean Matt English (@smatthewenglish)
  * @custom:coauthor Lorran Sutter (@LorranSutter)
  * @custom:coauthor Dylan Moreland (@elffjs)
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
  * @custom:contributor Allyson English (@aesdfghjkl666)
- * 
+ *
  * @dev Normalize the format of different oracle sources into a common source.
  */
 contract NormalizedPriceProvider is AccessControl {
-
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
@@ -32,8 +31,8 @@ contract NormalizedPriceProvider is AccessControl {
     event OracleSourceAdded(address indexed source);
 
     uint256 constant MAX_ORACLE_SOURCES = 12;
-    string constant private ERROR_INVALID_INDEX = "NormalizedPriceProvider: invalid index";
-    string constant private ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
+    string private constant ERROR_INVALID_INDEX = "NormalizedPriceProvider: invalid index";
+    string private constant ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -53,15 +52,14 @@ contract NormalizedPriceProvider is AccessControl {
     }
 
     /**
-     * Remove the oracle source from the array by swapping it with 
+     * Remove the oracle source from the array by swapping it with
      * the last element and then popping from the array
      */
     function removeOracleSource(uint256 indexToRemove) external onlyRole(PROVIDER_ADMIN_ROLE) {
-        require(indexToRemove < _oracleSources.length && 
-                indexToRemove != _primaryIndex, ERROR_INVALID_INDEX);
+        require(indexToRemove < _oracleSources.length && indexToRemove != _primaryIndex, ERROR_INVALID_INDEX);
 
         emit OracleSourceRemoved(address(_oracleSources[indexToRemove]));
-        
+
         _oracleSources[indexToRemove] = _oracleSources[_oracleSources.length - 1];
         _oracleSources.pop();
     }
@@ -79,7 +77,7 @@ contract NormalizedPriceProvider is AccessControl {
 
     function getAllOracleSources() external view returns (address[] memory) {
         address[] memory oracleSources = new address[](_oracleSources.length);
-        for(uint256 i = 0; i < _oracleSources.length; i++) {
+        for (uint256 i = 0; i < _oracleSources.length; i++) {
             oracleSources[i] = address(_oracleSources[i]);
         }
         return oracleSources;
@@ -89,12 +87,14 @@ contract NormalizedPriceProvider is AccessControl {
         (amountUsdPerToken, updateTimestamp) = this.getAmountUsdPerToken("");
     }
 
-    function getAmountUsdPerToken(bytes calldata data) public returns (uint256 amountUsdPerToken, uint256 updateTimestamp) {
+    function getAmountUsdPerToken(bytes calldata data)
+        public
+        returns (uint256 amountUsdPerToken, uint256 updateTimestamp)
+    {
         (amountUsdPerToken, updateTimestamp) = _oracleSources[_primaryIndex].getAmountUsdPerToken(data);
     }
 
     function isUpdatable() external view returns (bool updatable) {
         updatable = _oracleSources[_primaryIndex].isUpdatable();
     }
-
 }

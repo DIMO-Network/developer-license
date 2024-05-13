@@ -38,9 +38,7 @@ contract TwapV3 is OracleSource, AccessControl {
         poolWmaticDimo = 0x41e64a5Bc929fA8E6a9C8d7E3b81A13b21Ff3045;
     }
 
-    function initialize(
-        uint32 twapIntervalUsdc_, 
-        uint32 twapIntervalDimo_) external onlyRole(ORACLE_ADMIN_ROLE) {
+    function initialize(uint32 twapIntervalUsdc_, uint32 twapIntervalDimo_) external onlyRole(ORACLE_ADMIN_ROLE) {
         _twapIntervalUsdc = twapIntervalUsdc_;
         _twapIntervalDimo = twapIntervalDimo_;
     }
@@ -61,13 +59,10 @@ contract TwapV3 is OracleSource, AccessControl {
         _twapIntervalDimo = twapIntervalDimo_;
     }
 
-    /** 
-     * 
+    /**
+     *
      */
-    function getAmountUsdPerToken()
-        external
-        returns (uint256 amountUsdPerToken, uint256 updateTimestamp)
-    {
+    function getAmountUsdPerToken() external returns (uint256 amountUsdPerToken, uint256 updateTimestamp) {
         //$USDC
         uint160 sqrtPriceUsdcX96 = getSqrtTwapX96(poolWmaticUsdc, _twapIntervalUsdc);
         uint256 priceUsdcX96 = getPriceX96FromSqrtPriceX96(sqrtPriceUsdcX96);
@@ -85,7 +80,10 @@ contract TwapV3 is OracleSource, AccessControl {
         return (_amountUsdPerToken, _updateTimestamp);
     }
 
-    function getAmountUsdPerToken(bytes calldata /*data*/) external returns (uint256 /*amountUsdPerToken*/, uint256 /*updateTimestamp*/) {
+    function getAmountUsdPerToken(bytes calldata /*data*/ )
+        external
+        returns (uint256, /*amountUsdPerToken*/ uint256 /*updateTimestamp*/ )
+    {
         return this.getAmountUsdPerToken();
     }
 
@@ -94,7 +92,7 @@ contract TwapV3 is OracleSource, AccessControl {
     }
 
     /**
-     *   
+     *
      */
     function getSqrtTwapX96(address uniswapV3Pool, uint32 twapInterval) public view returns (uint160 sqrtPriceX96) {
         uint32[] memory secondsAgos = new uint32[](2);
@@ -102,23 +100,22 @@ contract TwapV3 is OracleSource, AccessControl {
         secondsAgos[1] = 0; // to (now)
 
         int56[] memory tickCumulatives;
-        try IUniswapV3Pool(uniswapV3Pool).observe(secondsAgos) returns (int56[] memory tickCumulatives_, uint160[] memory /*secondsPerLiquidityCumulativeX128s*/) {
+        try IUniswapV3Pool(uniswapV3Pool).observe(secondsAgos) returns (
+            int56[] memory tickCumulatives_, uint160[] memory /*secondsPerLiquidityCumulativeX128s*/
+        ) {
             tickCumulatives = tickCumulatives_;
         } catch {
             // return the current price in the event of interval induced error
-            (sqrtPriceX96, , , , , , ) = IUniswapV3Pool(uniswapV3Pool).slot0();
+            (sqrtPriceX96,,,,,,) = IUniswapV3Pool(uniswapV3Pool).slot0();
             return sqrtPriceX96;
         }
 
         // tick(imprecise as it's an integer) to price
-        sqrtPriceX96 = TickMath.getSqrtRatioAtTick(
-            int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(twapInterval)))
-        );
+        sqrtPriceX96 =
+            TickMath.getSqrtRatioAtTick(int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(twapInterval))));
     }
 
-    function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public pure returns(uint256 priceX96) {
+    function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public pure returns (uint256 priceX96) {
         return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96);
     }
-
-
 }

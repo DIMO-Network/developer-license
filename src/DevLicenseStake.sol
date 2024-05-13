@@ -4,7 +4,7 @@ pragma solidity 0.8.22;
 import {DevLicenseCore} from "./DevLicenseCore.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-/** 
+/**
  * @title DevLicenseStake
  * @dev Extension of DevLicenseCore to add staking functionality for DIMO tokens.
  * Implements locking of tokens against licenses and facilitates staking rewards and penalties.
@@ -12,11 +12,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  * For more information on DIMO tokenomics: https://dimo.zone/news/on-dimo-tokenomics
  */
 contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
-
     /*//////////////////////////////////////////////////////////////
                               Member Variable
     //////////////////////////////////////////////////////////////*/
-    
+
     /// @notice Total amount of DIMO tokens staked in the contract.
     uint256 public _stakeTotal;
 
@@ -55,10 +54,20 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
         address receiver_,
         address licenseAccountFactory_,
         address provider_,
-        address dimoTokenAddress_, 
+        address dimoTokenAddress_,
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_
-    ) DevLicenseCore(receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_) ReentrancyGuard() {}
+    )
+        DevLicenseCore(
+            receiver_,
+            licenseAccountFactory_,
+            provider_,
+            dimoTokenAddress_,
+            dimoCreditAddress_,
+            licenseCostInUsd_
+        )
+        ReentrancyGuard()
+    {}
 
     /*//////////////////////////////////////////////////////////////
                          Operative Functions
@@ -187,5 +196,4 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
         uint256 amount = balaceOf - _stakeTotal;
         _dimoToken.transfer(to, amount);
     }
-
 }
