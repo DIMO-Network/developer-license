@@ -18,6 +18,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  *         integrating with DIMO's token and credit systems.
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
+    error AliasAlreadyInUse(bytes32 licenseAlias);
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
@@ -49,6 +50,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
     mapping(uint256 => bytes32) public _tokenIdToAlias;
+    mapping(bytes32 => uint256) public _aliasToTokenId;
     mapping(address => uint256) public _clientIdToTokenId;
     /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
     mapping(uint256 => mapping(address => uint256)) public _signers;
@@ -169,7 +171,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param licenseAlias The alias string to be set
      */
     function setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) public onlyTokenOwner(tokenId) {
-        _setLicenseAlias(tokenId, licenseAlias);
+        _safeSetLicenseAlias(tokenId, licenseAlias);
     }
 
     /**
@@ -201,8 +203,26 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param tokenId The unique identifier for the license token.
      * @param licenseAlias The alias string to be set
      */
-    function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
+    function _safeSetLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
+        if (_aliasToTokenId[licenseAlias] != 0) {
+            revert AliasAlreadyInUse(licenseAlias);
+        }
+        _setLicenseAlias(tokenId, licenseAlias);
+    }
+
+    /**
+     * @notice Internal function to set an alias to a token ID
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
+    function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) private {
+        bytes32 currentLicenseAlias = _tokenIdToAlias[tokenId];
+        if (currentLicenseAlias.length > 0) {
+            delete _aliasToTokenId[currentLicenseAlias];
+        }
+
         _tokenIdToAlias[tokenId] = licenseAlias;
+        _aliasToTokenId[licenseAlias] = tokenId;
         emit LicenseAliasSet(tokenId, licenseAlias);
     }
 

@@ -39,6 +39,16 @@ contract IssueDevLicenseTest is BaseSetUp {
         license.issueInDimo(LICENSE_ALIAS);
     }
 
+    function test_issueInDimoSuccess_revertAliasAlreadySet() public {
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
+        license.setReceiverAddress(_receiver);
+
+        license.issueInDimo(LICENSE_ALIAS);
+
+        vm.expectRevert(abi.encodeWithSelector(DevLicenseCore.AliasAlreadyInUse.selector, LICENSE_ALIAS));
+        license.issueInDimo(LICENSE_ALIAS);
+    }
+
     /**
      * @dev We send $DIMO to the DC _receiver
      */

@@ -194,7 +194,7 @@ contract DevLicenseDimo is DevLicenseMeta {
 
         /// Calling it here to emit LicenseAliasSet after Issued event
         if (licenseAlias.length > 0) {
-            _setLicenseAlias(tokenId, licenseAlias);
+            _safeSetLicenseAlias(tokenId, licenseAlias);
         }
 
         /// @dev Indicates the license is locked according to ERC5192.

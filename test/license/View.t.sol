@@ -308,4 +308,11 @@ contract ViewTest is BaseSetUp {
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
         vm.stopPrank();
     }
+
+    function test_setLicenseAlias_revertAliasAlreadySet() public {
+        license.issueInDimo(LICENSE_ALIAS);
+
+        vm.expectRevert(abi.encodeWithSelector(DevLicenseCore.AliasAlreadyInUse.selector, LICENSE_ALIAS));
+        license.issueInDimo(LICENSE_ALIAS);
+    }
 }
