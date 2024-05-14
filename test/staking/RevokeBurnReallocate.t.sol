@@ -20,7 +20,7 @@ import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLi
 
 //forge test --match-path ./test/RevokeBurnReallocate.t.sol -vv
 contract RevokeBurnReallocateTest is Test {
-    string constant LICENSE_ALIAS = "licenseAlias";
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     IDimoToken dimoToken;
     IDimoCredit dimoCredit;

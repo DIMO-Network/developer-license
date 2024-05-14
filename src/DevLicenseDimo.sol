@@ -124,10 +124,11 @@ contract DevLicenseDimo is DevLicenseMeta {
 
     /**
      * @notice Issues a license in exchange for DIMO tokens.
+     * @param licenseAlias The license alias to be set.
      * @return tokenId The ID of the issued license.
      * @return clientId The ID of the client associated with the issued license.
      */
-    function issueInDimo(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
+    function issueInDimo(bytes32 licenseAlias) external returns (uint256 tokenId, address clientId) {
         return issueInDimo(msg.sender, licenseAlias);
     }
 
@@ -135,10 +136,11 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @notice Issues a new license to a specified address in exchange for DIMO tokens.
      *         Transfers spent $DIMO to the receiver address.
      * @param to The address to receive the license.
+     * @param licenseAlias The license alias to be set.
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDimo(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
+    function issueInDimo(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
         (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
 
         uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
@@ -151,20 +153,22 @@ contract DevLicenseDimo is DevLicenseMeta {
     /**
      * @notice Issues a new license in exchange for DIMO Credits (DC).
      * @dev This function is a wrapper over `issueInDc(address to)` for the sender.
+     * @param licenseAlias The license alias to be set.
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
+    function issueInDc(bytes32 licenseAlias) external returns (uint256 tokenId, address clientId) {
         return issueInDc(msg.sender, licenseAlias);
     }
 
     /**
      * @notice Issues a new license to a specified address in exchange for DIMO Credits.
      * @param to The address to receive the license.
+     * @param licenseAlias The license alias to be set.
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
+    function issueInDc(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
         uint256 dcTransferAmount = (_licenseCostInUsd1e18 / _dimoCredit.dimoCreditRate()) * 1 ether;
         _dimoCredit.burn(to, dcTransferAmount);
 
@@ -174,10 +178,11 @@ contract DevLicenseDimo is DevLicenseMeta {
     /**
      * @dev Internal function to handle the issuance of a new license.
      * @param to The address to receive the license.
+     * @param licenseAlias The license alias to be set.
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function _issue(address to, string calldata licenseAlias) private returns (uint256 tokenId, address clientId) {
+    function _issue(address to, bytes32 licenseAlias) private returns (uint256 tokenId, address clientId) {
         tokenId = ++_counter;
         clientId = _licenseAccountFactory.create(tokenId);
 
@@ -188,7 +193,7 @@ contract DevLicenseDimo is DevLicenseMeta {
         emit Issued(tokenId, to, clientId);
 
         /// Calling it here to emit LicenseAliasSet after Issued event
-        if (bytes(licenseAlias).length > 0) {
+        if (licenseAlias.length > 0) {
             _setLicenseAlias(tokenId, licenseAlias);
         }
 

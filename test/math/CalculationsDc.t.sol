@@ -15,7 +15,7 @@ import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLi
 
 //forge test --match-path ./test/CalculationsDc.t.sol -vv
 contract CalculationsDcTest is Test {
-    string constant LICENSE_ALIAS = "licenseAlias";
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     DimoCredit dimoCredit;
     IDimoToken dimoToken;

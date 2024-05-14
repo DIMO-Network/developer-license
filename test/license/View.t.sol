@@ -283,24 +283,24 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_setLicenseAlias() public {
-        string memory NEW_LICENSE_ALIAS = "new license alias";
+        bytes32 NEW_LICENSE_ALIAS = "new license alias";
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        string memory aliasBefore = license.getLicenseAlias(1);
+        bytes32 aliasBefore = license.getLicenseAlias(1);
         assertEq(aliasBefore, LICENSE_ALIAS);
 
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
-        string memory aliasAfter = license.getLicenseAlias(1);
+        bytes32 aliasAfter = license.getLicenseAlias(1);
         assertEq(aliasAfter, NEW_LICENSE_ALIAS);
     }
 
     function test_setLicenseAlias_revertNotTokenOwner() public {
-        string memory NEW_LICENSE_ALIAS = "new license alias";
+        bytes32 NEW_LICENSE_ALIAS = "new license alias";
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        string memory aliasBefore = license.getLicenseAlias(1);
+        bytes32 aliasBefore = license.getLicenseAlias(1);
         assertEq(aliasBefore, LICENSE_ALIAS);
 
         vm.startPrank(address(0x999));

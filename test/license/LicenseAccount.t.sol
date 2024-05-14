@@ -16,7 +16,7 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
-    string constant LICENSE_ALIAS = "licenseAlias";
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     IDimoToken dimoToken;
     DimoCredit dimoCredit;

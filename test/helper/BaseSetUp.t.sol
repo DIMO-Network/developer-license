@@ -14,7 +14,7 @@ import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvide
 import {DimoCredit} from "../../src/DimoCredit.sol";
 
 contract BaseSetUp is Test {
-    string constant LICENSE_ALIAS = "licenseAlias";
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     ERC20 public dimoToken;
     DevLicenseDimo public license;

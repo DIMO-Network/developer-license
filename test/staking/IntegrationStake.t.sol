@@ -18,7 +18,7 @@ import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {
-    string constant LICENSE_ALIAS = "licenseAlias";
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     NormalizedPriceProvider provider;
 

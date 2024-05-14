@@ -48,7 +48,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
-    mapping(uint256 => string) public _tokenIdToAlias;
+    mapping(uint256 => bytes32) public _tokenIdToAlias;
     mapping(address => uint256) public _clientIdToTokenId;
     /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
     mapping(uint256 => mapping(address => uint256)) public _signers;
@@ -62,7 +62,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event SignerDisabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
-    event LicenseAliasSet(uint256 indexed tokenId, string licenseAlias);
+    event LicenseAliasSet(uint256 indexed tokenId, bytes32 licenseAlias);
 
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdateReceiverAddress(address receiver_);
@@ -168,7 +168,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param tokenId The unique identifier for the license token.
      * @param licenseAlias The alias string to be set
      */
-    function setLicenseAlias(uint256 tokenId, string calldata licenseAlias) public onlyTokenOwner(tokenId) {
+    function setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) public onlyTokenOwner(tokenId) {
         _setLicenseAlias(tokenId, licenseAlias);
     }
 
@@ -201,7 +201,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param tokenId The unique identifier for the license token.
      * @param licenseAlias The alias string to be set
      */
-    function _setLicenseAlias(uint256 tokenId, string calldata licenseAlias) internal {
+    function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
         _tokenIdToAlias[tokenId] = licenseAlias;
         emit LicenseAliasSet(tokenId, licenseAlias);
     }
@@ -228,7 +228,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @dev It returns an empty string if no alias is associated with the token ID
      * @param tokenId The unique identifier for the license token.
      */
-    function getLicenseAlias(uint256 tokenId) public view returns (string memory licenseAlias) {
+    function getLicenseAlias(uint256 tokenId) public view returns (bytes32 licenseAlias) {
         licenseAlias = _tokenIdToAlias[tokenId];
     }
 
