@@ -282,7 +282,30 @@ contract ViewTest is BaseSetUp {
         vm.stopPrank();
     }
 
-    // TODO set alias
-    // TODO get alias
-    // TODO revert if not token owner for alias
+    function test_setLicenseAlias() public {
+        string memory NEW_LICENSE_ALIAS = "new license alias";
+
+        license.issueInDimo(LICENSE_ALIAS);
+
+        string memory aliasBefore = license.getLicenseAlias(1);
+        assertEq(aliasBefore, LICENSE_ALIAS);
+
+        license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
+        string memory aliasAfter = license.getLicenseAlias(1);
+        assertEq(aliasAfter, NEW_LICENSE_ALIAS);
+    }
+
+    function test_setLicenseAlias_revertNotTokenOwner() public {
+        string memory NEW_LICENSE_ALIAS = "new license alias";
+
+        license.issueInDimo(LICENSE_ALIAS);
+
+        string memory aliasBefore = license.getLicenseAlias(1);
+        assertEq(aliasBefore, LICENSE_ALIAS);
+
+        vm.startPrank(address(0x999));
+        vm.expectRevert("DevLicenseDimo: invalid msg.sender");
+        license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
+        vm.stopPrank();
+    }
 }

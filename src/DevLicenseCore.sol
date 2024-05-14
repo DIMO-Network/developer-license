@@ -162,7 +162,12 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _disableSigner(tokenId, signer);
     }
 
-    // TODO Documentation
+    /**
+     * @notice It sets an alias to a token ID
+     * @dev Only the token ID owner can call this function
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
     function setLicenseAlias(uint256 tokenId, string calldata licenseAlias) public onlyTokenOwner(tokenId) {
         _setLicenseAlias(tokenId, licenseAlias);
     }
@@ -191,7 +196,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         emit SignerDisabled(tokenId, signer);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Internal function to set an alias to a token ID
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
     function _setLicenseAlias(uint256 tokenId, string calldata licenseAlias) internal {
         _tokenIdToAlias[tokenId] = licenseAlias;
         emit LicenseAliasSet(tokenId, licenseAlias);
@@ -214,7 +223,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         return timestampCurrent - timestampInit <= _periodValidity;
     }
 
-    // TODO Documentation
+    /**
+     * @notice It returns the alias associated with a token ID
+     * @dev It returns an empty string if no alias is associated with the token ID
+     * @param tokenId The unique identifier for the license token.
+     */
     function getLicenseAlias(uint256 tokenId) public view returns (string memory licenseAlias) {
         licenseAlias = _tokenIdToAlias[tokenId];
     }
