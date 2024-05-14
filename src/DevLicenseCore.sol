@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
@@ -17,43 +16,42 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  * @notice This contract manages the creation, administration, and validation of developer licenses,
  *         integrating with DIMO's token and credit systems.
  */
-contract DevLicenseCore is IDevLicenseDimo, AccessControl {
-    error AliasAlreadyInUse(bytes32 licenseAlias);
-    /*//////////////////////////////////////////////////////////////
-                             Access Controls
-    //////////////////////////////////////////////////////////////*/
+contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseDimo {
+    /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
+    struct DevLicenseCoreStorage {
+        IDimoToken _dimoToken;
+        IDimoCredit _dimoCredit;
+        NormalizedPriceProvider _provider;
+        ILicenseAccountFactory _licenseAccountFactory;
+        /// @notice The period after which a signer is considered expired.
+        uint256 _periodValidity;
+        /// @notice Cost of a single license in USD with 18 decimals.
+        uint256 _licenseCostInUsd1e18;
+        /// @notice Counter to keep track of the issued licenses.
+        uint256 _counter;
+        /// @notice Address that receives proceeds from the sale of licenses.
+        address _receiver;
+        mapping(uint256 tokenId => address owner) _ownerOf;
+        mapping(uint256 tokenId => address clientId) _tokenIdToClientId;
+        mapping(uint256 tokenId => bytes32 licenseAlias) _tokenIdToAlias;
+        mapping(bytes32 licenseAlias => uint256 tokendId) _aliasToTokenId;
+        mapping(address clientId => uint256 tokenId) _clientIdToTokenId;
+        /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
+        mapping(uint256 tokenId => mapping(address signer => uint256 expiration)) _signers;
+    }
 
+    // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseCore")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant DEV_LICENSE_CORE_STORAGE_LOCATION =
+        0x0ce190eb010f30ee56c6788a4d8c91d6e96b7119e645c5c83b264dc03116d200;
     bytes32 public constant LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
 
-    /*//////////////////////////////////////////////////////////////
-                              Member Variables
-    //////////////////////////////////////////////////////////////*/
+    function _getDevLicenseCoreStorage() private pure returns (DevLicenseCoreStorage storage $) {
+        assembly {
+            $.slot := DEV_LICENSE_CORE_STORAGE_LOCATION
+        }
+    }
 
-    IDimoToken public _dimoToken;
-    IDimoCredit public _dimoCredit;
-    NormalizedPriceProvider public _provider;
-    ILicenseAccountFactory public _licenseAccountFactory;
-
-    /// @notice The period after which a signer is considered expired.
-    uint256 public _periodValidity;
-    /// @notice Cost of a single license in USD with 18 decimals.
-    uint256 public _licenseCostInUsd1e18;
-    /// @notice Counter to keep track of the issued licenses.
-    uint256 public _counter;
-    /// @notice Address that receives proceeds from the sale of licenses.
-    address public _receiver;
-
-    /*//////////////////////////////////////////////////////////////
-                              Mappings
-    //////////////////////////////////////////////////////////////*/
-
-    mapping(uint256 => address) public _ownerOf;
-    mapping(uint256 => address) public _tokenIdToClientId;
-    mapping(uint256 => bytes32) public _tokenIdToAlias;
-    mapping(bytes32 => uint256) public _aliasToTokenId;
-    mapping(address => uint256) public _clientIdToTokenId;
-    /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
-    mapping(uint256 => mapping(address => uint256)) public _signers;
+    error AliasAlreadyInUse(bytes32 licenseAlias);
 
     /*//////////////////////////////////////////////////////////////
                             Events
@@ -94,6 +92,45 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         _;
     }
 
+    // /**
+    //  * @notice Initializes a new instance of the DevLicenseCore contract.
+    //  * @dev Sets up the contract with the necessary addresses and parameters for operation,
+    //  *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
+    //  *      license cost and validity period.
+    //  * @param receiver_ The address where proceeds from the sale of licenses are sent.
+    //  * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
+    //  * @param provider_ Supplies current $DIMO token price to calculate license cost in USD.
+    //  * @param dimoTokenAddress_ The address of the $DIMO token contract.
+    //  * @param dimoCreditAddress_ The address of the DIMO credit contract, an alternative payment method for licenses.
+    //  * @param licenseCostInUsd1e18_ The cost of a single license expressed in USD with 18 decimal places.
+    //  */
+    // function __DevLicenseCore_init(
+    //     address receiver_,
+    //     address licenseAccountFactory_,
+    //     address provider_,
+    //     address dimoTokenAddress_,
+    //     address dimoCreditAddress_,
+    //     uint256 licenseCostInUsd1e18_
+    // ) internal onlyInitializing {
+    //     DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+    //     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+    //     $._periodValidity = 365 days;
+
+    //     $._receiver = receiver_;
+
+    //     $._dimoCredit = IDimoCredit(dimoCreditAddress_);
+    //     $._provider = NormalizedPriceProvider(provider_);
+
+    //     $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+    //     $._dimoToken = IDimoToken(dimoTokenAddress_);
+    //     $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+
+    //     emit UpdatePeriodValidity($._periodValidity);
+    //     emit UpdateLicenseCost(licenseCostInUsd1e18_);
+    // }
+
     /**
      * @notice Initializes a new instance of the DevLicenseCore contract.
      * @dev Sets up the contract with the necessary addresses and parameters for operation,
@@ -114,21 +151,23 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         address dimoCreditAddress_,
         uint256 licenseCostInUsd1e18_
     ) {
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        _periodValidity = 365 days;
+        $._periodValidity = 365 days;
 
-        _receiver = receiver_;
+        $._receiver = receiver_;
 
-        _dimoCredit = IDimoCredit(dimoCreditAddress_);
-        _provider = NormalizedPriceProvider(provider_);
+        $._dimoCredit = IDimoCredit(dimoCreditAddress_);
+        $._provider = NormalizedPriceProvider(provider_);
 
-        _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
-        _dimoToken = IDimoToken(dimoTokenAddress_);
-        _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+        $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+        $._dimoToken = IDimoToken(dimoTokenAddress_);
+        $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
 
-        emit UpdatePeriodValidity(_periodValidity);
-        emit UpdateLicenseCost(_licenseCostInUsd1e18);
+        emit UpdatePeriodValidity($._periodValidity);
+        emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -183,7 +222,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param signer The address to be enabled as a signer for the specified token ID.
      */
     function _enableSigner(uint256 tokenId, address signer) internal {
-        _signers[tokenId][signer] = block.timestamp;
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._signers[tokenId][signer] = block.timestamp;
         emit SignerEnabled(tokenId, signer);
     }
 
@@ -194,7 +235,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param signer The address to be enabled as a signer for the specified token ID.
      */
     function _disableSigner(uint256 tokenId, address signer) internal {
-        delete _signers[tokenId][signer];
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        delete $._signers[tokenId][signer];
         emit SignerDisabled(tokenId, signer);
     }
 
@@ -204,7 +247,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param licenseAlias The alias string to be set
      */
     function _safeSetLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
-        if (_aliasToTokenId[licenseAlias] != 0) {
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        if ($._aliasToTokenId[licenseAlias] != 0) {
             revert AliasAlreadyInUse(licenseAlias);
         }
         _setLicenseAlias(tokenId, licenseAlias);
@@ -216,13 +261,15 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param licenseAlias The alias string to be set
      */
     function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) private {
-        bytes32 currentLicenseAlias = _tokenIdToAlias[tokenId];
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        bytes32 currentLicenseAlias = $._tokenIdToAlias[tokenId];
         if (currentLicenseAlias.length > 0) {
-            delete _aliasToTokenId[currentLicenseAlias];
+            delete $._aliasToTokenId[currentLicenseAlias];
         }
 
-        _tokenIdToAlias[tokenId] = licenseAlias;
-        _aliasToTokenId[licenseAlias] = tokenId;
+        $._tokenIdToAlias[tokenId] = licenseAlias;
+        $._aliasToTokenId[licenseAlias] = tokenId;
         emit LicenseAliasSet(tokenId, licenseAlias);
     }
 
@@ -238,9 +285,11 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      *         validity has not expired; otherwise, returns false.
      */
     function isSigner(uint256 tokenId, address signer) public view returns (bool) {
-        uint256 timestampInit = _signers[tokenId][signer];
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        uint256 timestampInit = $._signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        return timestampCurrent - timestampInit <= _periodValidity;
+        return timestampCurrent - timestampInit <= $._periodValidity;
     }
 
     /**
@@ -249,7 +298,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param tokenId The unique identifier for the license token.
      */
     function getLicenseAlias(uint256 tokenId) public view returns (bytes32 licenseAlias) {
-        licenseAlias = _tokenIdToAlias[tokenId];
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        licenseAlias = $._tokenIdToAlias[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -262,8 +313,10 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param receiver_ The new receiver address.
      */
     function setReceiverAddress(address receiver_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _receiver = receiver_;
-        emit UpdateReceiverAddress(_receiver);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._receiver = receiver_;
+        emit UpdateReceiverAddress(receiver_);
     }
 
     /**
@@ -272,8 +325,10 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param licenseCostInUsd1e18_ The new license cost in USD (1e18 = 1 USD).
      */
     function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _licenseCostInUsd1e18 = licenseCostInUsd1e18_;
-        emit UpdateLicenseCost(_licenseCostInUsd1e18);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+        emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
     /**
@@ -282,8 +337,10 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param periodValidity_ The new validity period for the license in seconds.
      */
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _periodValidity = periodValidity_;
-        emit UpdatePeriodValidity(_periodValidity);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._periodValidity = periodValidity_;
+        emit UpdatePeriodValidity(periodValidity_);
     }
 
     /**
@@ -292,7 +349,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param providerAddress_ The address of the new price provider contract.
      */
     function setPriceProviderAddress(address providerAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _provider = NormalizedPriceProvider(providerAddress_);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._provider = NormalizedPriceProvider(providerAddress_);
         emit UpdatePriceProviderAddress(providerAddress_);
     }
 
@@ -302,7 +361,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param dimoCreditAddress_ The address of the DIMO Credit contract.
      */
     function setDimoCreditAddress(address dimoCreditAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _dimoCredit = IDimoCredit(dimoCreditAddress_);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._dimoCredit = IDimoCredit(dimoCreditAddress_);
         emit UpdateDimoCreditAddress(dimoCreditAddress_);
     }
 
@@ -312,7 +373,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param dimoTokenAddress_ The address of the DIMO Token contract.
      */
     function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _dimoToken = IDimoToken(dimoTokenAddress_);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._dimoToken = IDimoToken(dimoTokenAddress_);
         emit UpdateDimoTokenAddress(dimoTokenAddress_);
     }
 
@@ -322,7 +385,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @param licenseAccountFactory_ The address of the License Account Factory contract.
      */
     function setLicenseFactoryAddress(address licenseAccountFactory_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         emit UpdateLicenseAccountFactoryAddress(licenseAccountFactory_);
     }
 
@@ -382,7 +447,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @return totalSupply_ The total supply of tokens.
      */
     function totalSupply() external view returns (uint256 totalSupply_) {
-        totalSupply_ = _counter;
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        totalSupply_ = $._counter;
     }
 
     /**
@@ -392,7 +459,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @notice The token must exist (tokenId must have been minted).
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address owner) {
-        require((owner = _ownerOf[tokenId]) != address(0), INVALID_TOKEN_ID);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        require((owner = $._ownerOf[tokenId]) != address(0), INVALID_TOKEN_ID);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -418,7 +487,9 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @return bool True if the token exists (has an owner other than the zero address), false otherwise.
      */
     function _exists(uint256 tokenId) private view returns (bool) {
-        return _ownerOf[tokenId] != address(0);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        return $._ownerOf[tokenId] != address(0);
     }
 
     /*//////////////////////////////////////////////////////////////
