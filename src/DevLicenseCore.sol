@@ -92,44 +92,46 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         _;
     }
 
-    // /**
-    //  * @notice Initializes a new instance of the DevLicenseCore contract.
-    //  * @dev Sets up the contract with the necessary addresses and parameters for operation,
-    //  *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
-    //  *      license cost and validity period.
-    //  * @param receiver_ The address where proceeds from the sale of licenses are sent.
-    //  * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
-    //  * @param provider_ Supplies current $DIMO token price to calculate license cost in USD.
-    //  * @param dimoTokenAddress_ The address of the $DIMO token contract.
-    //  * @param dimoCreditAddress_ The address of the DIMO credit contract, an alternative payment method for licenses.
-    //  * @param licenseCostInUsd1e18_ The cost of a single license expressed in USD with 18 decimal places.
-    //  */
-    // function __DevLicenseCore_init(
-    //     address receiver_,
-    //     address licenseAccountFactory_,
-    //     address provider_,
-    //     address dimoTokenAddress_,
-    //     address dimoCreditAddress_,
-    //     uint256 licenseCostInUsd1e18_
-    // ) internal onlyInitializing {
-    //     DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+    /**
+     * @notice Initializes a new instance of the DevLicenseCore contract.
+     * @dev Sets up the contract with the necessary addresses and parameters for operation,
+     *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
+     *      license cost and validity period.
+     * @param receiver_ The address where proceeds from the sale of licenses are sent.
+     * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
+     * @param provider_ Supplies current $DIMO token price to calculate license cost in USD.
+     * @param dimoTokenAddress_ The address of the $DIMO token contract.
+     * @param dimoCreditAddress_ The address of the DIMO credit contract, an alternative payment method for licenses.
+     * @param licenseCostInUsd1e18_ The cost of a single license expressed in USD with 18 decimal places.
+     */
+    function __DevLicenseCore_init(
+        address receiver_,
+        address licenseAccountFactory_,
+        address provider_,
+        address dimoTokenAddress_,
+        address dimoCreditAddress_,
+        uint256 licenseCostInUsd1e18_
+    ) internal onlyInitializing {
+        __AccessControl_init();
 
-    //     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
-    //     $._periodValidity = 365 days;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-    //     $._receiver = receiver_;
+        $._periodValidity = 365 days;
 
-    //     $._dimoCredit = IDimoCredit(dimoCreditAddress_);
-    //     $._provider = NormalizedPriceProvider(provider_);
+        $._receiver = receiver_;
 
-    //     $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
-    //     $._dimoToken = IDimoToken(dimoTokenAddress_);
-    //     $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+        $._dimoCredit = IDimoCredit(dimoCreditAddress_);
+        $._provider = NormalizedPriceProvider(provider_);
 
-    //     emit UpdatePeriodValidity($._periodValidity);
-    //     emit UpdateLicenseCost(licenseCostInUsd1e18_);
-    // }
+        $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+        $._dimoToken = IDimoToken(dimoTokenAddress_);
+        $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+
+        emit UpdatePeriodValidity($._periodValidity);
+        emit UpdateLicenseCost(licenseCostInUsd1e18_);
+    }
 
     /**
      * @notice Initializes a new instance of the DevLicenseCore contract.
@@ -541,6 +543,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // TODO Remember to organize supportsInterface better
     /**
      * @dev See {IERC165-supportsInterface}.
      * @notice Checks if the contract implements an interface.
@@ -550,9 +553,10 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @return bool True if the contract implements `interfaceId` and `interfaceId` is not 0xffffffff,
      *         false otherwise.
      */
-    function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
         return interfaceId == 0x80ac58cd // ERC165 Interface ID for ERC721
             || interfaceId == 0xb45a3c0e // ERC165 Interface ID for ERC5192
-            || interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
+            || interfaceId == 0x5b5e139f // ERC165 Interface ID for ERC721Metadata
+            || super.supportsInterface(interfaceId);
     }
 }

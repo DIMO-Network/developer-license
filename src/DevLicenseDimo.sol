@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
 import {DevLicenseMeta} from "./DevLicenseMeta.sol";
@@ -28,7 +30,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
  */
-contract DevLicenseDimo is DevLicenseMeta {
+contract DevLicenseDimo is Initializable, DevLicenseMeta {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
     struct DevLicenseDimoStorage {
         /// @notice The name of the token (license).
@@ -58,6 +60,27 @@ contract DevLicenseDimo is DevLicenseMeta {
     event RedirectUriDisabled(uint256 indexed tokenId, string uri);
     /// @notice Emitted when a license is issued to an owner and associated with a clientId.
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
+
+    /**
+     * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
+     */
+    function __DevLicenseDimo_init(
+        address receiver_,
+        address licenseAccountFactory_,
+        address provider_,
+        address dimoTokenAddress_,
+        address dimoCreditAddress_,
+        uint256 licenseCostInUsd_
+    ) internal initializer {
+        __DevLicenseMeta_init(
+            receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
+        );
+
+        DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
+
+        $.symbol = "DLX";
+        $.name = "DIMO Developer License";
+    }
 
     /**
      * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.

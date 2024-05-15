@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+
 import {DevLicenseCore} from "./DevLicenseCore.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title DevLicenseStake
@@ -11,7 +13,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  * Utilizes ReentrancyGuard from OpenZeppelin to prevent reentrancy attacks.
  * For more information on DIMO tokenomics: https://dimo.zone/news/on-dimo-tokenomics
  */
-contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
+contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicenseCore {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseStake
     struct DevLicenseStakeStorage {
         /// @notice Total amount of DIMO tokens staked in the contract.
@@ -54,6 +56,23 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
     /**
      * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
      */
+    function __DevLicenseStake_init(
+        address receiver_,
+        address licenseAccountFactory_,
+        address provider_,
+        address dimoTokenAddress_,
+        address dimoCreditAddress_,
+        uint256 licenseCostInUsd_
+    ) internal onlyInitializing {
+        __ReentrancyGuard_init();
+        __DevLicenseCore_init(
+            receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
+        );
+    }
+
+    /**
+     * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
+     */
     constructor(
         address receiver_,
         address licenseAccountFactory_,
@@ -70,7 +89,7 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
             dimoCreditAddress_,
             licenseCostInUsd_
         )
-        ReentrancyGuard()
+    // ReentrancyGuard()
     {}
 
     // TODO Documentation

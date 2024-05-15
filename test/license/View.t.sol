@@ -39,13 +39,13 @@ contract ViewTest is BaseSetUp {
         license.ownerOf(type(uint256).max);
     }
 
-    function test_name() public {
+    function test_name() public view {
         string memory name = license.name();
         //console2.log("name: %s", name);
         assertEq(name, "DIMO Developer License");
     }
 
-    function test_symbol() public {
+    function test_symbol() public view {
         string memory symbol = license.symbol();
         //console2.log("symbol: %s", symbol);
         assertEq(symbol, "DLX");
@@ -216,7 +216,7 @@ contract ViewTest is BaseSetUp {
         vm.stopPrank();
     }
 
-    function test_supportsInterface() public {
+    function test_supportsInterface() public view {
         bytes4 interface721 = type(IERC721).interfaceId;
         bool supports721 = license.supportsInterface(interface721);
         assertEq(supports721, true);
