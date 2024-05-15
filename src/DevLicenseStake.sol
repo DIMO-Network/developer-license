@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
@@ -70,27 +70,27 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         );
     }
 
-    /**
-     * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
-     */
-    constructor(
-        address receiver_,
-        address licenseAccountFactory_,
-        address provider_,
-        address dimoTokenAddress_,
-        address dimoCreditAddress_,
-        uint256 licenseCostInUsd_
-    )
-        DevLicenseCore(
-            receiver_,
-            licenseAccountFactory_,
-            provider_,
-            dimoTokenAddress_,
-            dimoCreditAddress_,
-            licenseCostInUsd_
-        )
-    // ReentrancyGuard()
-    {}
+    // /**
+    //  * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
+    //  */
+    // constructor(
+    //     address receiver_,
+    //     address licenseAccountFactory_,
+    //     address provider_,
+    //     address dimoTokenAddress_,
+    //     address dimoCreditAddress_,
+    //     uint256 licenseCostInUsd_
+    // )
+    //     DevLicenseCore(
+    //         receiver_,
+    //         licenseAccountFactory_,
+    //         provider_,
+    //         dimoTokenAddress_,
+    //         dimoCreditAddress_,
+    //         licenseCostInUsd_
+    //     )
+    // // ReentrancyGuard()
+    // {}
 
     // TODO Documentation
     function stakeTotal() public view returns (uint256) {

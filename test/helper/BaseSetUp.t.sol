@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
@@ -12,6 +11,9 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
+import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
 contract BaseSetUp is Test {
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
@@ -25,6 +27,12 @@ contract BaseSetUp is Test {
     address _receiver;
     address _admin;
     address _licenseHolder;
+
+    // function up() private {
+    //     address proxy = Upgrades.deployUUPSProxy(
+    //         "DevLicenseDimo.sol", abi.encodeCall(MyContract.initialize, ("arguments for the initialize function"))
+    //     );
+    // }
 
     function _setUp() public {
         _receiver = address(0x123);
@@ -58,14 +66,31 @@ contract BaseSetUp is Test {
 
         uint256 licenseCostInUsd1e18 = 100 ether;
 
-        license = new DevLicenseDimo(
-            address(0x888),
-            address(laf),
-            address(provider),
-            address(dimoToken),
-            address(dimoCredit),
-            licenseCostInUsd1e18
+        // license = new DevLicenseDimo(
+        //     address(0x888),
+        //     address(laf),
+        //     address(provider),
+        //     address(dimoToken),
+        //     address(dimoCredit),
+        //     licenseCostInUsd1e18
+        // );
+
+        address proxy = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (
+                    address(0x888),
+                    address(laf),
+                    address(provider),
+                    address(dimoToken),
+                    address(dimoCredit),
+                    licenseCostInUsd1e18
+                )
+            )
         );
+
+        license = DevLicenseDimo(proxy);
 
         laf.setLicense(address(license));
         deal(address(dimoToken), address(this), 1_000_000 ether);

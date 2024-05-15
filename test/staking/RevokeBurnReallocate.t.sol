@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import {IERC5192} from "../../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
@@ -12,6 +12,7 @@ import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvide
 import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 
+import {IERC5192} from "../../src/interface/IERC5192.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
@@ -55,8 +56,20 @@ contract RevokeBurnReallocateTest is Test {
 
         vm.startPrank(_admin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
-        license = new DevLicenseDimo(
-            address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 100
+        // license = new DevLicenseDimo(
+        //     address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 100
+        // );
+
+        // license = new DevLicenseDimo(
+        //     _receiver, address(factory), address(provider), address(dimoToken), address(dimoCredit), licenseCostInUsd
+        // );
+
+        address proxy = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 100)
+            )
         );
         vm.stopPrank();
 

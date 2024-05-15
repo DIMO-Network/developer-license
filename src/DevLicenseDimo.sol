@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
@@ -30,7 +31,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
  */
-contract DevLicenseDimo is Initializable, DevLicenseMeta {
+contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
     struct DevLicenseDimoStorage {
         /// @notice The name of the token (license).
@@ -43,6 +44,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta {
 
     /// @notice Role identifier for addresses authorized to revoke licenses.
     bytes32 public constant REVOKER_ROLE = keccak256("REVOKER_ROLE");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseDimo")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant DEV_LICENSE_DIMO_STORAGE_LOCATION =
@@ -64,14 +66,15 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta {
     /**
      * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
      */
-    function __DevLicenseDimo_init(
+    function initialize(
         address receiver_,
         address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_,
         address dimoCreditAddress_,
         uint256 licenseCostInUsd_
-    ) internal initializer {
+    ) external initializer {
+        __UUPSUpgradeable_init();
         __DevLicenseMeta_init(
             receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
         );
@@ -82,31 +85,31 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta {
         $.name = "DIMO Developer License";
     }
 
-    /**
-     * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
-     */
-    constructor(
-        address receiver_,
-        address licenseAccountFactory_,
-        address provider_,
-        address dimoTokenAddress_,
-        address dimoCreditAddress_,
-        uint256 licenseCostInUsd_
-    )
-        DevLicenseMeta(
-            receiver_,
-            licenseAccountFactory_,
-            provider_,
-            dimoTokenAddress_,
-            dimoCreditAddress_,
-            licenseCostInUsd_
-        )
-    {
-        DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
+    // /**
+    //  * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
+    //  */
+    // constructor(
+    //     address receiver_,
+    //     address licenseAccountFactory_,
+    //     address provider_,
+    //     address dimoTokenAddress_,
+    //     address dimoCreditAddress_,
+    //     uint256 licenseCostInUsd_
+    // )
+    //     DevLicenseMeta(
+    //         receiver_,
+    //         licenseAccountFactory_,
+    //         provider_,
+    //         dimoTokenAddress_,
+    //         dimoCreditAddress_,
+    //         licenseCostInUsd_
+    //     )
+    // {
+    //     DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
 
-        $.symbol = "DLX";
-        $.name = "DIMO Developer License";
-    }
+    //     $.symbol = "DLX";
+    //     $.name = "DIMO Developer License";
+    // }
 
     // TODO Documentation
     function name() public view returns (string memory) {
@@ -262,4 +265,11 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta {
 
         emit Transfer(tokenOwner, address(0), tokenId);
     }
+
+    /**
+     * @notice Internal function to authorize contract upgrade
+     * @dev Caller must have the upgrader role
+     * @param newImplementation New contract implementation address
+     */
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyRole(UPGRADER_ROLE) {}
 }

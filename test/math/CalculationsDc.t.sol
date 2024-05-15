@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
@@ -47,14 +48,31 @@ contract CalculationsDcTest is Test {
         dimoCredit = new DimoCredit(_receiver, address(provider));
 
         licenseCostInUsd = 0;
-        license = new DevLicenseDimo(
-            address(0x888),
-            address(factory),
-            address(provider),
-            address(dimoToken),
-            address(dimoCredit),
-            licenseCostInUsd
+        // devLicense = new DevLicenseDimo(
+        //     address(0x888),
+        //     address(factory),
+        //     address(provider),
+        //     address(dimoToken),
+        //     address(dimoCredit),
+        //     licenseCostInUsd
+        // );
+
+        address proxy = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (
+                    address(0x888),
+                    address(factory),
+                    address(provider),
+                    address(dimoToken),
+                    address(dimoCredit),
+                    licenseCostInUsd
+                )
+            )
         );
+
+        license = DevLicenseDimo(proxy);
 
         factory.setLicense(address(license));
     }

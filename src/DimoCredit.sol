@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {IDimoToken} from "./interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";

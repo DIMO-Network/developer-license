@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {TestOracleSource} from "../helper/TestOracleSource.sol";
+import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
@@ -43,14 +46,31 @@ contract LicenseAccountTest is Test {
 
         uint256 licenseCostInUsd1e18 = 100 ether;
 
-        devLicense = new DevLicenseDimo(
-            address(0x888),
-            address(factory),
-            address(provider),
-            address(dimoToken),
-            address(dimoCredit),
-            licenseCostInUsd1e18
+        // devLicense = new DevLicenseDimo(
+        //     address(0x888),
+        //     address(factory),
+        //     address(provider),
+        //     address(dimoToken),
+        //     address(dimoCredit),
+        //     licenseCostInUsd1e18
+        // );
+
+        address proxy = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (
+                    address(0x888),
+                    address(factory),
+                    address(provider),
+                    address(dimoToken),
+                    address(dimoCredit),
+                    licenseCostInUsd1e18
+                )
+            )
         );
+
+        devLicense = DevLicenseDimo(proxy);
 
         factory.setLicense(address(devLicense));
     }

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {ForkProvider} from "../helper/ForkProvider.sol";
-import {TestOracleSource} from "../helper/TestOracleSource.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
+
+import {ForkProvider} from "../helper/ForkProvider.sol";
+import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
@@ -46,8 +48,16 @@ contract IntegrationStakeTest is Test, ForkProvider {
         _dimoAdmin = address(0x666);
         vm.startPrank(_dimoAdmin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
-        license = new DevLicenseDimo(
-            address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether
+        // license = new DevLicenseDimo(
+        //     address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether
+        // );
+
+        address proxy = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether)
+            )
         );
         vm.stopPrank();
 

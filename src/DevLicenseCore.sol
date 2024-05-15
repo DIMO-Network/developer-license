@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -133,44 +133,44 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
-    /**
-     * @notice Initializes a new instance of the DevLicenseCore contract.
-     * @dev Sets up the contract with the necessary addresses and parameters for operation,
-     *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
-     *      license cost and validity period.
-     * @param receiver_ The address where proceeds from the sale of licenses are sent.
-     * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
-     * @param provider_ Supplies current $DIMO token price to calculate license cost in USD.
-     * @param dimoTokenAddress_ The address of the $DIMO token contract.
-     * @param dimoCreditAddress_ The address of the DIMO credit contract, an alternative payment method for licenses.
-     * @param licenseCostInUsd1e18_ The cost of a single license expressed in USD with 18 decimal places.
-     */
-    constructor(
-        address receiver_,
-        address licenseAccountFactory_,
-        address provider_,
-        address dimoTokenAddress_,
-        address dimoCreditAddress_,
-        uint256 licenseCostInUsd1e18_
-    ) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+    // /**
+    //  * @notice Initializes a new instance of the DevLicenseCore contract.
+    //  * @dev Sets up the contract with the necessary addresses and parameters for operation,
+    //  *      including setting up roles, linking to $DIMO token and credit contracts, and initializing
+    //  *      license cost and validity period.
+    //  * @param receiver_ The address where proceeds from the sale of licenses are sent.
+    //  * @param licenseAccountFactory_ The address of the contract responsible for creating new license accounts.
+    //  * @param provider_ Supplies current $DIMO token price to calculate license cost in USD.
+    //  * @param dimoTokenAddress_ The address of the $DIMO token contract.
+    //  * @param dimoCreditAddress_ The address of the DIMO credit contract, an alternative payment method for licenses.
+    //  * @param licenseCostInUsd1e18_ The cost of a single license expressed in USD with 18 decimal places.
+    //  */
+    // constructor(
+    //     address receiver_,
+    //     address licenseAccountFactory_,
+    //     address provider_,
+    //     address dimoTokenAddress_,
+    //     address dimoCreditAddress_,
+    //     uint256 licenseCostInUsd1e18_
+    // ) {
+    //     DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    //     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        $._periodValidity = 365 days;
+    //     $._periodValidity = 365 days;
 
-        $._receiver = receiver_;
+    //     $._receiver = receiver_;
 
-        $._dimoCredit = IDimoCredit(dimoCreditAddress_);
-        $._provider = NormalizedPriceProvider(provider_);
+    //     $._dimoCredit = IDimoCredit(dimoCreditAddress_);
+    //     $._provider = NormalizedPriceProvider(provider_);
 
-        $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
-        $._dimoToken = IDimoToken(dimoTokenAddress_);
-        $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+    //     $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+    //     $._dimoToken = IDimoToken(dimoTokenAddress_);
+    //     $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
 
-        emit UpdatePeriodValidity($._periodValidity);
-        emit UpdateLicenseCost(licenseCostInUsd1e18_);
-    }
+    //     emit UpdatePeriodValidity($._periodValidity);
+    //     emit UpdateLicenseCost(licenseCostInUsd1e18_);
+    // }
 
     // TODO Documentation
     function dimoToken() public view returns (address) {
