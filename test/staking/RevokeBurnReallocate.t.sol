@@ -19,7 +19,7 @@ import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-//forge test --match-path ./test/RevokeBurnReallocate.t.sol -vv
+//forge test --match-path ./test/staking/RevokeBurnReallocate.t.sol -vv
 contract RevokeBurnReallocateTest is Test {
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
@@ -56,13 +56,6 @@ contract RevokeBurnReallocateTest is Test {
 
         vm.startPrank(_admin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
-        // license = new DevLicenseDimo(
-        //     address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 100
-        // );
-
-        // license = new DevLicenseDimo(
-        //     _receiver, address(factory), address(provider), address(dimoToken), address(dimoCredit), licenseCostInUsd
-        // );
 
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
@@ -71,6 +64,7 @@ contract RevokeBurnReallocateTest is Test {
                 (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 100)
             )
         );
+        license = DevLicenseDimo(proxy);
         vm.stopPrank();
 
         laf.setLicense(address(license));

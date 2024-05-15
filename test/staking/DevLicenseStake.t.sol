@@ -9,8 +9,8 @@ interface IGrantRole {
     function grantRole(bytes32 role, address account) external;
 }
 
-//forge test --match-path ./test/DevLicenseLock.t.sol -vv
-contract DevLicenseDimoTest is BaseSetUp {
+//forge test --match-path ./test/staking/DevLicenseStake.t.sol -vv
+contract DevLicenseStakeTest is BaseSetUp {
     uint256 tokenId;
     address clientId;
 

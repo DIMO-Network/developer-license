@@ -28,12 +28,6 @@ contract BaseSetUp is Test {
     address _admin;
     address _licenseHolder;
 
-    // function up() private {
-    //     address proxy = Upgrades.deployUUPSProxy(
-    //         "DevLicenseDimo.sol", abi.encodeCall(MyContract.initialize, ("arguments for the initialize function"))
-    //     );
-    // }
-
     function _setUp() public {
         _receiver = address(0x123);
         _admin = address(0x1);
@@ -65,15 +59,6 @@ contract BaseSetUp is Test {
         dimoCredit = new DimoCredit(address(0x123), address(provider));
 
         uint256 licenseCostInUsd1e18 = 100 ether;
-
-        // license = new DevLicenseDimo(
-        //     address(0x888),
-        //     address(laf),
-        //     address(provider),
-        //     address(dimoToken),
-        //     address(dimoCredit),
-        //     licenseCostInUsd1e18
-        // );
 
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",

@@ -48,9 +48,6 @@ contract IntegrationStakeTest is Test, ForkProvider {
         _dimoAdmin = address(0x666);
         vm.startPrank(_dimoAdmin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
-        // license = new DevLicenseDimo(
-        //     address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether
-        // );
 
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
@@ -59,6 +56,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
                 (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether)
             )
         );
+        license = DevLicenseDimo(proxy);
         vm.stopPrank();
 
         laf.setLicense(address(license));

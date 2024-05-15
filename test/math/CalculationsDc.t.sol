@@ -48,14 +48,6 @@ contract CalculationsDcTest is Test {
         dimoCredit = new DimoCredit(_receiver, address(provider));
 
         licenseCostInUsd = 0;
-        // devLicense = new DevLicenseDimo(
-        //     address(0x888),
-        //     address(factory),
-        //     address(provider),
-        //     address(dimoToken),
-        //     address(dimoCredit),
-        //     licenseCostInUsd
-        // );
 
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
