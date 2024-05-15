@@ -45,7 +45,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         0x0ce190eb010f30ee56c6788a4d8c91d6e96b7119e645c5c83b264dc03116d200;
     bytes32 public constant LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
 
-    function _getDevLicenseCoreStorage() private pure returns (DevLicenseCoreStorage storage $) {
+    function _getDevLicenseCoreStorage() internal pure returns (DevLicenseCoreStorage storage $) {
         assembly {
             $.slot := DEV_LICENSE_CORE_STORAGE_LOCATION
         }
@@ -170,6 +170,71 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
+    // TODO Documentation
+    function dimoToken() public view returns (address) {
+        return address(_getDevLicenseCoreStorage()._dimoToken);
+    }
+
+    // TODO Documentation
+    function dimoCredit() public view returns (address) {
+        return address(_getDevLicenseCoreStorage()._dimoCredit);
+    }
+
+    // TODO Documentation
+    function provider() public view returns (address) {
+        return address(_getDevLicenseCoreStorage()._provider);
+    }
+
+    // TODO Documentation
+    function licenseAccountFactory() public view returns (address) {
+        return address(_getDevLicenseCoreStorage()._licenseAccountFactory);
+    }
+
+    // TODO Documentation
+    function periodValidity() public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._periodValidity;
+    }
+
+    // TODO Documentation
+    function licenseCostInUsd1e18() public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._licenseCostInUsd1e18;
+    }
+
+    // TODO Documentation
+    function counter() public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._counter;
+    }
+
+    // TODO Documentation
+    function receiver() public view returns (address) {
+        return _getDevLicenseCoreStorage()._receiver;
+    }
+
+    // TODO Documentation
+    function tokenIdToClientId(uint256 tokenId) public view returns (address) {
+        return _getDevLicenseCoreStorage()._tokenIdToClientId[tokenId];
+    }
+
+    // TODO Documentation
+    function tokenIdToAlias(uint256 tokenId) public view returns (bytes32) {
+        return _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
+    }
+
+    // TODO Documentation
+    function aliasToTokenId(bytes32 licenseAlias) public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
+    }
+
+    // TODO Documentation
+    function clientIdToTokenId(address clientId) public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._clientIdToTokenId[clientId];
+    }
+
+    // TODO Documentation
+    function signers(uint256 tokenId, address signer) public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._signers[tokenId][signer];
+    }
+
     /*//////////////////////////////////////////////////////////////
                        Signer a.k.a. API Key
     //////////////////////////////////////////////////////////////*/
@@ -222,9 +287,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param signer The address to be enabled as a signer for the specified token ID.
      */
     function _enableSigner(uint256 tokenId, address signer) internal {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._signers[tokenId][signer] = block.timestamp;
+        _getDevLicenseCoreStorage()._signers[tokenId][signer] = block.timestamp;
         emit SignerEnabled(tokenId, signer);
     }
 
@@ -298,9 +361,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param tokenId The unique identifier for the license token.
      */
     function getLicenseAlias(uint256 tokenId) public view returns (bytes32 licenseAlias) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        licenseAlias = $._tokenIdToAlias[tokenId];
+        licenseAlias = _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -313,9 +374,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param receiver_ The new receiver address.
      */
     function setReceiverAddress(address receiver_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._receiver = receiver_;
+        _getDevLicenseCoreStorage()._receiver = receiver_;
         emit UpdateReceiverAddress(receiver_);
     }
 
@@ -325,9 +384,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param licenseCostInUsd1e18_ The new license cost in USD (1e18 = 1 USD).
      */
     function setLicenseCost(uint256 licenseCostInUsd1e18_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
+        _getDevLicenseCoreStorage()._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
         emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
@@ -337,9 +394,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param periodValidity_ The new validity period for the license in seconds.
      */
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._periodValidity = periodValidity_;
+        _getDevLicenseCoreStorage()._periodValidity = periodValidity_;
         emit UpdatePeriodValidity(periodValidity_);
     }
 
@@ -349,9 +404,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param providerAddress_ The address of the new price provider contract.
      */
     function setPriceProviderAddress(address providerAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._provider = NormalizedPriceProvider(providerAddress_);
+        _getDevLicenseCoreStorage()._provider = NormalizedPriceProvider(providerAddress_);
         emit UpdatePriceProviderAddress(providerAddress_);
     }
 
@@ -361,9 +414,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param dimoCreditAddress_ The address of the DIMO Credit contract.
      */
     function setDimoCreditAddress(address dimoCreditAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._dimoCredit = IDimoCredit(dimoCreditAddress_);
+        _getDevLicenseCoreStorage()._dimoCredit = IDimoCredit(dimoCreditAddress_);
         emit UpdateDimoCreditAddress(dimoCreditAddress_);
     }
 
@@ -373,9 +424,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param dimoTokenAddress_ The address of the DIMO Token contract.
      */
     function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._dimoToken = IDimoToken(dimoTokenAddress_);
+        _getDevLicenseCoreStorage()._dimoToken = IDimoToken(dimoTokenAddress_);
         emit UpdateDimoTokenAddress(dimoTokenAddress_);
     }
 
@@ -385,9 +434,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param licenseAccountFactory_ The address of the License Account Factory contract.
      */
     function setLicenseFactoryAddress(address licenseAccountFactory_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        $._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
+        _getDevLicenseCoreStorage()._licenseAccountFactory = ILicenseAccountFactory(licenseAccountFactory_);
         emit UpdateLicenseAccountFactoryAddress(licenseAccountFactory_);
     }
 
@@ -447,9 +494,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @return totalSupply_ The total supply of tokens.
      */
     function totalSupply() external view returns (uint256 totalSupply_) {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
-
-        totalSupply_ = $._counter;
+        totalSupply_ = _getDevLicenseCoreStorage()._counter;
     }
 
     /**

@@ -12,21 +12,25 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
  * For more information on DIMO tokenomics: https://dimo.zone/news/on-dimo-tokenomics
  */
 contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
-    /*//////////////////////////////////////////////////////////////
-                              Member Variable
-    //////////////////////////////////////////////////////////////*/
+    /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseStake
+    struct DevLicenseStakeStorage {
+        /// @notice Total amount of DIMO tokens staked in the contract.
+        uint256 _stakeTotal;
+        /// @notice Maps a tokenId to its frozen status, where true indicates it is frozen.
+        mapping(uint256 tokenId => bool isFrozen) _frozen; // TODO replace by bitmap?
+        /// @notice Maps a tokenId to the amount of DIMO tokens staked against it.
+        mapping(uint256 tokenId => uint256 stakedAmount) _stakeLicense;
+    }
 
-    /// @notice Total amount of DIMO tokens staked in the contract.
-    uint256 public _stakeTotal;
+    // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseStake")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant DEV_LICENSE_STAKE_STORAGE_LOCATION =
+        0xf91a98a77ebfabfcb610b9a8f1a215e13c632a97e2ccece105b8458af9f76b00;
 
-    /*//////////////////////////////////////////////////////////////
-                              Mappings
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Maps a tokenId to its frozen status, where true indicates it is frozen.
-    mapping(uint256 => bool) public _frozen;
-    /// @notice Maps a tokenId to the amount of DIMO tokens staked against it.
-    mapping(uint256 => uint256) public _stakeLicense;
+    function _getDevLicenseStakeStorage() internal pure returns (DevLicenseStakeStorage storage $) {
+        assembly {
+            $.slot := DEV_LICENSE_STAKE_STORAGE_LOCATION
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                             Events
@@ -69,6 +73,21 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
         ReentrancyGuard()
     {}
 
+    // TODO Documentation
+    function stakeTotal() public view returns (uint256) {
+        return _getDevLicenseStakeStorage()._stakeTotal;
+    }
+
+    // TODO Documentation
+    function frozen(uint256 tokenId) public view returns (bool) {
+        return _getDevLicenseStakeStorage()._frozen[tokenId];
+    }
+
+    // TODO Documentation
+    function stakeLicense(uint256 tokenId) public view returns (uint256) {
+        return _getDevLicenseStakeStorage()._stakeLicense[tokenId];
+    }
+
     /*//////////////////////////////////////////////////////////////
                          Operative Functions
     //////////////////////////////////////////////////////////////*/
@@ -82,10 +101,13 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
     function lock(uint256 tokenId, uint256 amount) external {
         require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
 
-        _dimoToken.transferFrom(msg.sender, address(this), amount);
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
+        DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
 
-        _stakeLicense[tokenId] += amount;
-        _stakeTotal += amount;
+        dlcs._dimoToken.transferFrom(msg.sender, address(this), amount);
+
+        $._stakeLicense[tokenId] += amount;
+        $._stakeTotal += amount;
 
         emit StakeDeposit(tokenId, msg.sender, amount);
     }
@@ -97,13 +119,15 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @param amount The amount of DIMO tokens to withdraw.
      */
     function withdraw(uint256 tokenId, uint256 amount) public nonReentrant {
+        DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
+
         require(amount > 0, INVALID_PARAM);
         require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
-        require(!_frozen[tokenId], "DevLicenseDimo: funds inaccessible");
-        require(_stakeLicense[tokenId] >= amount, INVALID_PARAM);
+        require(!$._frozen[tokenId], "DevLicenseDimo: funds inaccessible");
+        require($._stakeLicense[tokenId] >= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
-        _dimoToken.transferFrom(address(this), msg.sender, amount);
+        _getDevLicenseCoreStorage()._dimoToken.transferFrom(address(this), msg.sender, amount);
 
         emit StakeWithdraw(tokenId, msg.sender, amount);
     }
@@ -117,7 +141,7 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @return totalStaked_ The total staked tokens.
      */
     function totalStaked() public view returns (uint256 totalStaked_) {
-        totalStaked_ = _stakeTotal;
+        totalStaked_ = _getDevLicenseStakeStorage()._stakeTotal;
     }
 
     /**
@@ -126,7 +150,7 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @return licenseStaked_ The amount of tokens staked against the license.
      */
     function licenseStaked(uint256 tokenId) public view returns (uint256 licenseStaked_) {
-        licenseStaked_ = _stakeLicense[tokenId];
+        licenseStaked_ = _getDevLicenseStakeStorage()._stakeLicense[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -139,8 +163,10 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @param amount The amount of DIMO tokens to withdraw.
      */
     function _transferOut(uint256 tokenId, uint256 amount) private {
-        _stakeLicense[tokenId] -= amount;
-        _stakeTotal -= amount;
+        DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
+
+        $._stakeLicense[tokenId] -= amount;
+        $._stakeTotal -= amount;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -150,11 +176,13 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
     /**
      * @notice Freezes or unfreezes the assets staked against a license in case of a violation.
      * @param tokenId The ID of the license whose assets are to be frozen or unfrozen.
-     * @param frozen The new frozen status of the license's assets.
+     * @param frozen_ The new frozen status of the license's assets.
      */
-    function adminFreeze(uint256 tokenId, bool frozen) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _frozen[tokenId] = frozen;
-        emit AssetFreezeUpdate(tokenId, _stakeLicense[tokenId], frozen);
+    function adminFreeze(uint256 tokenId, bool frozen_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
+
+        $._frozen[tokenId] = frozen_;
+        emit AssetFreezeUpdate(tokenId, $._stakeLicense[tokenId], frozen_);
     }
 
     /**
@@ -163,11 +191,11 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @param amount The amount of staked assets to forfeit.
      */
     function adminBurnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_stakeLicense[tokenId] >= amount, INVALID_PARAM);
+        require(_getDevLicenseStakeStorage()._stakeLicense[tokenId] >= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
 
-        _dimoToken.burn(address(this), amount);
+        _getDevLicenseCoreStorage()._dimoToken.burn(address(this), amount);
         emit AssetForfeit(tokenId, amount);
     }
 
@@ -178,11 +206,11 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @param to The address to which the assets are reallocated.
      */
     function adminReallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_stakeLicense[tokenId] <= amount, INVALID_PARAM);
+        require(_getDevLicenseStakeStorage()._stakeLicense[tokenId] <= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
 
-        _dimoToken.transfer(to, amount);
+        _getDevLicenseCoreStorage()._dimoToken.transfer(to, amount);
         emit AssetForfeit(tokenId, amount);
     }
 
@@ -192,8 +220,11 @@ contract DevLicenseStake is DevLicenseCore, ReentrancyGuard {
      * @param to The address to which the withdrawable DIMO tokens are sent.
      */
     function adminWithdraw(address to) external onlyRole(LICENSE_ADMIN_ROLE) {
-        uint256 balaceOf = _dimoToken.balanceOf(address(this));
-        uint256 amount = balaceOf - _stakeTotal;
-        _dimoToken.transfer(to, amount);
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
+        DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
+
+        uint256 balaceOf = dlcs._dimoToken.balanceOf(address(this));
+        uint256 amount = balaceOf - $._stakeTotal;
+        dlcs._dimoToken.transfer(to, amount);
     }
 }

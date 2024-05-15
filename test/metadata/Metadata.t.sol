@@ -31,10 +31,10 @@ contract MetadataTest is BaseSetUp {
                             '{"name":"',
                             string(abi.encodePacked("DIMO Developer License #", Strings.toString(tokenId))),
                             '", "description":"',
-                            license._descriptionToken(),
+                            license.descriptionToken(),
                             '", "image": "',
                             "data:image/svg+xml;base64,",
-                            license._imageToken(),
+                            license.imageToken(),
                             '"}'
                         )
                     )

@@ -238,7 +238,7 @@ contract ViewTest is BaseSetUp {
         license.enableSigner(tokenId, signer);
 
         uint256 periodValidity00 = 365 days;
-        assertEq(license._periodValidity(), periodValidity00);
+        assertEq(license.periodValidity(), periodValidity00);
 
         bool isSigner00 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
         assertEq(isSigner00, true);
@@ -251,13 +251,13 @@ contract ViewTest is BaseSetUp {
         bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
         assertEq(isSigner01, false);
 
-        assertEq(license._periodValidity(), periodValidity01);
+        assertEq(license.periodValidity(), periodValidity01);
     }
 
     function test_licenseCostInUsd() public {
         license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
 
-        uint256 licenseCostInUsd00 = license._licenseCostInUsd1e18();
+        uint256 licenseCostInUsd00 = license.licenseCostInUsd1e18();
 
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
         license.setLicenseCost(0.5 ether);
