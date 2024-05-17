@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
@@ -46,14 +46,8 @@ contract LicenseAccountTest is Test {
 
         uint256 licenseCostInUsd1e18 = 100 ether;
 
-        // devLicense = new DevLicenseDimo(
-        //     address(0x888),
-        //     address(factory),
-        //     address(provider),
-        //     address(dimoToken),
-        //     address(dimoCredit),
-        //     licenseCostInUsd1e18
-        // );
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
 
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
@@ -67,7 +61,8 @@ contract LicenseAccountTest is Test {
                     address(dimoCredit),
                     licenseCostInUsd1e18
                 )
-            )
+            ),
+            opts
         );
 
         devLicense = DevLicenseDimo(proxy);

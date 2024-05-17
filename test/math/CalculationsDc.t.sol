@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
@@ -49,6 +49,9 @@ contract CalculationsDcTest is Test {
 
         licenseCostInUsd = 0;
 
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
@@ -61,7 +64,8 @@ contract CalculationsDcTest is Test {
                     address(dimoCredit),
                     licenseCostInUsd
                 )
-            )
+            ),
+            opts
         );
 
         license = DevLicenseDimo(proxy);

@@ -5,7 +5,7 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {ForkProvider} from "../helper/ForkProvider.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";

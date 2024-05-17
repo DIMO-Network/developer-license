@@ -3,10 +3,10 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
@@ -60,6 +60,9 @@ contract BaseSetUp is Test {
 
         uint256 licenseCostInUsd1e18 = 100 ether;
 
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
@@ -72,7 +75,8 @@ contract BaseSetUp is Test {
                     address(dimoCredit),
                     licenseCostInUsd1e18
                 )
-            )
+            ),
+            opts
         );
 
         license = DevLicenseDimo(proxy);

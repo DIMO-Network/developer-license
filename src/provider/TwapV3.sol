@@ -112,7 +112,7 @@ contract TwapV3 is OracleSource, AccessControl {
 
         // tick(imprecise as it's an integer) to price
         sqrtPriceX96 =
-            TickMath.getSqrtRatioAtTick(int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(twapInterval))));
+            TickMath.getSqrtPriceAtTick(int24((tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(twapInterval))));
     }
 
     function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public pure returns (uint256 priceX96) {

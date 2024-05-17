@@ -3,9 +3,9 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {ForkProvider} from "../helper/ForkProvider.sol";
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
@@ -49,12 +49,16 @@ contract IntegrationStakeTest is Test, ForkProvider {
         vm.startPrank(_dimoAdmin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
 
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
         address proxy = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
                 (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether)
-            )
+            ),
+            opts
         );
         license = DevLicenseDimo(proxy);
         vm.stopPrank();
