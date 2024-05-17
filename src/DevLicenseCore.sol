@@ -248,8 +248,17 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
      * @dev It returns an empty string if no alias is associated with the token ID
      * @param tokenId The unique identifier for the license token.
      */
-    function getLicenseAlias(uint256 tokenId) public view returns (bytes32 licenseAlias) {
+    function getLicenseAliasByTokenId(uint256 tokenId) public view returns (bytes32 licenseAlias) {
         licenseAlias = _tokenIdToAlias[tokenId];
+    }
+
+    /**
+     * @notice It returns the token Id associated with a license alias
+     * @dev It returns 0 if no token ID is associated with the license alias
+     * @param licenseAlias The unique alias for the license token.
+     */
+    function getTokenIdByLicenseAlias(bytes32 licenseAlias) public view returns (uint256 tokenId) {
+        tokenId = _aliasToTokenId[licenseAlias];
     }
 
     /*//////////////////////////////////////////////////////////////

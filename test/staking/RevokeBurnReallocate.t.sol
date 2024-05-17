@@ -92,6 +92,39 @@ contract RevokeBurnReallocateTest is Test {
         license.ownerOf(tokenId);
     }
 
+    function test_burnSuccess_deleteLicenseAlias() public {
+        deal(address(dimoToken), _user1, 10_000 ether);
+
+        vm.startPrank(_user1);
+        dimoToken.approve(address(license), 10_000 ether);
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, _user1, license.REVOKER_ROLE()
+            )
+        );
+        license.revoke(tokenId);
+        vm.stopPrank();
+
+        address owner = license.ownerOf(tokenId);
+        assertEq(owner, _user1);
+
+        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdBefore = license.getTokenIdByLicenseAlias(LICENSE_ALIAS);
+        assertEq(aliasBefore, LICENSE_ALIAS);
+        assertEq(tokenIdBefore, 1);
+
+        vm.startPrank(_admin);
+        license.grantRole(keccak256("REVOKER_ROLE"), _admin);
+        license.revoke(tokenId);
+        vm.stopPrank();
+
+        bytes32 aliasAfter = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdAfter = license.getTokenIdByLicenseAlias(LICENSE_ALIAS);
+        assertEq(aliasAfter, "");
+        assertEq(tokenIdAfter, 0);
+    }
+
     /**
      * reallocate someone's staked tokens
      */

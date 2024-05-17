@@ -287,12 +287,16 @@ contract ViewTest is BaseSetUp {
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        bytes32 aliasBefore = license.getLicenseAlias(1);
+        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdBefore = license.getTokenIdByLicenseAlias(LICENSE_ALIAS);
         assertEq(aliasBefore, LICENSE_ALIAS);
+        assertEq(tokenIdBefore, 1);
 
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
-        bytes32 aliasAfter = license.getLicenseAlias(1);
+        bytes32 aliasAfter = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdAfter = license.getTokenIdByLicenseAlias(NEW_LICENSE_ALIAS);
         assertEq(aliasAfter, NEW_LICENSE_ALIAS);
+        assertEq(tokenIdAfter, 1);
     }
 
     function test_setLicenseAlias_revertNotTokenOwner() public {
@@ -300,7 +304,7 @@ contract ViewTest is BaseSetUp {
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        bytes32 aliasBefore = license.getLicenseAlias(1);
+        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
         assertEq(aliasBefore, LICENSE_ALIAS);
 
         vm.startPrank(address(0x999));

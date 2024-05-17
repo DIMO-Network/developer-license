@@ -124,7 +124,7 @@ contract DevLicenseDimo is DevLicenseMeta {
 
     /**
      * @notice Issues a license in exchange for DIMO tokens.
-     * @param licenseAlias The license alias to be set.
+     * @param licenseAlias The license alias to be set (optional)
      * @return tokenId The ID of the issued license.
      * @return clientId The ID of the client associated with the issued license.
      */
@@ -136,7 +136,7 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @notice Issues a new license to a specified address in exchange for DIMO tokens.
      *         Transfers spent $DIMO to the receiver address.
      * @param to The address to receive the license.
-     * @param licenseAlias The license alias to be set.
+     * @param licenseAlias The license alias to be set (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -153,7 +153,7 @@ contract DevLicenseDimo is DevLicenseMeta {
     /**
      * @notice Issues a new license in exchange for DIMO Credits (DC).
      * @dev This function is a wrapper over `issueInDc(address to)` for the sender.
-     * @param licenseAlias The license alias to be set.
+     * @param licenseAlias The license alias to be set (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -164,7 +164,7 @@ contract DevLicenseDimo is DevLicenseMeta {
     /**
      * @notice Issues a new license to a specified address in exchange for DIMO Credits.
      * @param to The address to receive the license.
-     * @param licenseAlias The license alias to be set.
+     * @param licenseAlias The license alias to be set (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -216,8 +216,13 @@ contract DevLicenseDimo is DevLicenseMeta {
 
         address clientId = _tokenIdToClientId[tokenId];
         delete _tokenIdToClientId[tokenId];
-        delete _tokenIdToAlias[tokenId];
         delete _clientIdToTokenId[clientId];
+
+        bytes32 licenseAlias = _tokenIdToAlias[tokenId];
+        if (licenseAlias.length > 0) {
+            delete _tokenIdToAlias[tokenId];
+            delete _aliasToTokenId[licenseAlias];
+        }
 
         emit Transfer(tokenOwner, address(0), tokenId);
     }
