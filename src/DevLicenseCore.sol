@@ -375,6 +375,15 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         tokenId = _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
     }
 
+    /**
+     * @notice It returns the token Id associated with a license alias
+     * @dev It returns 0 if no token ID is associated with the license alias
+     * @param licenseAlias The unique alias for the license token.
+     */
+    function getTokenIdByLicenseAlias(bytes32 licenseAlias) public view returns (uint256 tokenId) {
+        tokenId = _aliasToTokenId[licenseAlias];
+    }
+
     /*//////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
