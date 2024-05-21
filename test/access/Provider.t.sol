@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {Test, console2} from "forge-std/Test.sol";
 
@@ -11,38 +11,36 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 //forge test --match-path ./test/access/Provider.t.sol -vv
 contract ProviderTest is Test {
-
     TwapV3 twap;
     TestOracleSource testOracleSource;
     NormalizedPriceProvider provider;
 
     function setUp() public {
         //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork('https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28', 50573735);
+        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
 
         twap = new TwapV3();
         testOracleSource = new TestOracleSource();
         provider = new NormalizedPriceProvider();
     }
-    
-    function test_unitTestAccess() public {
 
+    function test_unitTestAccess() public {
         address adminOracle = address(0x666);
-        
-        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), adminOracle); 
+
+        twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), adminOracle);
 
         vm.startPrank(adminOracle);
         uint32 intervalUsdc = 30 minutes;
-        uint32 intervalDimo = 4 minutes; 
+        uint32 intervalDimo = 4 minutes;
         twap.initialize(intervalUsdc, intervalDimo);
         vm.stopPrank();
 
         address adminProvider = address(0x777);
 
-        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), adminProvider); 
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), adminProvider);
 
         assertEq(provider._primaryIndex(), 0);
-        
+
         vm.startPrank(adminProvider);
         provider.addOracleSource(address(twap));
         provider.addOracleSource(address(testOracleSource));
@@ -53,22 +51,20 @@ contract ProviderTest is Test {
 
         address updater = address(0x888);
 
-        provider.grantRole(keccak256("UPDATER_ROLE"), updater); 
+        provider.grantRole(keccak256("UPDATER_ROLE"), updater);
 
         vm.startPrank(updater);
         provider.updatePrice();
         vm.stopPrank();
-        
     }
 
     function test_roleSwitchDeactivate() public {
-
         address adminOracle00 = address(0x666);
         address adminOracle01 = address(0x666);
 
         bytes32 role = keccak256("ORACLE_ADMIN_ROLE");
-        
-        twap.grantRole(role, adminOracle00); 
+
+        twap.grantRole(role, adminOracle00);
 
         vm.startPrank(adminOracle00);
         twap.initialize(30 minutes, 4 minutes);
@@ -77,19 +73,16 @@ contract ProviderTest is Test {
         twap.revokeRole(role, adminOracle00);
 
         vm.expectRevert(
-            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, 
-            adminOracle00, 
-            role)
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, adminOracle00, role)
         );
         vm.startPrank(adminOracle00);
         twap.initialize(30 minutes, 4 minutes);
         vm.stopPrank();
 
-        twap.grantRole(role, adminOracle01); 
+        twap.grantRole(role, adminOracle01);
 
         vm.startPrank(adminOracle01);
         twap.initialize(31 minutes, 4.1 minutes);
         vm.stopPrank();
     }
-   
 }

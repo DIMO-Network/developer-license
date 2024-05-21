@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {console2} from "forge-std/Test.sol";
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
@@ -22,7 +22,7 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_existsLocked() public {
-        (uint256 tokenId,) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
         bool locked = license.locked(tokenId);
         assertEq(locked, true);
         vm.expectRevert("DevLicenseDimo: invalid tokenId");
@@ -30,7 +30,7 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_ownerOfSuccess() public {
-        (uint256 tokenId,) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
         assertEq(license.ownerOf(tokenId), address(this));
     }
 
@@ -63,7 +63,7 @@ contract ViewTest is BaseSetUp {
         address signer01 = address(0x456);
 
         vm.startPrank(admin);
-        (uint256 tokenId, address clientId) = license.issueInDimo();
+        (uint256 tokenId, address clientId) = license.issueInDimo(LICENSE_ALIAS);
         license.enableSigner(tokenId, signer00);
         vm.stopPrank();
 
@@ -93,7 +93,7 @@ contract ViewTest is BaseSetUp {
         license.setLicenseCost(1 ether);
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
 
-        (uint256 tokenId, address clientId) = license.issueInDc(to);
+        (uint256 tokenId, address clientId) = license.issueInDc(to, LICENSE_ALIAS);
         ///@notice ^mint license to a user other than the caller (using DC)
 
         address signer = address(0x123);
@@ -130,7 +130,7 @@ contract ViewTest is BaseSetUp {
         license.setLicenseCost(1 ether);
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
 
-        (uint256 tokenId,) = license.issueInDc(to);
+        (uint256 tokenId,) = license.issueInDc(to, LICENSE_ALIAS);
         ///@notice ^mint license to a user other than the caller (using DC)
 
         address signer = address(0x123);
@@ -162,7 +162,7 @@ contract ViewTest is BaseSetUp {
         license.setLicenseCost(1 ether);
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
 
-        (uint256 tokenId, address clientId) = license.issueInDc(to);
+        (uint256 tokenId, address clientId) = license.issueInDc(to, LICENSE_ALIAS);
         ///@notice ^mint license to a user other than the caller (using DC)
 
         address signer = address(0x123);
@@ -201,7 +201,7 @@ contract ViewTest is BaseSetUp {
         license.setLicenseCost(1 ether);
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
 
-        (uint256 tokenId,) = license.issueInDc(to);
+        (uint256 tokenId,) = license.issueInDc(to, LICENSE_ALIAS);
         ///@notice ^mint license to a user other than the caller (using DC)
 
         address signer = address(0x123);
@@ -234,7 +234,7 @@ contract ViewTest is BaseSetUp {
         license.grantRole(license.LICENSE_ADMIN_ROLE(), address(this));
 
         address signer = address(0x123);
-        (uint256 tokenId, address clientId) = license.issueInDimo();
+        (uint256 tokenId, address clientId) = license.issueInDimo(LICENSE_ALIAS);
         license.enableSigner(tokenId, signer);
 
         uint256 periodValidity00 = 365 days;
@@ -271,14 +271,52 @@ contract ViewTest is BaseSetUp {
 
         vm.startPrank(user);
         dimoToken.approve(address(license), 0.05 ether);
-        license.issueInDimo();
+        license.issueInDimo(LICENSE_ALIAS);
         vm.stopPrank();
 
         license.setLicenseCost(1_000_000 ether);
 
         vm.startPrank(user);
         vm.expectRevert();
-        license.issueInDimo();
+        license.issueInDimo(LICENSE_ALIAS);
         vm.stopPrank();
+    }
+
+    function test_setLicenseAlias() public {
+        bytes32 NEW_LICENSE_ALIAS = "new license alias";
+
+        license.issueInDimo(LICENSE_ALIAS);
+
+        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdBefore = license.getTokenIdByLicenseAlias(LICENSE_ALIAS);
+        assertEq(aliasBefore, LICENSE_ALIAS);
+        assertEq(tokenIdBefore, 1);
+
+        license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
+        bytes32 aliasAfter = license.getLicenseAliasByTokenId(1);
+        uint256 tokenIdAfter = license.getTokenIdByLicenseAlias(NEW_LICENSE_ALIAS);
+        assertEq(aliasAfter, NEW_LICENSE_ALIAS);
+        assertEq(tokenIdAfter, 1);
+    }
+
+    function test_setLicenseAlias_revertNotTokenOwner() public {
+        bytes32 NEW_LICENSE_ALIAS = "new license alias";
+
+        license.issueInDimo(LICENSE_ALIAS);
+
+        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        assertEq(aliasBefore, LICENSE_ALIAS);
+
+        vm.startPrank(address(0x999));
+        vm.expectRevert("DevLicenseDimo: invalid msg.sender");
+        license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
+        vm.stopPrank();
+    }
+
+    function test_setLicenseAlias_revertAliasAlreadySet() public {
+        license.issueInDimo(LICENSE_ALIAS);
+
+        vm.expectRevert(abi.encodeWithSelector(DevLicenseCore.AliasAlreadyInUse.selector, LICENSE_ALIAS));
+        license.issueInDimo(LICENSE_ALIAS);
     }
 }

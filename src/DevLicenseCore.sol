@@ -18,6 +18,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  *         integrating with DIMO's token and credit systems.
  */
 contract DevLicenseCore is IDevLicenseDimo, AccessControl {
+    error AliasAlreadyInUse(bytes32 licenseAlias);
     /*//////////////////////////////////////////////////////////////
                              Access Controls
     //////////////////////////////////////////////////////////////*/
@@ -48,6 +49,8 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
 
     mapping(uint256 => address) public _ownerOf;
     mapping(uint256 => address) public _tokenIdToClientId;
+    mapping(uint256 => bytes32) public _tokenIdToAlias;
+    mapping(bytes32 => uint256) public _aliasToTokenId;
     mapping(address => uint256) public _clientIdToTokenId;
     /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
     mapping(uint256 => mapping(address => uint256)) public _signers;
@@ -61,6 +64,7 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event SignerDisabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
+    event LicenseAliasSet(uint256 indexed tokenId, bytes32 licenseAlias);
 
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdateReceiverAddress(address receiver_);
@@ -161,6 +165,16 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     }
 
     /**
+     * @notice It sets an alias to a token ID
+     * @dev Only the token ID owner can call this function
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
+    function setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) public onlyTokenOwner(tokenId) {
+        _safeSetLicenseAlias(tokenId, licenseAlias);
+    }
+
+    /**
      * @notice Internally enables a signer for a specific token ID by recording the current block
      *         timestamp as the time of enabling. This function should only be called through `enableSigner`.
      * @dev Updates the `_signers` mapping to mark the `signer` address as enabled for the `tokenId`.
@@ -185,6 +199,34 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
     }
 
     /**
+     * @notice Internal function to set an alias to a token ID
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
+    function _safeSetLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
+        if (_aliasToTokenId[licenseAlias] != 0) {
+            revert AliasAlreadyInUse(licenseAlias);
+        }
+        _setLicenseAlias(tokenId, licenseAlias);
+    }
+
+    /**
+     * @notice Internal function to set an alias to a token ID
+     * @param tokenId The unique identifier for the license token.
+     * @param licenseAlias The alias string to be set
+     */
+    function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) private {
+        bytes32 currentLicenseAlias = _tokenIdToAlias[tokenId];
+        if (currentLicenseAlias.length > 0) {
+            delete _aliasToTokenId[currentLicenseAlias];
+        }
+
+        _tokenIdToAlias[tokenId] = licenseAlias;
+        _aliasToTokenId[licenseAlias] = tokenId;
+        emit LicenseAliasSet(tokenId, licenseAlias);
+    }
+
+    /**
      * @notice Checks whether a given address is currently an enabled signer for a specified token ID.
      *         The signer's enabled status is valid only for the period defined by `_periodValidity`.
      * @dev This function calculates the difference between the current block timestamp and the timestamp
@@ -199,6 +241,24 @@ contract DevLicenseCore is IDevLicenseDimo, AccessControl {
         uint256 timestampInit = _signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
         return timestampCurrent - timestampInit <= _periodValidity;
+    }
+
+    /**
+     * @notice It returns the alias associated with a token ID
+     * @dev It returns an empty string if no alias is associated with the token ID
+     * @param tokenId The unique identifier for the license token.
+     */
+    function getLicenseAliasByTokenId(uint256 tokenId) public view returns (bytes32 licenseAlias) {
+        licenseAlias = _tokenIdToAlias[tokenId];
+    }
+
+    /**
+     * @notice It returns the token Id associated with a license alias
+     * @dev It returns 0 if no token ID is associated with the license alias
+     * @param licenseAlias The unique alias for the license token.
+     */
+    function getTokenIdByLicenseAlias(bytes32 licenseAlias) public view returns (uint256 tokenId) {
+        tokenId = _aliasToTokenId[licenseAlias];
     }
 
     /*//////////////////////////////////////////////////////////////

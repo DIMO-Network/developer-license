@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {Test, console2} from "forge-std/Test.sol";
 
@@ -16,17 +16,17 @@ import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
-
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {
+    bytes32 constant LICENSE_ALIAS = "licenseAlias";
 
     NormalizedPriceProvider provider;
-    
+
     IDimoToken dimoToken;
     IDimoCredit dimoCredit;
 
     DevLicenseDimo license;
-    
+
     address _dimoAdmin;
 
     function setUp() public {
@@ -36,7 +36,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         provider = new NormalizedPriceProvider();
-        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this)); 
+        provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         TestOracleSource testOracleSource = new TestOracleSource();
         testOracleSource.setAmountUsdPerToken(1 ether);
         provider.addOracleSource(address(testOracleSource));
@@ -47,31 +47,26 @@ contract IntegrationStakeTest is Test, ForkProvider {
         vm.startPrank(_dimoAdmin);
         dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
         license = new DevLicenseDimo(
-            address(0x888),
-            address(laf), 
-            address(provider), 
-            address(dimoToken), 
-            address(dimoCredit),
-            1 ether
+            address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether
         );
         vm.stopPrank();
 
         laf.setLicense(address(license));
     }
-    
+
     function test_fuzzStake(uint256 amount) public {
         amount = bound(amount, 1.1 ether, type(uint256).max);
-        
+
         address user = address(0x1337);
-        
+
         deal(address(dimoToken), user, amount);
 
         uint256 balanceOf00 = ERC20(address(dimoToken)).balanceOf(user);
-        assertEq(balanceOf00, amount);  
+        assertEq(balanceOf00, amount);
 
         vm.startPrank(user);
         dimoToken.approve(address(license), 1 ether);
-        (uint256 tokenId,) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
         vm.stopPrank();
 
         uint256 balanceOf01 = ERC20(address(dimoToken)).balanceOf(user);
@@ -96,6 +91,4 @@ contract IntegrationStakeTest is Test, ForkProvider {
         license.withdraw(tokenId, amountWithdraw);
         vm.stopPrank();
     }
-
-  
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.22;
 
 import {console2} from "forge-std/Test.sol";
 
@@ -13,35 +13,33 @@ import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLi
 
 //forge test --match-path ./test/Metadata.t.sol -vv
 contract MetadataTest is BaseSetUp {
-
     function setUp() public {
         _setUp();
     }
 
     function test_tokenURI() public {
-
-        (uint256 tokenId,) = license.issueInDimo();
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
 
         string memory data00 = license.tokenURI(tokenId);
 
         string memory data01 = string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(
-                        bytes(
-                            abi.encodePacked(
-                                '{"name":"',
-                                string(abi.encodePacked("DIMO Developer License #", Strings.toString(tokenId))),
-                                '", "description":"',
-                                license._descriptionToken(),
-                                '", "image": "',
-                                "data:image/svg+xml;base64,",
-                                license._imageToken(),
-                                '"}'
-                            )
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(
+                    bytes(
+                        abi.encodePacked(
+                            '{"name":"',
+                            string(abi.encodePacked("DIMO Developer License #", Strings.toString(tokenId))),
+                            '", "description":"',
+                            license._descriptionToken(),
+                            '", "image": "',
+                            "data:image/svg+xml;base64,",
+                            license._imageToken(),
+                            '"}'
                         )
                     )
                 )
+            )
         );
         assertEq(data00, data01);
     }
@@ -50,11 +48,9 @@ contract MetadataTest is BaseSetUp {
         bytes32 LICENSE_ADMIN_ROLE = keccak256("LICENSE_ADMIN_ROLE");
         //console2.logBytes32(LICENSE_ADMIN_ROLE);
 
-        address admin = vm.addr(0x999);
+        license.grantRole(LICENSE_ADMIN_ROLE, _admin);
 
-        license.grantRole(LICENSE_ADMIN_ROLE, admin); 
-
-        vm.startPrank(admin);
+        vm.startPrank(_admin);
         license.setImageContract("image");
         license.setDescriptionContract("description");
         vm.stopPrank();
@@ -67,9 +63,9 @@ contract MetadataTest is BaseSetUp {
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
-                            '{"name":"DIMO Developer License",'
-                            '"description":', "description", ','
-                            '"image": "',
+                            '{"name":"DIMO Developer License",' '"description":',
+                            "description",
+                            "," '"image": "',
                             "data:image/svg+xml;base64,",
                             Base64.encode("image"),
                             '",' '"external_link": "https://dimo.zone/",'
@@ -80,7 +76,5 @@ contract MetadataTest is BaseSetUp {
             )
         );
         assertEq(data00, data01);
-
     }
 }
-
