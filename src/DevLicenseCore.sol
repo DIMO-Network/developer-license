@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {console2} from "forge-std/Test.sol";
-
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
@@ -364,8 +362,17 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev It returns an empty string if no alias is associated with the token ID
      * @param tokenId The unique identifier for the license token.
      */
-    function getLicenseAlias(uint256 tokenId) public view returns (bytes32 licenseAlias) {
+    function getLicenseAliasByTokenId(uint256 tokenId) public view returns (bytes32 licenseAlias) {
         licenseAlias = _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
+    }
+
+    /**
+     * @notice It returns the token Id associated with a license alias
+     * @dev It returns 0 if no token ID is associated with the license alias
+     * @param licenseAlias The unique alias for the license token.
+     */
+    function getTokenIdByLicenseAlias(bytes32 licenseAlias) public view returns (uint256 tokenId) {
+        tokenId = _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -510,10 +517,8 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     function ownerOf(uint256 tokenId) public view virtual returns (address owner) {
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
-        console2.log($._ownerOf[tokenId]);
         owner = $._ownerOf[tokenId];
         if (owner == address(0)) revert(INVALID_TOKEN_ID);
-        // require(owner != address(0), INVALID_TOKEN_ID);
     }
 
     /*//////////////////////////////////////////////////////////////
