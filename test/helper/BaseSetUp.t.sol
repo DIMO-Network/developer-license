@@ -16,6 +16,10 @@ import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount
 import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
 contract BaseSetUp is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
     string constant IMAGE_SVG =
         '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
@@ -49,29 +53,32 @@ contract BaseSetUp is Test {
         twap.grantRole(keccak256("ORACLE_ADMIN_ROLE"), address(this));
 
         uint32 intervalUsdc = 30 minutes;
-        //console2.log("intervalUsdc: %s", intervalUsdc);
         uint32 intervalDimo = 4 minutes;
-        //console2.log("intervalDimo: %s", intervalDimo);
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
-
-        //(uint256 amountUsdPerToken, uint256 updateTimestamp) = provider.getAmountUsdPerToken();
-        //console2.log("amountUsdPerToken: %s", amountUsdPerToken);
-        //console2.log("  updateTimestamp: %s", updateTimestamp);
-
-        dimoCredit = new DimoCredit(address(0x123), address(provider));
 
         uint256 licenseCostInUsd1e18 = 100 ether;
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
-        address proxy = Upgrades.deployUUPSProxy(
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dimoCredit = DimoCredit(proxyDc);
+
+        address proxyDl = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
                 (
-                    address(0x888),
+                    _receiver,
                     address(laf),
                     address(provider),
                     address(dimoToken),
@@ -84,7 +91,7 @@ contract BaseSetUp is Test {
             opts
         );
 
-        license = DevLicenseDimo(proxy);
+        license = DevLicenseDimo(proxyDl);
 
         laf.setLicense(address(license));
         deal(address(dimoToken), address(this), 1_000_000 ether);

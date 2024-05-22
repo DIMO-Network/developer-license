@@ -20,6 +20,10 @@ import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
     string constant IMAGE_SVG =
         '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
@@ -34,6 +38,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
     DevLicenseDimo license;
 
     address _dimoAdmin;
+    address _receiver;
 
     function setUp() public {
         ForkProvider fork = new ForkProvider();
@@ -50,18 +55,29 @@ contract IntegrationStakeTest is Test, ForkProvider {
         LicenseAccountFactory laf = new LicenseAccountFactory();
 
         _dimoAdmin = address(0x666);
-        vm.startPrank(_dimoAdmin);
-        dimoCredit = IDimoCredit(address(new DimoCredit(address(0x123), address(provider))));
+        _receiver = address(0x888);
 
+        vm.startPrank(_dimoAdmin);
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
-        address proxy = Upgrades.deployUUPSProxy(
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dimoCredit = IDimoCredit(proxyDc);
+
+        address proxyDl = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
                 (
-                    address(0x888),
+                    _receiver,
                     address(laf),
                     address(provider),
                     address(dimoToken),
@@ -73,7 +89,8 @@ contract IntegrationStakeTest is Test, ForkProvider {
             ),
             opts
         );
-        license = DevLicenseDimo(proxy);
+
+        license = DevLicenseDimo(proxyDl);
         vm.stopPrank();
 
         laf.setLicense(address(license));

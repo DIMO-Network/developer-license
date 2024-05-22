@@ -16,6 +16,10 @@ import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLi
 
 //forge test --match-path ./test/CalculationsDc.t.sol -vv
 contract CalculationsDcTest is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
     string constant IMAGE_SVG =
         '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
@@ -48,19 +52,27 @@ contract CalculationsDcTest is Test {
 
         LicenseAccountFactory factory = new LicenseAccountFactory();
 
-        dimoCredit = new DimoCredit(_receiver, address(provider));
-
         licenseCostInUsd = 0;
-
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
-        address proxy = Upgrades.deployUUPSProxy(
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dimoCredit = DimoCredit(proxyDc);
+
+        address proxyDl = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
                 (
-                    address(0x888),
+                    _receiver,
                     address(factory),
                     address(provider),
                     address(dimoToken),
@@ -73,7 +85,7 @@ contract CalculationsDcTest is Test {
             opts
         );
 
-        license = DevLicenseDimo(proxy);
+        license = DevLicenseDimo(proxyDl);
 
         factory.setLicense(address(license));
     }

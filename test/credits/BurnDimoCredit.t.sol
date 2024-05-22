@@ -2,9 +2,12 @@
 pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
+
+import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+
 import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
 import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
-import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
@@ -13,13 +16,22 @@ import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-//forge test --match-path ./test/BurnDimoCredit.t.sol -vv
+//forge test --match-path ./test/credits/BurnDimoCredit.t.sol -vv
 contract BurnDimoCreditTest is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
+
     DimoCredit dc;
     IDimoToken dimoToken;
     NormalizedPriceProvider npp;
 
+    address _receiver;
+
     function setUp() public {
+        _receiver = address(0x123);
+
         vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
@@ -34,7 +46,19 @@ contract BurnDimoCreditTest is Test {
         npp.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         npp.addOracleSource(address(twap));
 
-        dc = new DimoCredit(address(0x123), address(npp));
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(npp), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dc = DimoCredit(proxyDc);
 
         dc.grantRole(keccak256("BURNER_ROLE"), address(this));
     }

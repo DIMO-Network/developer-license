@@ -19,6 +19,10 @@ import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
     bytes32 constant LICENSE_ALIAS_1 = "licenseAlias1";
     bytes32 constant LICENSE_ALIAS_2 = "licenseAlias2";
     string constant IMAGE_SVG =
@@ -30,6 +34,8 @@ contract LicenseAccountTest is Test {
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
     LicenseAccountFactory factory;
+
+    address _receiver;
 
     function setUp() public {
         //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
@@ -44,21 +50,30 @@ contract LicenseAccountTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        dimoCredit = new DimoCredit(address(0x123), address(provider));
-
-        factory = new LicenseAccountFactory();
-
         uint256 licenseCostInUsd1e18 = 100 ether;
+        _receiver = address(0x888);
+        factory = new LicenseAccountFactory();
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
-        address proxy = Upgrades.deployUUPSProxy(
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dimoCredit = DimoCredit(proxyDc);
+
+        address proxyDl = Upgrades.deployUUPSProxy(
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
                 (
-                    address(0x888),
+                    _receiver,
                     address(factory),
                     address(provider),
                     address(dimoToken),
@@ -71,7 +86,7 @@ contract LicenseAccountTest is Test {
             opts
         );
 
-        devLicense = DevLicenseDimo(proxy);
+        devLicense = DevLicenseDimo(proxyDl);
 
         factory.setLicense(address(devLicense));
     }

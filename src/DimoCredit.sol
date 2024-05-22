@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import {IDimoToken} from "./interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 //               ______--------___
 //              /|             / |
@@ -23,53 +26,39 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @custom:coauthor Rob Solomon (@robmsolomon)
  *
  * @dev Contract for managing non-transferable tokens for use within the DIMO developer ecosystem.
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  * @notice This contract manages the issuance (minting) and destruction (burning) of DIMO Credits,
  *         leveraging the $DIMO token and a price provider for exchange rate information. Approve
  *         this contract on $DIMO token (0xE261D618a959aFfFd53168Cd07D12E37B26761db) before minting.
  */
-contract DimoCredit is AccessControl {
-    /*//////////////////////////////////////////////////////////////
-                             Access Controls
-    //////////////////////////////////////////////////////////////*/
+contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    /// @custom:storage-location erc7201:DIMOdevLicense.storage.DimoCredit
+    struct DimoCreditStorage {
+        uint256 _dimoCreditRateInWei;
+        uint256 _periodValidity;
+        ///@dev receives proceeds from sale of credits
+        address _receiver;
+        IDimoToken _dimo;
+        NormalizedPriceProvider _provider;
+        string _name;
+        string _symbol;
+        uint256 _totalSupply;
+        mapping(address account => uint256 balance) _balanceOf;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DimoCredit")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant DIMO_CREDIT_STORAGE_LOCATION =
+        0xecac8b0340dd336c3ac98ce70f7645fc65001c59d70f7941ce9a0837ff7b7c00;
 
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    /*//////////////////////////////////////////////////////////////
-                              Member Variables
-    //////////////////////////////////////////////////////////////*/
-
-    uint256 public _dimoCreditRateInWei;
-    uint256 public _periodValidity;
-
-    ///@dev receives proceeds from sale of credits
-    address public _receiver;
-
-    IDimoToken public _dimo;
-    NormalizedPriceProvider public _provider;
-
-    /*//////////////////////////////////////////////////////////////
-                            METADATA STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    uint8 public immutable decimals;
-
-    string public name;
-    string public symbol;
-
-    /*//////////////////////////////////////////////////////////////
-                              ERC20 STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    uint256 public totalSupply;
-
-    mapping(address => uint256) public balanceOf;
-
-    /*//////////////////////////////////////////////////////////////
-                            Error Messages
-    //////////////////////////////////////////////////////////////*/
-
-    string INVALID_OPERATION = "DimoCredit: invalid operation";
+    function _getDimoCreditStorage() private pure returns (DimoCreditStorage storage $) {
+        assembly {
+            $.slot := DIMO_CREDIT_STORAGE_LOCATION
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
@@ -78,30 +67,99 @@ contract DimoCredit is AccessControl {
     ///@dev only used in mint and burn, not transferable
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event UpdateDimoCreditRate(uint256 rate);
-    event UpdateDimoTokenAddress(address dimo_);
-    event UpdateReceiverAddress(address receiver_);
+    event UpdateDimoTokenAddress(address indexed dimo_);
+    event UpdateReceiverAddress(address indexed receiver_);
     event UpdatePeriodValidity(uint256 periodValidity);
-    event UpdatePriceProviderAddress(address provider);
+    event UpdatePriceProviderAddress(address indexed provider);
+
+    error InvalidOperation();
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    // TODO Documentation
+    function initialize(
+        string calldata name_,
+        string calldata symbol_,
+        address dimoToken_,
+        address receiver_,
+        address provider_,
+        uint256 periodValidity_,
+        uint256 dimoCreditRateInWei_
+    ) external initializer {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+
+        $._dimo = IDimoToken(dimoToken_);
+        $._provider = NormalizedPriceProvider(provider_);
+        $._periodValidity = periodValidity_;
+
+        $._receiver = receiver_;
+        $._dimoCreditRateInWei = dimoCreditRateInWei_;
+
+        $._symbol = symbol_;
+        $._name = name_;
+    }
 
     /**
-     * @notice Initializes the contract with specified receiver and price provider addresses.
-     *         Exchange rate determined to be 1 DC == $0.001 USD (1000000000000000 Wei).
-     * @param receiver_ The address where proceeds from the sale of credits are sent.
-     * @param provider_ The address of the price provider used to determine the exchange rate for DIMO Credits.
+     * @notice Returns the current exchange rate for converting DIMO to DIMO Credits
      */
-    constructor(address receiver_, address provider_) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    function dimoCreditRate() external view returns (uint256) {
+        return _getDimoCreditStorage()._dimoCreditRateInWei;
+    }
 
-        _dimo = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
-        _provider = NormalizedPriceProvider(provider_);
-        _periodValidity = 1 days;
+    // TODO Documenetation
+    function periodValidity() external view returns (uint256) {
+        return _getDimoCreditStorage()._periodValidity;
+    }
 
-        _receiver = receiver_;
-        _dimoCreditRateInWei = 0.001 ether;
+    /**
+     * @notice Returns the current receiver address for DIMO token proceeds
+     */
+    function receiver() external view returns (address) {
+        return _getDimoCreditStorage()._receiver;
+    }
 
-        decimals = 18;
-        symbol = "DCX";
-        name = "Dimo Credit";
+    // TODO Documenetation
+    function dimoToken() external view returns (address) {
+        return address(_getDimoCreditStorage()._dimo);
+    }
+
+    // TODO Documenetation
+    function provider() external view returns (address) {
+        return address(_getDimoCreditStorage()._provider);
+    }
+
+    // TODO Documenetation
+    function decimals() external pure returns (uint8) {
+        return 18;
+    }
+
+    // TODO Documenetation
+    function name() external view returns (string memory) {
+        return _getDimoCreditStorage()._name;
+    }
+
+    // TODO Documenetation
+    function symbol() external view returns (string memory) {
+        return _getDimoCreditStorage()._symbol;
+    }
+
+    // TODO Documenetation
+    function totalSupply() external view returns (uint256) {
+        return _getDimoCreditStorage()._totalSupply;
+    }
+
+    // TODO Documenetation
+    function balanceOf(address account) external view returns (uint256) {
+        return _getDimoCreditStorage()._balanceOf[account];
     }
 
     /**
@@ -113,13 +171,15 @@ contract DimoCredit is AccessControl {
      * @return dimoCredits The amount of DIMO Credits minted.
      */
     function mint(address to, uint256 amountIn, bytes calldata data) external returns (uint256 dimoCredits) {
-        (uint256 amountUsdPerTokenInWei,) = _provider.getAmountUsdPerToken(data);
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        (uint256 amountUsdPerTokenInWei,) = $._provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
         uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei);
 
         // Convert USD amount to data credits
-        dimoCredits = (usdAmountInWei / _dimoCreditRateInWei);
+        dimoCredits = (usdAmountInWei / $._dimoCreditRateInWei);
 
         _mint(amountIn, dimoCredits, to);
     }
@@ -131,14 +191,16 @@ contract DimoCredit is AccessControl {
      * @param to The address to receive the minted credits.
      */
     function _mint(uint256 amountDimo, uint256 amountDataCredits, address to) private {
-        _dimo.transferFrom(to, _receiver, amountDimo);
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
 
-        totalSupply += amountDataCredits;
+        $._dimo.transferFrom(to, $._receiver, amountDimo);
+
+        $._totalSupply += amountDataCredits;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to] += amountDataCredits;
+            $._balanceOf[to] += amountDataCredits;
         }
 
         emit Transfer(address(0), to, amountDataCredits);
@@ -151,12 +213,14 @@ contract DimoCredit is AccessControl {
      * @param amount The amount of DIMO Credits to burn.
      */
     function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
-        balanceOf[from] -= amount;
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        $._balanceOf[from] -= amount;
 
         // Cannot underflow because a user's balance
         // will never be larger than the total supply.
         unchecked {
-            totalSupply -= amount;
+            $._totalSupply -= amount;
         }
 
         emit Transfer(from, address(0), amount);
@@ -167,27 +231,27 @@ contract DimoCredit is AccessControl {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Prevents transferring of DIMO Credits.
-    function transfer(address, /*_to*/ uint256 /*_value*/ ) public view returns (bool /*success*/ ) {
-        revert(INVALID_OPERATION);
+    function transfer(address, /*_to*/ uint256 /*_value*/ ) public pure returns (bool /*success*/ ) {
+        revert InvalidOperation();
     }
 
     /// @notice Prevents transferring of DIMO Credits from one address to another.
     function transferFrom(address, /*_from*/ address, /*_to*/ uint256 /*_value*/ )
         public
-        view
+        pure
         returns (bool /*success*/ )
     {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /// @notice Prevents approval of DIMO Credits for spending by third parties.
-    function approve(address, /*_spender*/ uint256 /*_value*/ ) public view returns (bool /*success*/ ) {
-        revert(INVALID_OPERATION);
+    function approve(address, /*_spender*/ uint256 /*_value*/ ) public pure returns (bool /*success*/ ) {
+        revert InvalidOperation();
     }
 
     /// @notice Prevents checking allowance of DIMO Credits.
-    function allowance(address, /*_owner*/ address /*_spender*/ ) public view returns (uint256 /*remaining*/ ) {
-        revert(INVALID_OPERATION);
+    function allowance(address, /*_owner*/ address /*_spender*/ ) public pure returns (uint256 /*remaining*/ ) {
+        revert InvalidOperation();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -202,12 +266,14 @@ contract DimoCredit is AccessControl {
      * @param data The data required by the price provider for updating the exchange rate.
      */
     function updatePrice(bytes calldata data) external onlyRole(DC_ADMIN_ROLE) {
-        (, uint256 updateTimestamp) = _provider.getAmountUsdPerToken(data);
-        bool invalid = (block.timestamp - updateTimestamp) < _periodValidity;
-        bool updatable = _provider.isUpdatable();
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        (, uint256 updateTimestamp) = $._provider.getAmountUsdPerToken(data);
+        bool invalid = (block.timestamp - updateTimestamp) < $._periodValidity;
+        bool updatable = $._provider.isUpdatable();
 
         if (invalid && updatable) {
-            _provider.updatePrice();
+            $._provider.updatePrice();
         }
     }
 
@@ -217,8 +283,8 @@ contract DimoCredit is AccessControl {
      * @param dimoCreditRateInWei_ The new exchange rate in wei.
      */
     function setDimoCreditRate(uint256 dimoCreditRateInWei_) external onlyRole(DC_ADMIN_ROLE) {
-        _dimoCreditRateInWei = dimoCreditRateInWei_;
-        emit UpdateDimoCreditRate(_dimoCreditRateInWei);
+        _getDimoCreditStorage()._dimoCreditRateInWei = dimoCreditRateInWei_;
+        emit UpdateDimoCreditRate(dimoCreditRateInWei_);
     }
 
     /**
@@ -227,7 +293,7 @@ contract DimoCredit is AccessControl {
      * @param dimoTokenAddress_ The new address of the DIMO token contract.
      */
     function setDimoTokenAddress(address dimoTokenAddress_) external onlyRole(DC_ADMIN_ROLE) {
-        _dimo = IDimoToken(dimoTokenAddress_);
+        _getDimoCreditStorage()._dimo = IDimoToken(dimoTokenAddress_);
         emit UpdateDimoTokenAddress(dimoTokenAddress_);
     }
 
@@ -237,7 +303,7 @@ contract DimoCredit is AccessControl {
      * @param providerAddress_ The new address of the price provider contract.
      */
     function setPriceProviderAddress(address providerAddress_) external onlyRole(DC_ADMIN_ROLE) {
-        _provider = NormalizedPriceProvider(providerAddress_);
+        _getDimoCreditStorage()._provider = NormalizedPriceProvider(providerAddress_);
         emit UpdatePriceProviderAddress(providerAddress_);
     }
 
@@ -247,8 +313,8 @@ contract DimoCredit is AccessControl {
      * @param receiver_ The new receiver address.
      */
     function setReceiverAddress(address receiver_) external onlyRole(DC_ADMIN_ROLE) {
-        _receiver = receiver_;
-        emit UpdateReceiverAddress(_receiver);
+        _getDimoCreditStorage()._receiver = receiver_;
+        emit UpdateReceiverAddress(receiver_);
     }
 
     /**
@@ -257,27 +323,9 @@ contract DimoCredit is AccessControl {
      * @param periodValidity_ The new validity period in seconds.
      */
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(DC_ADMIN_ROLE) {
-        _periodValidity = periodValidity_;
-        emit UpdatePeriodValidity(_periodValidity);
+        _getDimoCreditStorage()._periodValidity = periodValidity_;
+        emit UpdatePeriodValidity(periodValidity_);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                            View Functions
-    //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Retrieves the current receiver address for DIMO token proceeds.
-     * @return receiver_ The current receiver address.
-     */
-    function receiver() external view returns (address receiver_) {
-        receiver_ = _receiver;
-    }
-
-    /**
-     * @notice Gets the current exchange rate for converting DIMO to DIMO Credits.
-     * @return dimoCreditRateInWei_ The current exchange rate in wei.
-     */
-    function dimoCreditRate() external view returns (uint256 dimoCreditRateInWei_) {
-        dimoCreditRateInWei_ = _dimoCreditRateInWei;
-    }
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }
