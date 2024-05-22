@@ -1,16 +1,20 @@
 import dotenv from 'dotenv'
 import * as fs from 'fs'
 import path from 'path'
-import { ethers, AbstractProvider } from 'ethers'
+import { BaseContract } from 'ethers'
+import { ethers } from 'hardhat';
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { exec } from 'child_process'
 
 import * as C from './data/deployArgs';
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
 type AddressesByNetwork = {
     [index: string]: string
 };
+
+function getDevLicenseMetaImage() {
+    return fs.readFileSync(path.resolve(__dirname, '..', 'svg', 'devLicenseMetaImage.svg'), 'utf8')
+}
 
 function getAddresses() {
     return JSON.parse(
@@ -32,19 +36,18 @@ function writeAddresses(addresses: AddressesByNetwork, networkName: string) {
     console.log('----- Addresses written to file -----\n');
 }
 
-async function getGasPrice(bump: bigint = 20n, provider: AbstractProvider): Promise<bigint> {
+async function getGasPrice(bump: bigint = 20n): Promise<bigint> {
     if (bump < 1n) {
         throw new Error('gas price bump must be >= 1');
     }
 
-    const price = (await provider.getFeeData()).gasPrice as bigint;
+    const price = (await ethers.provider.getFeeData()).gasPrice as bigint;
     return (price * bump / 100n + price);
 }
 
-async function deployProvider(provider: AbstractProvider, signer: ethers.Wallet, verifyContract: boolean = false) {
-    let gasPrice = await getGasPrice(20n, provider)
-    const { name, chainId } = await provider.getNetwork();
-    const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY as string
+async function deployProvider(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+    let gasPrice = await getGasPrice(20n)
+    const { name } = await ethers.provider.getNetwork();
     let instances = getAddresses();
 
     console.log('\n----- Deploying TwapV3 contract -----\n');
@@ -61,12 +64,12 @@ async function deployProvider(provider: AbstractProvider, signer: ethers.Wallet,
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        await verifyContractUntilSuccess(addressTwap, nameTwap, chainId, POLYGONSCAN_API_KEY)
+        await verifyContractUntilSuccess(addressTwap, nameTwap)
     }
 
     console.log('\n----- Deploying NormalizedPriceProvider contract -----\n');
 
-    gasPrice = await getGasPrice(20n, provider)
+    gasPrice = await getGasPrice(20n)
 
     const nameNpp = 'NormalizedPriceProvider'
     const outNpp = JSON.parse(fs.readFileSync(`./out/${nameNpp}.sol/${nameNpp}.json`, 'utf8'))
@@ -81,7 +84,7 @@ async function deployProvider(provider: AbstractProvider, signer: ethers.Wallet,
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        await verifyContractUntilSuccess(addressNpp, nameNpp, chainId, POLYGONSCAN_API_KEY)
+        await verifyContractUntilSuccess(addressNpp, nameNpp)
     }
 
     console.log('\n----- Adding TwapV3 to NormalizedPriceProvider as oracle source -----\n');
@@ -94,9 +97,9 @@ async function deployProvider(provider: AbstractProvider, signer: ethers.Wallet,
     console.log('----- TwapV3 added -----');
 }
 
-async function deployDimoCredit(provider: AbstractProvider, signer: ethers.Wallet, verifyContract: boolean = false) {
-    const gasPrice = await getGasPrice(20n, provider)
-    const { name, chainId } = await provider.getNetwork();
+async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+    const gasPrice = await getGasPrice(20n)
+    const { name } = await ethers.provider.getNetwork();
 
     const instances = getAddresses();
 
@@ -108,7 +111,7 @@ async function deployDimoCredit(provider: AbstractProvider, signer: ethers.Walle
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8'))
     const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
-    const dimoCredit: ethers.BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, { gasPrice: gasPrice })
+    const dimoCredit: BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, { gasPrice: gasPrice })
     await dimoCredit.waitForDeployment()
     const addressDc = await dimoCredit.getAddress()
     console.log(`DimoCredit contract deployed to ${addressDc}`);
@@ -118,14 +121,13 @@ async function deployDimoCredit(provider: AbstractProvider, signer: ethers.Walle
 
     if (verifyContract) {
         const encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
-        const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY as string
-        await verifyContractUntilSuccess(addressDc, nameDc, chainId, POLYGONSCAN_API_KEY, encodeArgsDc)
+        await verifyContractUntilSuccess(addressDc, nameDc, encodeArgsDc)
     }
 }
 
-async function deployLicenseAccountFactory(provider: AbstractProvider, signer: ethers.Wallet, verifyContract: boolean = false) {
-    const gasPrice = await getGasPrice(20n, provider)
-    const { name, chainId } = await provider.getNetwork();
+async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+    const gasPrice = await getGasPrice(20n)
+    const { name } = await ethers.provider.getNetwork();
     const instances = getAddresses();
 
     console.log('\n----- Deploying LicenseAccountFactory contract -----\n');
@@ -133,7 +135,7 @@ async function deployLicenseAccountFactory(provider: AbstractProvider, signer: e
     const nameLaf = 'LicenseAccountFactory';
     const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
     const factoryLaf = new ethers.ContractFactory(outLaf.abi, outLaf.bytecode.object, signer)
-    const licenseAccountFactory: ethers.BaseContract = await factoryLaf.deploy({ gasPrice: gasPrice })
+    const licenseAccountFactory: BaseContract = await factoryLaf.deploy({ gasPrice: gasPrice })
     await licenseAccountFactory.waitForDeployment();
     const addressLaf = await licenseAccountFactory.getAddress();
     console.log(`LicenseAccountFactory contract deployed to ${addressLaf}`);
@@ -142,16 +144,15 @@ async function deployLicenseAccountFactory(provider: AbstractProvider, signer: e
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY as string
-        await verifyContractUntilSuccess(addressLaf, nameLaf, chainId, POLYGONSCAN_API_KEY)
+        await verifyContractUntilSuccess(addressLaf, nameLaf)
     }
 }
 
-async function deployDevLicense(provider: AbstractProvider, signer: ethers.Wallet, verifyContract: boolean = false) {
+async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boolean = false) {
     const instances = getAddresses();
 
-    let gasPrice = await getGasPrice(20n, provider)
-    const { name, chainId } = await provider.getNetwork();
+    let gasPrice = await getGasPrice(20n)
+    const { name } = await ethers.provider.getNetwork();
 
     const addressReceiver = instances[name].Receiver;
     const addressLaf = instances[name].LicenseAccountFactory;
@@ -160,38 +161,42 @@ async function deployDevLicense(provider: AbstractProvider, signer: ethers.Walle
     const addressDc = instances[name].DimoCredit;
     const licenseCostInUsd = C.licenseCostInUsd;
 
-    console.log('\n----- Deploying TwapV3 contract -----\n');
+    console.log('\n----- Deploying DevLicenseDimo contract -----\n');
 
     const nameDl = 'DevLicenseDimo';
     const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8'))
+    const outERC1967Proxy = JSON.parse(fs.readFileSync(`./out/ERC1967Proxy.sol/ERC1967Proxy.json`, 'utf8'))
     const factoryDl = new ethers.ContractFactory(outDl.abi, outDl.bytecode.object, signer)
-    const devLicense: ethers.BaseContract = await factoryDl.deploy(
+    const factoryProxy = new ethers.ContractFactory(outERC1967Proxy.abi, outERC1967Proxy.bytecode.object, signer)
+
+    const impl = await factoryDl.deploy({ gasPrice: gasPrice });
+    await impl.waitForDeployment();
+    const addressImplDl = await impl.getAddress();
+
+    const proxy = await factoryProxy.deploy(addressImplDl, "0x", { gasPrice: gasPrice });
+    await proxy.waitForDeployment();
+
+    const devLicenseDimo: any = impl.attach(await proxy.getAddress());
+    await devLicenseDimo.initialize(
         addressReceiver,
         addressLaf,
         addressNpp,
         addressDimoToken,
         addressDc,
         licenseCostInUsd,
-        { gasPrice: gasPrice }
+        getDevLicenseMetaImage(),
+        C.METADATA_DESCRIPTION
     )
-    await devLicense.waitForDeployment();
-    const addressDl = await devLicense.getAddress();
+
+    const addressDl = await proxy.getAddress();
     console.log(`DevLicenseDimo contract deployed to ${addressDl}`);
 
-    instances[name].DevLicenseDimo = addressDl;
+    instances[name].DevLicenseDimo.proxy = addressDl;
+    instances[name].DevLicenseDimo.implementation = await impl.getAddress();
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        const encodeArgsDl = factoryDl.interface.encodeDeploy([
-            addressReceiver,
-            addressLaf,
-            addressNpp,
-            addressDimoToken,
-            addressDc,
-            licenseCostInUsd
-        ])
-        const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY as string
-        await verifyContractUntilSuccess(addressDl, nameDl, chainId, POLYGONSCAN_API_KEY, encodeArgsDl)
+        await verifyContractUntilSuccess(addressDl, nameDl)
     }
 
     console.log('\n----- Setting LicenseAccountFactory to DevLicenseDimo -----\n');
@@ -204,16 +209,19 @@ async function deployDevLicense(provider: AbstractProvider, signer: ethers.Walle
     console.log('----- LicenseAccountFactory set -----');
 }
 
-async function verifyContractUntilSuccess(address: any, name: any, chainId: any, apiKey: any, arg?: any) {
+async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any) {
+    const { chainId } = await ethers.provider.getNetwork();
+    const apiKey = process.env.POLYGONSCAN_API_KEY as string;
+
     return new Promise((resolve, _) => {
 
-        console.log(`\n----- Verifying ${name} contract at ${address} -----\n`);
+        console.log(`\n----- Verifying ${contractName} contract at ${address} -----\n`);
 
         let command: string;
         if (!arg) {
-            command = `forge verify-contract ${address} ${name} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
+            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
         } else {
-            command = `forge verify-contract ${address} ${name} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg}`;
+            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg}`;
         }
 
         const attemptVerification = () => {
@@ -242,51 +250,13 @@ async function verifyContractUntilSuccess(address: any, name: any, chainId: any,
     });
 }
 
-function getNetwork(): string {
-    let network: string;
-
-    const args = process.argv.slice(2);
-    const networkIndex = args.indexOf('--network');
-    if (networkIndex !== -1 && networkIndex + 1 < args.length) {
-        network = args[networkIndex + 1];
-        if (!['polygon', 'amoy'].includes(network)) {
-            throw new Error('Invalid --network specified');
-        }
-    } else {
-        throw new Error('--network not specified');
-    }
-
-    return network;
-}
-
-function getProvider(network: string): AbstractProvider {
-    let url: string;
-    switch (network) {
-        case 'polygon':
-            url = process.env.POLYGON_URL as string;
-            break;
-        case 'amoy':
-            url = process.env.AMOY_URL as string;
-            break;
-        default:
-            throw Error('Invalid network');
-    }
-
-    return ethers.getDefaultProvider(url)
-}
-
 async function main() {
-    const network = getNetwork();
-    const provider = getProvider(network);
+    const [signer] = await ethers.getSigners();
 
-    const key: string = process.env.PRIVATE_KEY as string
-    const wallet = new ethers.Wallet(key)
-    const signer = wallet.connect(provider)
-
-    await deployProvider(provider, signer);
-    await deployDimoCredit(provider, signer);
-    await deployLicenseAccountFactory(provider, signer);
-    await deployDevLicense(provider, signer);
+    await deployProvider(signer);
+    await deployDimoCredit(signer);
+    await deployLicenseAccountFactory(signer);
+    await deployDevLicense(signer);
 }
 
 main().catch((error) => {

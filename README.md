@@ -25,16 +25,10 @@ forge doc --serve --port 40000
 
 ## Deployment Script
 
-Using `TestToken` instead of `$DIMO`.
-
-```
-npx ts-node ./script/test_deploy.ts
-```
-
 Using `$DIMO`.
 
 ```
-npx ts-node ./script/prod_deploy.ts
+npx ts-node ./script/prod_deploy_upgrade.ts
 ```
 
 ## Normalized Price Provider
