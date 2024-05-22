@@ -72,10 +72,13 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         address provider_,
         address dimoTokenAddress_,
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd_
+        uint256 licenseCostInUsd_,
+        string calldata image_,
+        string calldata description_
     ) external initializer {
         __UUPSUpgradeable_init();
-        __DevLicenseMeta_init(
+        __DevLicenseMeta_init(image_, description_);
+        __DevLicenseCore_init(
             receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
         );
 
@@ -84,32 +87,6 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         $.symbol = "DLX";
         $.name = "DIMO Developer License";
     }
-
-    // /**
-    //  * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
-    //  */
-    // constructor(
-    //     address receiver_,
-    //     address licenseAccountFactory_,
-    //     address provider_,
-    //     address dimoTokenAddress_,
-    //     address dimoCreditAddress_,
-    //     uint256 licenseCostInUsd_
-    // )
-    //     DevLicenseMeta(
-    //         receiver_,
-    //         licenseAccountFactory_,
-    //         provider_,
-    //         dimoTokenAddress_,
-    //         dimoCreditAddress_,
-    //         licenseCostInUsd_
-    //     )
-    // {
-    //     DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
-
-    //     $.symbol = "DLX";
-    //     $.name = "DIMO Developer License";
-    // }
 
     // TODO Documentation
     function name() public view returns (string memory) {

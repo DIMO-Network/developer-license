@@ -21,6 +21,10 @@ import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
+    string constant IMAGE_SVG =
+        '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
+    string constant METADATA_DESCRIPTION =
+        "This is an NFT collection minted for developers building on the DIMO Network";
 
     NormalizedPriceProvider provider;
 
@@ -56,7 +60,16 @@ contract IntegrationStakeTest is Test, ForkProvider {
             "DevLicenseDimo.sol",
             abi.encodeCall(
                 DevLicenseDimo.initialize,
-                (address(0x888), address(laf), address(provider), address(dimoToken), address(dimoCredit), 1 ether)
+                (
+                    address(0x888),
+                    address(laf),
+                    address(provider),
+                    address(dimoToken),
+                    address(dimoCredit),
+                    1 ether,
+                    IMAGE_SVG,
+                    METADATA_DESCRIPTION
+                )
             ),
             opts
         );

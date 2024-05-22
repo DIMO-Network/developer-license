@@ -56,41 +56,9 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     /**
      * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
      */
-    function __DevLicenseStake_init(
-        address receiver_,
-        address licenseAccountFactory_,
-        address provider_,
-        address dimoTokenAddress_,
-        address dimoCreditAddress_,
-        uint256 licenseCostInUsd_
-    ) internal onlyInitializing {
+    function __DevLicenseStake_init() internal onlyInitializing {
         __ReentrancyGuard_init();
-        __DevLicenseCore_init(
-            receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
-        );
     }
-
-    // /**
-    //  * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
-    //  */
-    // constructor(
-    //     address receiver_,
-    //     address licenseAccountFactory_,
-    //     address provider_,
-    //     address dimoTokenAddress_,
-    //     address dimoCreditAddress_,
-    //     uint256 licenseCostInUsd_
-    // )
-    //     DevLicenseCore(
-    //         receiver_,
-    //         licenseAccountFactory_,
-    //         provider_,
-    //         dimoTokenAddress_,
-    //         dimoCreditAddress_,
-    //         licenseCostInUsd_
-    //     )
-    // // ReentrancyGuard()
-    // {}
 
     // TODO Documentation
     function stakeTotal() public view returns (uint256) {

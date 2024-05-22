@@ -17,6 +17,10 @@ import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
 
 contract BaseSetUp is Test {
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
+    string constant IMAGE_SVG =
+        '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
+    string constant METADATA_DESCRIPTION =
+        "This is an NFT collection minted for developers building on the DIMO Network";
 
     ERC20 public dimoToken;
     DevLicenseDimo public license;
@@ -73,7 +77,9 @@ contract BaseSetUp is Test {
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
-                    licenseCostInUsd1e18
+                    licenseCostInUsd1e18,
+                    IMAGE_SVG,
+                    METADATA_DESCRIPTION
                 )
             ),
             opts
