@@ -12,6 +12,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * Implements locking of tokens against licenses and facilitates staking rewards and penalties.
  * Utilizes ReentrancyGuard from OpenZeppelin to prevent reentrancy attacks.
  * For more information on DIMO tokenomics: https://dimo.zone/news/on-dimo-tokenomics
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicenseCore {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseStake
@@ -21,7 +22,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         /// @notice Maps a tokenId to its frozen status, where true indicates it is frozen.
         mapping(uint256 tokenId => bool isFrozen) _frozen; // TODO replace by bitmap?
         /// @notice Maps a tokenId to the amount of DIMO tokens staked against it.
-        mapping(uint256 tokenId => uint256 stakedAmount) _stakeLicense;
+        mapping(uint256 tokenId => uint256 stakedAmount) _stakedBalances;
     }
 
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseStake")) - 1)) & ~bytes32(uint256(0xff))
@@ -60,19 +61,19 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         __ReentrancyGuard_init();
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the total amount of $DIMO staked in the contract
+     */
     function stakeTotal() public view returns (uint256) {
         return _getDevLicenseStakeStorage()._stakeTotal;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns if a token Id is frozen
+     * @param tokenId The unique identifier for the license token
+     */
     function frozen(uint256 tokenId) public view returns (bool) {
         return _getDevLicenseStakeStorage()._frozen[tokenId];
-    }
-
-    // TODO Documentation
-    function stakeLicense(uint256 tokenId) public view returns (uint256) {
-        return _getDevLicenseStakeStorage()._stakeLicense[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
 
         dlcs._dimoToken.transferFrom(msg.sender, address(this), amount);
 
-        $._stakeLicense[tokenId] += amount;
+        $._stakedBalances[tokenId] += amount;
         $._stakeTotal += amount;
 
         emit StakeDeposit(tokenId, msg.sender, amount);
@@ -111,7 +112,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         require(amount > 0, INVALID_PARAM);
         require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
         require(!$._frozen[tokenId], "DevLicenseDimo: funds inaccessible");
-        require($._stakeLicense[tokenId] >= amount, INVALID_PARAM);
+        require($._stakedBalances[tokenId] >= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
         _getDevLicenseCoreStorage()._dimoToken.transferFrom(address(this), msg.sender, amount);
@@ -134,10 +135,10 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     /**
      * @notice Returns the amount of DIMO tokens staked against a specific license.
      * @param tokenId The ID of the license.
-     * @return licenseStaked_ The amount of tokens staked against the license.
+     * @return stakedBalance The amount of tokens staked against the license.
      */
-    function licenseStaked(uint256 tokenId) public view returns (uint256 licenseStaked_) {
-        licenseStaked_ = _getDevLicenseStakeStorage()._stakeLicense[tokenId];
+    function stakedBalances(uint256 tokenId) public view returns (uint256 stakedBalance) {
+        stakedBalance = _getDevLicenseStakeStorage()._stakedBalances[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -152,7 +153,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     function _transferOut(uint256 tokenId, uint256 amount) private {
         DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
 
-        $._stakeLicense[tokenId] -= amount;
+        $._stakedBalances[tokenId] -= amount;
         $._stakeTotal -= amount;
     }
 
@@ -169,7 +170,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
 
         $._frozen[tokenId] = frozen_;
-        emit AssetFreezeUpdate(tokenId, $._stakeLicense[tokenId], frozen_);
+        emit AssetFreezeUpdate(tokenId, $._stakedBalances[tokenId], frozen_);
     }
 
     /**
@@ -178,7 +179,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
      * @param amount The amount of staked assets to forfeit.
      */
     function adminBurnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_getDevLicenseStakeStorage()._stakeLicense[tokenId] >= amount, INVALID_PARAM);
+        require(_getDevLicenseStakeStorage()._stakedBalances[tokenId] >= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
 
@@ -193,7 +194,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
      * @param to The address to which the assets are reallocated.
      */
     function adminReallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_getDevLicenseStakeStorage()._stakeLicense[tokenId] <= amount, INVALID_PARAM);
+        require(_getDevLicenseStakeStorage()._stakedBalances[tokenId] <= amount, INVALID_PARAM);
 
         _transferOut(tokenId, amount);
 

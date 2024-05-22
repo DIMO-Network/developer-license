@@ -16,8 +16,7 @@ contract ProviderTest is Test {
     NormalizedPriceProvider provider;
 
     function setUp() public {
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
+        vm.createSelectFork(vm.envString("POLYGON_URL"), 50573735);
 
         twap = new TwapV3();
         testOracleSource = new TestOracleSource();

@@ -10,6 +10,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 /**
  * @title DevLicenseMeta
  * @dev Extends DevLicenseStake to add metadata functionality, including image and description handling.
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseMeta is Initializable, DevLicenseStake {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseMeta
@@ -45,22 +46,30 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
         $._descriptionContract = description;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the image token
+     */
     function imageToken() external view returns (string memory) {
         return _getDevLicenseMetaStorage()._imageToken;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the image contract
+     */
     function imageContract() external view returns (string memory) {
         return _getDevLicenseMetaStorage()._imageContract;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the token description
+     */
     function descriptionToken() external view returns (string memory) {
         return _getDevLicenseMetaStorage()._descriptionToken;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the contract description
+     */
     function descriptionContract() external view returns (string memory) {
         return _getDevLicenseMetaStorage()._descriptionContract;
     }

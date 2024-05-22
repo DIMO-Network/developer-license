@@ -26,12 +26,8 @@ contract TwapIntervalTest is Test {
     TwapV3 twap;
 
     function setUp() public {
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-
         uint256 marchTwnetyFourPmEst = 54889372;
-        vm.createSelectFork(
-            "https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", marchTwnetyFourPmEst
-        );
+        vm.createSelectFork(vm.envString("POLYGON_URL"), marchTwnetyFourPmEst);
 
         // 1 USDC ~ 1.00428 MATIC
         // 1 DIMO ~ 0.44209 MATIC

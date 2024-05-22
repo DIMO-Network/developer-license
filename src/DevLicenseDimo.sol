@@ -30,6 +30,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * @dev Implements the DIMO Developer License system, enabling the minting, management, and revocation of developer
  *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
@@ -88,12 +89,16 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         $.name = "DIMO Developer License";
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the ERC721 name
+     */
     function name() public view returns (string memory) {
         return _getDevLicenseDimoStorage().name;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the ERC721 symbol
+     */
     function symbol() public view returns (string memory) {
         return _getDevLicenseDimoStorage().symbol;
     }
@@ -230,7 +235,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
         DevLicenseStakeStorage storage dlss = _getDevLicenseStakeStorage();
 
-        require(dlss._stakeLicense[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
+        require(dlss._stakedBalances[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
 
         address tokenOwner = dlcs._ownerOf[tokenId];
         delete dlcs._ownerOf[tokenId];

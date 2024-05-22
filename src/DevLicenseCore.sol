@@ -13,6 +13,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 /**
  * @title Developer License Core
  * @dev Implements the core functionalities for managing developer licenses within the DIMO ecosystem.
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  * @notice This contract manages the creation, administration, and validation of developer licenses,
  *         integrating with DIMO's token and credit systems.
  */
@@ -33,9 +34,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         address _receiver;
         mapping(uint256 tokenId => address owner) _ownerOf;
         mapping(uint256 tokenId => address clientId) _tokenIdToClientId;
+        mapping(address clientId => uint256 tokenId) _clientIdToTokenId;
         mapping(uint256 tokenId => bytes32 licenseAlias) _tokenIdToAlias;
         mapping(bytes32 licenseAlias => uint256 tokendId) _aliasToTokenId;
-        mapping(address clientId => uint256 tokenId) _clientIdToTokenId;
         /// @notice Mapping from license ID to signer addresses with their expiration timestamps.
         mapping(uint256 tokenId => mapping(address signer => uint256 expiration)) _signers;
     }
@@ -133,67 +134,92 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the DIMO Token address
+     */
     function dimoToken() public view returns (address) {
         return address(_getDevLicenseCoreStorage()._dimoToken);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the DIMO Credit address
+     */
     function dimoCredit() public view returns (address) {
         return address(_getDevLicenseCoreStorage()._dimoCredit);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the Provider address
+     */
     function provider() public view returns (address) {
         return address(_getDevLicenseCoreStorage()._provider);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the License Account Factory address
+     */
     function licenseAccountFactory() public view returns (address) {
         return address(_getDevLicenseCoreStorage()._licenseAccountFactory);
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the period of validity of a Developer License
+     */
     function periodValidity() public view returns (uint256) {
         return _getDevLicenseCoreStorage()._periodValidity;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the Developer License cost in USD (1e18 decimal places)
+     */
     function licenseCostInUsd1e18() public view returns (uint256) {
         return _getDevLicenseCoreStorage()._licenseCostInUsd1e18;
     }
 
-    // TODO Documentation
-    function counter() public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._counter;
-    }
-
-    // TODO Documentation
+    /**
+     * @notice Returns the Receiver address
+     */
     function receiver() public view returns (address) {
         return _getDevLicenseCoreStorage()._receiver;
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the Client Id address associated to a Developer License token Id
+     * @param tokenId The unique identifier for the license token
+     */
     function tokenIdToClientId(uint256 tokenId) public view returns (address) {
         return _getDevLicenseCoreStorage()._tokenIdToClientId[tokenId];
     }
 
-    // TODO Documentation
-    function tokenIdToAlias(uint256 tokenId) public view returns (bytes32) {
-        return _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
-    }
-
-    // TODO Documentation
-    function aliasToTokenId(bytes32 licenseAlias) public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
-    }
-
-    // TODO Documentation
+    /**
+     * @notice Returns the Developer License token Id associated to a Client Id
+     * @param clientId The client Id address
+     */
     function clientIdToTokenId(address clientId) public view returns (uint256) {
         return _getDevLicenseCoreStorage()._clientIdToTokenId[clientId];
     }
 
-    // TODO Documentation
+    /**
+     * @notice Returns the alias associated to a Developer License token Id
+     * @param tokenId The unique identifier for the license token
+     */
+    function tokenIdToAlias(uint256 tokenId) public view returns (bytes32) {
+        return _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
+    }
+
+    /**
+     * @notice Returns the Developer License token Id associated to an alias
+     * @param licenseAlias The developer license alias
+     */
+    function aliasToTokenId(bytes32 licenseAlias) public view returns (uint256) {
+        return _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
+    }
+
+    /**
+     * @notice Returns the expiration timestamp of a signer
+     * @param tokenId The unique identifier for the license token
+     * @param signer The unique identifier for the license token
+     */
     function signers(uint256 tokenId, address signer) public view returns (uint256) {
         return _getDevLicenseCoreStorage()._signers[tokenId][signer];
     }

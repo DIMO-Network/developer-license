@@ -42,8 +42,7 @@ contract RevokeBurnReallocateTest is Test {
         _user1 = address(0x888);
         _user2 = address(0x999);
 
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
+        vm.createSelectFork(vm.envString("POLYGON_URL"), 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         provider = new NormalizedPriceProvider();
@@ -169,7 +168,7 @@ contract RevokeBurnReallocateTest is Test {
         license.lock(tokenId, amount99);
         vm.stopPrank();
 
-        uint256 amount00 = license.licenseStaked(tokenId);
+        uint256 amount00 = license.stakedBalances(tokenId);
         uint256 amount01 = dimoToken.balanceOf(address(license));
         assertEq(amount00, amount01);
 
@@ -182,7 +181,7 @@ contract RevokeBurnReallocateTest is Test {
         license.adminReallocate(tokenId, amount00, _user2);
         vm.stopPrank();
 
-        uint256 amount02 = license.licenseStaked(tokenId);
+        uint256 amount02 = license.stakedBalances(tokenId);
         assertEq(amount02, 0);
 
         uint256 amount0x = dimoToken.balanceOf(_user2);

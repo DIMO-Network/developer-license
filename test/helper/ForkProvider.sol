@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {Test} from "forge-std/Test.sol";
+
 /**
  */
-contract ForkProvider {
+contract ForkProvider is Test {
     string public _url;
 
     constructor() {
-        //_url = 'https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm';
-        _url = "https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28";
+        _url = vm.envString("POLYGON_URL");
     }
 }
