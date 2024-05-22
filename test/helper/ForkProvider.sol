@@ -9,6 +9,6 @@ contract ForkProvider is Test {
     string public _url;
 
     constructor() {
-        _url = vm.envString("POLYGON_URL");
+        _url = "https://polygon-rpc.com";
     }
 }

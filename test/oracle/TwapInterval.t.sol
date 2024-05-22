@@ -27,7 +27,7 @@ contract TwapIntervalTest is Test {
 
     function setUp() public {
         uint256 marchTwnetyFourPmEst = 54889372;
-        vm.createSelectFork(vm.envString("POLYGON_URL"), marchTwnetyFourPmEst);
+        vm.createSelectFork("https://polygon-rpc.com", marchTwnetyFourPmEst);
 
         // 1 USDC ~ 1.00428 MATIC
         // 1 DIMO ~ 0.44209 MATIC

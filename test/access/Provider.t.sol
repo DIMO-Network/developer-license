@@ -16,7 +16,7 @@ contract ProviderTest is Test {
     NormalizedPriceProvider provider;
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("POLYGON_URL"), 50573735);
+        vm.createSelectFork("https://polygon-rpc.com", 50573735);
 
         twap = new TwapV3();
         testOracleSource = new TestOracleSource();
