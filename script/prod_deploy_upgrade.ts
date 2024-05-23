@@ -103,6 +103,7 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
 
     const instances = getAddresses();
 
+    const addressDimoToken = instances[name].DimoToken;
     const addressReceiver = instances[name].Receiver;
     const addressNpp = instances[name].NormalizedPriceProvider;
 
@@ -110,18 +111,37 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
 
     const nameDc = 'DimoCredit';
     const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8'))
+    const outERC1967Proxy = JSON.parse(fs.readFileSync(`./out/ERC1967Proxy.sol/ERC1967Proxy.json`, 'utf8'))
     const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
-    const dimoCredit: BaseContract = await factoryDc.deploy(addressReceiver, addressNpp, { gasPrice: gasPrice })
-    await dimoCredit.waitForDeployment()
-    const addressDc = await dimoCredit.getAddress()
+    const factoryProxy = new ethers.ContractFactory(outERC1967Proxy.abi, outERC1967Proxy.bytecode.object, signer)
+
+    const impl = await factoryDc.deploy({ gasPrice: gasPrice });
+    await impl.waitForDeployment();
+    const addressImplDl = await impl.getAddress();
+
+    const proxy = await factoryProxy.deploy(addressImplDl, "0x", { gasPrice: gasPrice });
+    await proxy.waitForDeployment();
+
+    const dimoCredit: any = impl.attach(await proxy.getAddress());
+    await dimoCredit.initialize(
+        C.DIMO_CREDIT_NAME,
+        C.DIMO_CREDIT_SYMBOL,
+        addressDimoToken,
+        addressReceiver,
+        addressNpp,
+        C.DIMO_CREDIT_PERIOD_VALIDITY,
+        C.DIMO_CREDIT_RATE_IN_WEI
+    )
+
+    const addressDc = await proxy.getAddress();
     console.log(`DimoCredit contract deployed to ${addressDc}`);
 
-    instances[name].DimoCredit = addressDc;
+    instances[name].DimoCredit.proxy = addressDc;
+    instances[name].DimoCredit.implementation = await impl.getAddress();
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        const encodeArgsDc = factoryDc.interface.encodeDeploy([addressReceiver, addressNpp])
-        await verifyContractUntilSuccess(addressDc, nameDc, encodeArgsDc)
+        await verifyContractUntilSuccess(addressDc, nameDc)
     }
 }
 
@@ -158,7 +178,7 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     const addressLaf = instances[name].LicenseAccountFactory;
     const addressNpp = instances[name].NormalizedPriceProvider;
     const addressDimoToken = instances[name].DimoToken;
-    const addressDc = instances[name].DimoCredit;
+    const addressDc = instances[name].DimoCredit.proxy;
     const licenseCostInUsd = C.licenseCostInUsd;
 
     console.log('\n----- Deploying DevLicenseDimo contract -----\n');

@@ -12,3 +12,8 @@ export const PROVIDER_ADMIN_ROLE = _hashRole("PROVIDER_ADMIN_ROLE");
 export const ORACLE_ADMIN_ROLE = _hashRole("ORACLE_ADMIN_ROLE");
 
 export const METADATA_DESCRIPTION = "This is an NFT collection minted for developers building on the DIMO Network";
+
+export const DIMO_CREDIT_SYMBOL = "DCX";
+export const DIMO_CREDIT_NAME = "DIMO Credit";
+export const DIMO_CREDIT_PERIOD_VALIDITY = "86400"; // 1 day
+export const DIMO_CREDIT_RATE_IN_WEI = "1000000000000000" // 0.001 ether
