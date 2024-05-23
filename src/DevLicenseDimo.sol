@@ -36,9 +36,9 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
     struct DevLicenseDimoStorage {
         /// @notice The name of the token (license).
-        string name;
+        string _name;
         /// @notice The symbol of the token (license).
-        string symbol;
+        string _symbol;
         /// @dev Tracks the enabled status of redirect URIs for each tokenId.
         mapping(uint256 tokenId => mapping(string redirectUri => bool enabled)) _redirectUris; // TODO replace by bitmap?
     }
@@ -64,6 +64,11 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /// @notice Emitted when a license is issued to an owner and associated with a clientId.
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
      */
@@ -85,22 +90,22 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
 
         DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
 
-        $.symbol = "DLX";
-        $.name = "DIMO Developer License";
+        $._symbol = "DLX";
+        $._name = "DIMO Developer License";
     }
 
     /**
      * @notice Returns the ERC721 name
      */
     function name() public view returns (string memory) {
-        return _getDevLicenseDimoStorage().name;
+        return _getDevLicenseDimoStorage()._name;
     }
 
     /**
      * @notice Returns the ERC721 symbol
      */
     function symbol() public view returns (string memory) {
-        return _getDevLicenseDimoStorage().symbol;
+        return _getDevLicenseDimoStorage()._symbol;
     }
 
     /*//////////////////////////////////////////////////////////////

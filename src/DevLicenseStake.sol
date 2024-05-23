@@ -54,6 +54,11 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
 
     string INVALID_PARAM = "DevLicenseDimo: invalid param";
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
      */

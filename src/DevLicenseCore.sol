@@ -93,6 +93,11 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @notice Initializes a new instance of the DevLicenseCore contract.
      * @dev Sets up the contract with the necessary addresses and parameters for operation,

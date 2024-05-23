@@ -31,12 +31,19 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
         }
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Sets initial metadata for tokens and the contract itself.
      * @param image String of a SVG for contract and token URIS
      * @param description String with a description for contract and token URIs
      */
     function __DevLicenseMeta_init(string calldata image, string calldata description) internal onlyInitializing {
+        __DevLicenseStake_init();
+
         DevLicenseMetaStorage storage $ = _getDevLicenseMetaStorage();
 
         $._imageToken = Base64.encode(bytes(image));
