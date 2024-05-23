@@ -45,6 +45,16 @@ async function getGasPrice(bump: bigint = 20n): Promise<bigint> {
     return (price * bump / 100n + price);
 }
 
+function getContractFactory(signer: HardhatEthersSigner, contractName: string) {
+    const contractJson = JSON.parse(fs.readFileSync(`./out/${contractName}.sol/${contractName}.json`, 'utf8'))
+    return new ethers.ContractFactory(contractJson.abi, contractJson.bytecode.object, signer)
+}
+
+function getContractInstance(signer: HardhatEthersSigner, contractName: string, contractAddress: string) {
+    const contractJson = JSON.parse(fs.readFileSync(`./out/${contractName}.sol/${contractName}.json`, 'utf8'))
+    return new ethers.Contract(contractAddress, contractJson.abi, signer)
+}
+
 async function deployProvider(signer: HardhatEthersSigner, verifyContract: boolean = false) {
     let gasPrice = await getGasPrice(20n)
     const { name } = await ethers.provider.getNetwork();
@@ -53,8 +63,7 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
     console.log('\n----- Deploying TwapV3 contract -----\n');
 
     const nameTwap = 'TwapV3'
-    const outTwap = JSON.parse(fs.readFileSync(`./out/${nameTwap}.sol/${nameTwap}.json`, 'utf8'))
-    const setTwap = new ethers.ContractFactory(outTwap.abi, outTwap.bytecode.object, signer)
+    const setTwap = getContractFactory(signer, nameTwap)
     const twap = await setTwap.deploy({ gasPrice: gasPrice })
     await twap.waitForDeployment()
     const addressTwap = await twap.getAddress()
@@ -72,8 +81,7 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
     gasPrice = await getGasPrice(20n)
 
     const nameNpp = 'NormalizedPriceProvider'
-    const outNpp = JSON.parse(fs.readFileSync(`./out/${nameNpp}.sol/${nameNpp}.json`, 'utf8'))
-    const setNpp = new ethers.ContractFactory(outNpp.abi, outNpp.bytecode.object, signer)
+    const setNpp = getContractFactory(signer, nameNpp)
     const normalizedPriceProvider = await setNpp.deploy({ gasPrice: gasPrice })
     await normalizedPriceProvider.waitForDeployment()
     const addressNpp = await normalizedPriceProvider.getAddress()
@@ -89,7 +97,7 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
 
     console.log('\n----- Adding TwapV3 to NormalizedPriceProvider as oracle source -----\n');
 
-    const contractNpp = new ethers.Contract(addressNpp, outNpp.abi, signer)
+    const contractNpp = getContractInstance(signer, nameNpp, addressNpp)
     const txn0x = await contractNpp.grantRole(C.PROVIDER_ADMIN_ROLE, signer.address)
     await txn0x.wait()
     await contractNpp.addOracleSource(addressTwap)
@@ -110,10 +118,8 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
     console.log('\n----- Deploying DimoCredit contract -----\n');
 
     const nameDc = 'DimoCredit';
-    const outDc = JSON.parse(fs.readFileSync(`./out/${nameDc}.sol/${nameDc}.json`, 'utf8'))
-    const outERC1967Proxy = JSON.parse(fs.readFileSync(`./out/ERC1967Proxy.sol/ERC1967Proxy.json`, 'utf8'))
-    const factoryDc = new ethers.ContractFactory(outDc.abi, outDc.bytecode.object, signer)
-    const factoryProxy = new ethers.ContractFactory(outERC1967Proxy.abi, outERC1967Proxy.bytecode.object, signer)
+    const factoryDc = getContractFactory(signer, nameDc)
+    const factoryProxy = getContractFactory(signer, 'ERC1967Proxy')
 
     const impl = await factoryDc.deploy({ gasPrice: gasPrice });
     await impl.waitForDeployment();
@@ -153,8 +159,7 @@ async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyCo
     console.log('\n----- Deploying LicenseAccountFactory contract -----\n');
 
     const nameLaf = 'LicenseAccountFactory';
-    const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
-    const factoryLaf = new ethers.ContractFactory(outLaf.abi, outLaf.bytecode.object, signer)
+    const factoryLaf = getContractFactory(signer, nameLaf)
     const licenseAccountFactory: BaseContract = await factoryLaf.deploy({ gasPrice: gasPrice })
     await licenseAccountFactory.waitForDeployment();
     const addressLaf = await licenseAccountFactory.getAddress();
@@ -184,10 +189,8 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     console.log('\n----- Deploying DevLicenseDimo contract -----\n');
 
     const nameDl = 'DevLicenseDimo';
-    const outDl = JSON.parse(fs.readFileSync(`./out/${nameDl}.sol/${nameDl}.json`, 'utf8'))
-    const outERC1967Proxy = JSON.parse(fs.readFileSync(`./out/ERC1967Proxy.sol/ERC1967Proxy.json`, 'utf8'))
-    const factoryDl = new ethers.ContractFactory(outDl.abi, outDl.bytecode.object, signer)
-    const factoryProxy = new ethers.ContractFactory(outERC1967Proxy.abi, outERC1967Proxy.bytecode.object, signer)
+    const factoryDl = getContractFactory(signer, nameDl)
+    const factoryProxy = getContractFactory(signer, 'ERC1967Proxy')
 
     const impl = await factoryDl.deploy({ gasPrice: gasPrice });
     await impl.waitForDeployment();
@@ -227,6 +230,38 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     await contractLaf.setLicense(addressDl)
 
     console.log('----- LicenseAccountFactory set -----');
+}
+
+async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
+    const instances = getAddresses();
+    const { name } = await ethers.provider.getNetwork();
+
+    const devLicenseDimoInstance = getContractInstance(signer, 'DevLicenseDimo', instances[name].DevLicenseDimo.proxy)
+    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
+    const providerInstance = getContractInstance(signer, 'NormalizedPriceProvider', instances[name].NormalizedPriceProvider)
+
+    console.log(`\n----- Granting roles to ${admin} -----\n`)
+
+    await devLicenseDimoInstance.grantRole(C.LICENSE_ADMIN_ROLE, admin)
+    console.log(`Dev License DIMO: LICENSE_ADMIN_ROLE (${C.LICENSE_ADMIN_ROLE}) granted`)
+    await devLicenseDimoInstance.grantRole(C.REVOKER_ROLE, admin)
+    console.log(`Dev License DIMO: REVOKER_ROLE (${C.REVOKER_ROLE}) granted`)
+    await devLicenseDimoInstance.grantRole(C.UPGRADER_ROLE, admin)
+    console.log(`Dev License DIMO: UPGRADER_ROLE (${C.UPGRADER_ROLE}) granted`)
+
+    await dimoCreditInstance.grantRole(C.DC_ADMIN_ROLE, admin);
+    console.log(`DIMO Credit: DC_ADMIN_ROLE (${C.DC_ADMIN_ROLE}) granted`)
+    await dimoCreditInstance.grantRole(C.UPGRADER_ROLE, admin);
+    console.log(`DIMO Credit: UPGRADER_ROLE (${C.UPGRADER_ROLE}) granted`)
+    await dimoCreditInstance.grantRole(C.BURNER_ROLE, admin);
+    console.log(`DIMO Credit: BURNER_ROLE (${C.BURNER_ROLE}) granted`)
+
+    await providerInstance.grantRole(C.PROVIDER_ADMIN_ROLE, admin);
+    console.log(`Normalized Price Provider: PROVIDER_ADMIN_ROLE (${C.PROVIDER_ADMIN_ROLE}) granted`)
+    await providerInstance.grantRole(C.UPDATER_ROLE, admin);
+    console.log(`Normalized Price Provider: UPDATER_ROLE (${C.UPDATER_ROLE}) granted`)
+
+    console.log(`\n----- Roles granted -----`)
 }
 
 async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any) {
@@ -272,11 +307,15 @@ async function verifyContractUntilSuccess(address: any, contractName: string, ar
 
 async function main() {
     const [signer] = await ethers.getSigners();
+    const instances = getAddresses();
+    const { name } = await ethers.provider.getNetwork();
 
     await deployProvider(signer);
     await deployDimoCredit(signer);
     await deployLicenseAccountFactory(signer);
     await deployDevLicense(signer);
+
+    await grantAdminRoles(signer, instances[name].Admin);
 }
 
 main().catch((error) => {

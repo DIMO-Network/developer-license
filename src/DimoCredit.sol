@@ -79,7 +79,16 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         _disableInitializers();
     }
 
-    // TODO Documentation
+    /**
+     * @notice Initializes the contract with specified parameters
+     * @param name_ The ERC20 name
+     * @param symbol_ The ERC20 symbol
+     * @param dimoToken_ The address of the ERC20 DIMO Token
+     * @param receiver_ The address where proceeds from the sale of credits are sent
+     * @param provider_ The address of the price provider used to determine the exchange rate for DIMO Credits
+     * @param periodValidity_  The period for which a price update is considered valid
+     * @param dimoCreditRateInWei_ The exchange rate for converting DIMO to DIMO Credits
+     */
     function initialize(
         string calldata name_,
         string calldata symbol_,
@@ -95,7 +104,6 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         DimoCreditStorage storage $ = _getDimoCreditStorage();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
 
         $._dimo = IDimoToken(dimoToken_);
         $._provider = NormalizedPriceProvider(provider_);
@@ -115,7 +123,9 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         return _getDimoCreditStorage()._dimoCreditRateInWei;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the period for which a price update is considered valid
+     */
     function periodValidity() external view returns (uint256) {
         return _getDimoCreditStorage()._periodValidity;
     }
@@ -127,37 +137,52 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         return _getDimoCreditStorage()._receiver;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the DIMO Token address
+     */
     function dimoToken() external view returns (address) {
         return address(_getDimoCreditStorage()._dimo);
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the address of the price provider used to determine the exchange rate for DIMO Credits
+     */
     function provider() external view returns (address) {
         return address(_getDimoCreditStorage()._provider);
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the number of decimal places of this ERC20
+     */
     function decimals() external pure returns (uint8) {
         return 18;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the name of this ERC20
+     */
     function name() external view returns (string memory) {
         return _getDimoCreditStorage()._name;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the symbol of this ERC20
+     */
     function symbol() external view returns (string memory) {
         return _getDimoCreditStorage()._symbol;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the total supply of this ERC20
+     */
     function totalSupply() external view returns (uint256) {
         return _getDimoCreditStorage()._totalSupply;
     }
 
-    // TODO Documenetation
+    /**
+     * @notice Returns the balance of an account
+     * @param account The account address
+     */
     function balanceOf(address account) external view returns (uint256) {
         return _getDimoCreditStorage()._balanceOf[account];
     }
