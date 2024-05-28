@@ -12,8 +12,8 @@ import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 
 contract BaseSetUp is Test {
     string constant DC_NAME = "DIMO Credit";

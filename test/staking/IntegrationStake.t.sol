@@ -16,7 +16,7 @@ import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {

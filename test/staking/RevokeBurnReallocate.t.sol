@@ -9,7 +9,7 @@ import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC7
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 
 import {IERC5192} from "../../src/interface/IERC5192.sol";

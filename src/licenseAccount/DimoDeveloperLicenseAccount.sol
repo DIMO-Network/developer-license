@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
+import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
 
 /**
  * @title Dimo Developer License Account

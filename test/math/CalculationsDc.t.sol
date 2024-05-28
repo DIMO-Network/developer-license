@@ -10,7 +10,7 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 

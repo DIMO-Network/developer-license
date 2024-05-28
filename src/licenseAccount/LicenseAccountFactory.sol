@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
-import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
+import {ILicenseAccountFactory} from "../interface/ILicenseAccountFactory.sol";
 
 /**
  * @title DIMO Developer License Account Factory
