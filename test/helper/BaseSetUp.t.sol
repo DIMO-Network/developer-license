@@ -4,16 +4,17 @@ pragma solidity ^0.8.24;
 import {Test, console2} from "forge-std/Test.sol";
 
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
-import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
+import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
-import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
+import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
 
 contract BaseSetUp is Test {
     string constant DC_NAME = "DIMO Credit";
@@ -44,7 +45,7 @@ contract BaseSetUp is Test {
         vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
-        LicenseAccountFactory laf = new LicenseAccountFactory();
+        address laf = _deployLicenseAccountFactory(_admin);
 
         provider = new NormalizedPriceProvider();
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
@@ -79,7 +80,7 @@ contract BaseSetUp is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    address(laf),
+                    laf,
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -93,8 +94,22 @@ contract BaseSetUp is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        laf.setLicense(address(license));
+        LicenseAccountFactoryBeacon(laf).setDevLicenseDimo(address(license));
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(license), 1_000_000 ether);
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+        );
+
+        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
     }
 }

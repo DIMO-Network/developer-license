@@ -5,12 +5,14 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
+import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -50,7 +52,7 @@ contract CalculationsDcTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        LicenseAccountFactory factory = new LicenseAccountFactory();
+        address factory = _deployLicenseAccountFactory(_admin);
 
         licenseCostInUsd = 0;
         Options memory opts;
@@ -73,7 +75,7 @@ contract CalculationsDcTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    address(factory),
+                    factory,
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -87,7 +89,21 @@ contract CalculationsDcTest is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        factory.setLicense(address(license));
+        LicenseAccountFactoryBeacon(factory).setDevLicenseDimo(address(license));
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+        );
+
+        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
     }
 
     function test_setDimoCreditRate() public {

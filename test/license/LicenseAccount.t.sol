@@ -6,6 +6,7 @@ import {Test, console2} from "forge-std/Test.sol";
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
@@ -14,8 +15,8 @@ import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
-import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
+import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
 
 //forge test --match-path ./test/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
@@ -33,13 +34,17 @@ contract LicenseAccountTest is Test {
     IDimoToken dimoToken;
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
-    LicenseAccountFactory factory;
+    address factory;
 
+    address _admin;
     address _receiver;
 
     function setUp() public {
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
+        uint256 licenseCostInUsd1e18 = 100 ether;
+        _admin = address(0x1);
+        _receiver = address(0x888);
+
+        vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TestOracleSource testOracleSource = new TestOracleSource();
@@ -50,9 +55,7 @@ contract LicenseAccountTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        uint256 licenseCostInUsd1e18 = 100 ether;
-        _receiver = address(0x888);
-        factory = new LicenseAccountFactory();
+        factory = _deployLicenseAccountFactory(_admin);
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
@@ -74,7 +77,7 @@ contract LicenseAccountTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    address(factory),
+                    factory,
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -88,11 +91,26 @@ contract LicenseAccountTest is Test {
 
         devLicense = DevLicenseDimo(proxyDl);
 
-        factory.setLicense(address(devLicense));
+        LicenseAccountFactoryBeacon(factory).setDevLicenseDimo(address(devLicense));
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+        );
+
+        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
     }
 
     function test_initTemplateNotEffectClone() public {
-        DimoDeveloperLicenseAccount(factory._template()).initialize(1, address(0x999));
+        address beaconProxyTemplate = LicenseAccountFactoryBeacon(factory).beaconProxyTemplate();
+        DimoDeveloperLicenseAccountBeacon(beaconProxyTemplate).initialize(1, address(0x999));
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
@@ -102,7 +120,7 @@ contract LicenseAccountTest is Test {
         assertEq(tokenId00, 1);
 
         vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
-        DimoDeveloperLicenseAccount(clientId00).initialize(tokenId00, address(devLicense));
+        DimoDeveloperLicenseAccountBeacon(clientId00).initialize(tokenId00, address(devLicense));
 
         (uint256 tokenId01,) = devLicense.issueInDimo(LICENSE_ALIAS_2);
         //console2.log("tokenId01: %s", tokenId01);
@@ -117,8 +135,8 @@ contract LicenseAccountTest is Test {
 
         (uint256 tokenId, address clientId) = devLicense.issueInDimo(LICENSE_ALIAS_1);
 
-        vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
-        DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
+        vm.expectRevert("DimoDeveloperLicenseAccountBeacon: invalid operation");
+        DimoDeveloperLicenseAccountBeacon(clientId).initialize(tokenId, address(devLicense));
     }
 
     function test_redirectUri() public {

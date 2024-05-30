@@ -6,6 +6,7 @@ import {Test, console2} from "forge-std/Test.sol";
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {ForkProvider} from "../helper/ForkProvider.sol";
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
@@ -16,7 +17,8 @@ import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
+import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
 
 //forge test --match-path ./test/staking/IntegrationStake.t.sol -vv
 contract IntegrationStakeTest is Test, ForkProvider {
@@ -41,6 +43,9 @@ contract IntegrationStakeTest is Test, ForkProvider {
     address _receiver;
 
     function setUp() public {
+        _dimoAdmin = address(0x666);
+        _receiver = address(0x888);
+
         ForkProvider fork = new ForkProvider();
         vm.createSelectFork(fork._url(), 50573735);
 
@@ -52,10 +57,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
         testOracleSource.setAmountUsdPerToken(1 ether);
         provider.addOracleSource(address(testOracleSource));
 
-        LicenseAccountFactory laf = new LicenseAccountFactory();
-
-        _dimoAdmin = address(0x666);
-        _receiver = address(0x888);
+        address laf = _deployLicenseAccountFactory(_dimoAdmin);
 
         vm.startPrank(_dimoAdmin);
         Options memory opts;
@@ -78,7 +80,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    address(laf),
+                    laf,
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -93,7 +95,21 @@ contract IntegrationStakeTest is Test, ForkProvider {
         license = DevLicenseDimo(proxyDl);
         vm.stopPrank();
 
-        laf.setLicense(address(license));
+        LicenseAccountFactoryBeacon(laf).setDevLicenseDimo(address(license));
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+        );
+
+        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
     }
 
     function test_fuzzStake(uint256 amount) public {
