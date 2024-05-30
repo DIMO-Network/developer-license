@@ -52,7 +52,7 @@ contract CalculationsDcTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        address factory = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactoryBeacon factory = _deployLicenseAccountFactory(_admin);
 
         licenseCostInUsd = 0;
         Options memory opts;
@@ -75,7 +75,7 @@ contract CalculationsDcTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    factory,
+                    address(factory),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -89,10 +89,14 @@ contract CalculationsDcTest is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        LicenseAccountFactoryBeacon(factory).setDevLicenseDimo(address(license));
+        factory.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        factory.setDevLicenseDimo(address(license));
+        vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -103,7 +107,7 @@ contract CalculationsDcTest is Test {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 
     function test_setDimoCreditRate() public {

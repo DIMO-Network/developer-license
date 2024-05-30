@@ -63,7 +63,7 @@ contract RevokeBurnReallocateTest is Test {
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 
-        address laf = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactoryBeacon laf = _deployLicenseAccountFactory(_admin);
 
         vm.startPrank(_admin);
         Options memory opts;
@@ -86,7 +86,7 @@ contract RevokeBurnReallocateTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    laf,
+                    address(laf),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -101,10 +101,14 @@ contract RevokeBurnReallocateTest is Test {
         license = DevLicenseDimo(proxyDl);
         vm.stopPrank();
 
-        LicenseAccountFactoryBeacon(laf).setDevLicenseDimo(address(license));
+        laf.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        laf.setDevLicenseDimo(address(license));
+        vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -115,7 +119,7 @@ contract RevokeBurnReallocateTest is Test {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 
     /**

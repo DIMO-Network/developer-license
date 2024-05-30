@@ -18,7 +18,7 @@ import {DimoCredit} from "../../src/DimoCredit.sol";
 import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
 import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
 
-//forge test --match-path ./test/LicenseAccount.t.sol -vv
+//forge test --match-path ./test/license/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
     string constant DC_NAME = "DIMO Credit";
     string constant DC_SYMBOL = "DCX";
@@ -34,7 +34,7 @@ contract LicenseAccountTest is Test {
     IDimoToken dimoToken;
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
-    address factory;
+    LicenseAccountFactoryBeacon factory;
 
     address _admin;
     address _receiver;
@@ -77,7 +77,7 @@ contract LicenseAccountTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    factory,
+                    address(factory),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -91,10 +91,14 @@ contract LicenseAccountTest is Test {
 
         devLicense = DevLicenseDimo(proxyDl);
 
-        LicenseAccountFactoryBeacon(factory).setDevLicenseDimo(address(devLicense));
+        factory.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        factory.setDevLicenseDimo(address(devLicense));
+        vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -105,7 +109,7 @@ contract LicenseAccountTest is Test {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 
     function test_initTemplateNotEffectClone() public {
@@ -119,7 +123,9 @@ contract LicenseAccountTest is Test {
         //console2.log("tokenId00: %s", tokenId00);
         assertEq(tokenId00, 1);
 
-        vm.expectRevert("DimoDeveloperLicenseAccount: invalid operation");
+        vm.expectRevert(
+            abi.encodeWithSelector(DimoDeveloperLicenseAccountBeacon.LicenseAccountAlreadyInitialized.selector)
+        );
         DimoDeveloperLicenseAccountBeacon(clientId00).initialize(tokenId00, address(devLicense));
 
         (uint256 tokenId01,) = devLicense.issueInDimo(LICENSE_ALIAS_2);
@@ -135,7 +141,9 @@ contract LicenseAccountTest is Test {
 
         (uint256 tokenId, address clientId) = devLicense.issueInDimo(LICENSE_ALIAS_1);
 
-        vm.expectRevert("DimoDeveloperLicenseAccountBeacon: invalid operation");
+        vm.expectRevert(
+            abi.encodeWithSelector(DimoDeveloperLicenseAccountBeacon.LicenseAccountAlreadyInitialized.selector)
+        );
         DimoDeveloperLicenseAccountBeacon(clientId).initialize(tokenId, address(devLicense));
     }
 

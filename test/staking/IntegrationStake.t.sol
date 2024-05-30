@@ -57,7 +57,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
         testOracleSource.setAmountUsdPerToken(1 ether);
         provider.addOracleSource(address(testOracleSource));
 
-        address laf = _deployLicenseAccountFactory(_dimoAdmin);
+        LicenseAccountFactoryBeacon laf = _deployLicenseAccountFactory(_dimoAdmin);
 
         vm.startPrank(_dimoAdmin);
         Options memory opts;
@@ -80,7 +80,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    laf,
+                    address(laf),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -95,10 +95,14 @@ contract IntegrationStakeTest is Test, ForkProvider {
         license = DevLicenseDimo(proxyDl);
         vm.stopPrank();
 
-        LicenseAccountFactoryBeacon(laf).setDevLicenseDimo(address(license));
+        laf.grantRole(keccak256("ADMIN_ROLE"), _dimoAdmin);
+
+        vm.startPrank(_dimoAdmin);
+        laf.setDevLicenseDimo(address(license));
+        vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -109,7 +113,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 
     function test_fuzzStake(uint256 amount) public {

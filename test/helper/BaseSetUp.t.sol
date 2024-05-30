@@ -45,7 +45,7 @@ contract BaseSetUp is Test {
         vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
-        address laf = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactoryBeacon laf = _deployLicenseAccountFactory(_admin);
 
         provider = new NormalizedPriceProvider();
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
@@ -80,7 +80,7 @@ contract BaseSetUp is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    laf,
+                    address(laf),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -94,12 +94,17 @@ contract BaseSetUp is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        LicenseAccountFactoryBeacon(laf).setDevLicenseDimo(address(license));
+        laf.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        laf.setDevLicenseDimo(address(license));
+        vm.stopPrank();
+
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(license), 1_000_000 ether);
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -110,6 +115,6 @@ contract BaseSetUp is Test {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 }

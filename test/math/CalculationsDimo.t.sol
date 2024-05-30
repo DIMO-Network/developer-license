@@ -54,7 +54,7 @@ contract CalculationsDimoTest is Test {
 
         licenseCostInUsd = 0;
 
-        address factory = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactoryBeacon factory = _deployLicenseAccountFactory(_admin);
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
@@ -76,7 +76,7 @@ contract CalculationsDimoTest is Test {
                 DevLicenseDimo.initialize,
                 (
                     _receiver,
-                    factory,
+                    address(factory),
                     address(provider),
                     address(dimoToken),
                     address(dimoCredit),
@@ -90,10 +90,14 @@ contract CalculationsDimoTest is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        LicenseAccountFactoryBeacon(factory).setDevLicenseDimo(address(license));
+        factory.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        factory.setDevLicenseDimo(address(license));
+        vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (address laf) {
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
         address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
@@ -104,7 +108,7 @@ contract CalculationsDimoTest is Test {
             "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
         );
 
-        laf = address(LicenseAccountFactoryBeacon(proxyLaf));
+        laf = LicenseAccountFactoryBeacon(proxyLaf);
     }
 
     function test_1to1simpleCase() public {
