@@ -8,7 +8,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
-import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
+import {DimoDeveloperLicenseAccountBeacon} from "./DimoDeveloperLicenseAccountBeacon.sol";
 import {ILicenseAccountFactoryBeacon} from "../interface/ILicenseAccountFactoryBeacon.sol";
 
 // TODO Documentation
@@ -36,15 +36,16 @@ contract LicenseAccountFactoryBeacon is
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
     struct LicenseAccountFactoryBeaconStorage {
         /// Address of the license account template for cloning.
-        address _template;
+        address _beaconProxyTemplate;
         /// Address of the DIMO Developer License contract.
-        address _license;
+        address _devLicenseDimo;
     }
 
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.licenseAccountFactoryBeacon")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant LICENSE_ACCOUNT_FACTORY_STORAGE_LOCATION =
         0x5e1322745c19eaa8cd721a083b70b7a25c7f1bd2e85931d5ffc5de61c84d3600;
 
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     function _getLicenseAccountFactoryStorage() internal pure returns (LicenseAccountFactoryBeaconStorage storage $) {
@@ -54,15 +55,7 @@ contract LicenseAccountFactoryBeacon is
     }
 
     error ZeroAddress();
-
-    // /**
-    //  * @dev Initializes the contract by creating a new DimoDeveloperLicenseAccount as a template
-    //  *      for future clones and sets the owner of the contract.
-    //  */
-    // constructor(address beacon, address license) Ownable(msg.sender) {
-    //     _template = address(new BeaconProxy(beacon, ""));
-    //     _license = license;
-    // }
+    error Unauthorized(address);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -70,35 +63,68 @@ contract LicenseAccountFactoryBeacon is
     }
 
     // TODO Documentation
-    function initialize(address beacon, address license) external initializer {
+    // /**
+    //  * @dev Initializes the contract by creating a new DimoDeveloperLicenseAccount as a template
+    //  *      for future clones and sets the owner of the contract.
+    //  */
+    function initialize(address beacon) external initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         LicenseAccountFactoryBeaconStorage storage $ = _getLicenseAccountFactoryStorage();
 
         if (beacon == address(0)) {
             revert ZeroAddress();
         }
-        if (license == address(0)) {
-            revert ZeroAddress();
-        }
 
-        $._template = address(new BeaconProxy(beacon, ""));
-        $._license = license;
+        $._beaconProxyTemplate = address(new BeaconProxy(beacon, ""));
     }
 
     /**
-     * @notice Creates a new clone of the DimoDeveloperLicenseAccount, initializing it with a token ID and the license contract address.
+     * @notice Returns the Beacon Proxy template address
+     */
+    function beaconProxyTemplate() public view returns (address) {
+        return _getLicenseAccountFactoryStorage()._beaconProxyTemplate;
+    }
+
+    /**
+     * @notice Returns the DevLicenseDimo address
+     */
+    function devLicenseDimo() public view returns (address) {
+        return _getLicenseAccountFactoryStorage()._devLicenseDimo;
+    }
+
+    /**
+     * @notice Sets the address of the DIMO Developer License contract.
+     * @param devLicenseDimo_ The address of the DIMO Developer License contract.
+     */
+    function setDevLicenseDimo(address devLicenseDimo_) external onlyRole(ADMIN_ROLE) {
+        LicenseAccountFactoryBeaconStorage storage $ = _getLicenseAccountFactoryStorage();
+
+        if (devLicenseDimo_ == address(0)) {
+            revert ZeroAddress();
+        }
+
+        $._devLicenseDimo = devLicenseDimo_;
+    }
+
+    /**
+     * @notice Creates a new clone of the DimoDeveloperLicenseAccountBeacon, initializing it with a token ID and the license contract address.
+     * @dev Only DevLicenseDimo can call this function
      * @param tokenId The token ID to associate with the newly created license account.
      * @return clone_ The address of the newly created clone account.
      */
     function create(uint256 tokenId) external returns (address clone_) {
         LicenseAccountFactoryBeaconStorage storage $ = _getLicenseAccountFactoryStorage();
 
-        clone_ = Clones.clone($._template);
-        DimoDeveloperLicenseAccount(clone_).initialize(tokenId, $._license);
+        if (_msgSender() != $._devLicenseDimo) {
+            revert Unauthorized(_msgSender());
+        }
+
+        clone_ = Clones.clone($._beaconProxyTemplate);
+        DimoDeveloperLicenseAccountBeacon(clone_).initialize(tokenId, $._devLicenseDimo);
     }
 
     /**
@@ -106,5 +132,5 @@ contract LicenseAccountFactoryBeacon is
      * @dev Caller must have the upgrader role
      * @param newImplementation New contract implementation address
      */
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyRole(UPGRADER_ROLE) {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }

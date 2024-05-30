@@ -47,7 +47,7 @@ contract DimoDeveloperLicenseAccountBeacon is IERC1271 {
      * @param tokenId_ The token ID of the associated DIMO Developer License.
      * @param license_ The address of the DIMO Developer License contract.
      */
-    function initialize(uint256 tokenId_, address license_) public {
+    function initialize(uint256 tokenId_, address license_) external {
         DimoDeveloperLicenseAccountBeaconStorage storage $ = _getLicenseAccountStorage();
 
         if ($._initialized) {
@@ -66,12 +66,26 @@ contract DimoDeveloperLicenseAccountBeacon is IERC1271 {
     }
 
     /**
+     * @notice Returns the DevLicenseDimo address
+     */
+    function license() public view returns (address) {
+        return address(_getLicenseAccountStorage()._license);
+    }
+
+    /**
+     * @notice Returns the token ID associated with this contract
+     */
+    function tokenId() public view returns (uint256) {
+        return _getLicenseAccountStorage()._tokenId;
+    }
+
+    /**
      * @notice Checks if an address is an authorized signer for the associated license.
      * @dev Useful for off-chain services to verify if actions are initiated by an authorized entity.
      * @param signer The address to check.
      * @return True if the address is an authorized signer, false otherwise.
      */
-    function isSigner(address signer) public view returns (bool) {
+    function isSigner(address signer) external view returns (bool) {
         DimoDeveloperLicenseAccountBeaconStorage storage $ = _getLicenseAccountStorage();
 
         return $._license.isSigner($._tokenId, signer);
@@ -83,7 +97,7 @@ contract DimoDeveloperLicenseAccountBeacon is IERC1271 {
      * @param signature The signature to verify.
      * @return The magic value `0x1626ba7e` if the signature is valid; otherwise, `0xffffffff`.
      */
-    function isValidSignature(bytes32 hashValue, bytes memory signature) external view returns (bytes4) {
+    function isValidSignature(bytes32 hashValue, bytes calldata signature) external view returns (bytes4) {
         DimoDeveloperLicenseAccountBeaconStorage storage $ = _getLicenseAccountStorage();
 
         address recovered = ECDSA.recover(hashValue, signature);
