@@ -11,7 +11,6 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {DimoDeveloperLicenseAccount} from "./DimoDeveloperLicenseAccount.sol";
 import {ILicenseAccountFactory} from "../interface/ILicenseAccountFactory.sol";
 
-// TODO Documentation
 /**
  * @title DIMO Developer License Account Factory
  * @custom:version 1.0.0
@@ -21,11 +20,11 @@ import {ILicenseAccountFactory} from "../interface/ILicenseAccountFactory.sol";
  * @custom:coauthor Yevgeny Khessin (@zer0stars)
  * @custom:coauthor Rob Solomon (@robmsolomon)
  * @custom:contributor Allyson English (@aesdfghjkl666)
- * @notice Manages the creation of DIMO Developer License Account instances, enabling the deployment
- *         of minimal proxy contracts for each new license account. This factory pattern minimizes the
- *         gas cost for deploying many instances of license accounts by using EIP-1167 clone contracts.
- * @dev Inherits from Ownable2Step for secure ownership transfer and implements ILicenseAccountFactory
- *      for creating license accounts.
+ * @notice Manages the creation of BeaconProxy instances, enabling the deployment of minimal proxy contracts
+ *         for each new license account. This factory pattern minimizes the gas cost for deploying many instances
+ *         of license accounts by using EIP-1167 clone contracts. The cloned proxies point to the UpgradeableBeacon
+ *         contract based on the Beacon Proxy from OZ (https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/proxy/beacon)
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract LicenseAccountFactory is Initializable, AccessControlUpgradeable, UUPSUpgradeable, ILicenseAccountFactory {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
@@ -57,11 +56,11 @@ contract LicenseAccountFactory is Initializable, AccessControlUpgradeable, UUPSU
         _disableInitializers();
     }
 
-    // TODO Documentation
-    // /**
-    //  * @dev Initializes the contract by creating a new DimoDeveloperLicenseAccount as a template
-    //  *      for future clones and sets the owner of the contract.
-    //  */
+    /**
+     * @dev Initializes the contract by creating a new BeaconProxy as a template
+     *      for future clone, sets the beacon and grant the DEFAULT_ADMIN_ROLE to the sender
+     * @param beacon The UpgradeableBeacon contract address
+     */
     function initialize(address beacon) external initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();

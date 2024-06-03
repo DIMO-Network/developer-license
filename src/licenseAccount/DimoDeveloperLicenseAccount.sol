@@ -8,25 +8,26 @@ import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconP
 
 import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
 
-// TODO Documentation / rename contract
 /**
- * @title Dimo Developer License Account
+ * @title DIMO Developer License Account
  * @notice Represents an account holding a DIMO Developer License, capable of signature verification according to ERC1271.
  * @dev This contract implements the IERC1271 interface for signature verification, enabling it to act as a smart contract wallet.
- * It links a DIMO Developer License to off-chain actions by verifying if signatures are made by authorized signers of the license.
+ *      It links a DIMO Developer License to off-chain actions by verifying if signatures are made by authorized signers of the license.
+ * @dev This is the implementation contract of the UpgradeableBeacon contract based on the Beacon Proxy from OZ
+ *      (https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/proxy/beacon)
+ * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DimoDeveloperLicenseAccount is IERC1271 {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
     struct DimoDeveloperLicenseAccountStorage {
         /// Reference to the DIMO Developer License contract.
         IDevLicenseDimo _license;
-        ///  Token ID of the DIMO Developer License associated with this account.
+        /// Token ID of the DIMO Developer License associated with this account.
         uint256 _tokenId;
-        ///  Ensures initialization can only occur once.
+        /// Ensures initialization can only occur once.
         bool _initialized;
     }
 
-    // TODO change it after renaiming the contract
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DimoDeveloperLicenseAccount")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant LICENSE_ACCOUNT_STORAGE_LOCATION =
         0xc61177ca523a3d53b92b866fe86addd26958bebb345f4646ebc7a249fbdd3000;
