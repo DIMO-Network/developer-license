@@ -15,8 +15,8 @@ import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
-import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
-import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/license/LicenseAccount.t.sol -vv
 contract LicenseAccountTest is Test {
@@ -34,7 +34,7 @@ contract LicenseAccountTest is Test {
     IDimoToken dimoToken;
     DimoCredit dimoCredit;
     DevLicenseDimo devLicense;
-    LicenseAccountFactoryBeacon factory;
+    LicenseAccountFactory factory;
 
     address _admin;
     address _receiver;
@@ -98,23 +98,23 @@ contract LicenseAccountTest is Test {
         vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
-        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
         address proxyLaf = Upgrades.deployUUPSProxy(
-            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
         );
 
-        laf = LicenseAccountFactoryBeacon(proxyLaf);
+        laf = LicenseAccountFactory(proxyLaf);
     }
 
     function test_initTemplateNotEffectClone() public {
-        address beaconProxyTemplate = LicenseAccountFactoryBeacon(factory).beaconProxyTemplate();
-        DimoDeveloperLicenseAccountBeacon(beaconProxyTemplate).initialize(1, address(0x999));
+        address beaconProxyTemplate = LicenseAccountFactory(factory).beaconProxyTemplate();
+        DimoDeveloperLicenseAccount(beaconProxyTemplate).initialize(1, address(0x999));
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
@@ -123,10 +123,8 @@ contract LicenseAccountTest is Test {
         //console2.log("tokenId00: %s", tokenId00);
         assertEq(tokenId00, 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(DimoDeveloperLicenseAccountBeacon.LicenseAccountAlreadyInitialized.selector)
-        );
-        DimoDeveloperLicenseAccountBeacon(clientId00).initialize(tokenId00, address(devLicense));
+        vm.expectRevert(abi.encodeWithSelector(DimoDeveloperLicenseAccount.LicenseAccountAlreadyInitialized.selector));
+        DimoDeveloperLicenseAccount(clientId00).initialize(tokenId00, address(devLicense));
 
         (uint256 tokenId01,) = devLicense.issueInDimo(LICENSE_ALIAS_2);
         //console2.log("tokenId01: %s", tokenId01);
@@ -141,10 +139,8 @@ contract LicenseAccountTest is Test {
 
         (uint256 tokenId, address clientId) = devLicense.issueInDimo(LICENSE_ALIAS_1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(DimoDeveloperLicenseAccountBeacon.LicenseAccountAlreadyInitialized.selector)
-        );
-        DimoDeveloperLicenseAccountBeacon(clientId).initialize(tokenId, address(devLicense));
+        vm.expectRevert(abi.encodeWithSelector(DimoDeveloperLicenseAccount.LicenseAccountAlreadyInitialized.selector));
+        DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
     }
 
     function test_redirectUri() public {

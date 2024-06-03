@@ -13,8 +13,8 @@ import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
-import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 
 contract BaseSetUp is Test {
     string constant DC_NAME = "DIMO Credit";
@@ -45,7 +45,7 @@ contract BaseSetUp is Test {
         vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
-        LicenseAccountFactoryBeacon laf = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactory laf = _deployLicenseAccountFactory(_admin);
 
         provider = new NormalizedPriceProvider();
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
@@ -104,17 +104,17 @@ contract BaseSetUp is Test {
         dimoToken.approve(address(license), 1_000_000 ether);
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
-        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
         address proxyLaf = Upgrades.deployUUPSProxy(
-            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
         );
 
-        laf = LicenseAccountFactoryBeacon(proxyLaf);
+        laf = LicenseAccountFactory(proxyLaf);
     }
 }

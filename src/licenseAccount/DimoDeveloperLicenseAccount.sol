@@ -3,8 +3,12 @@ pragma solidity ^0.8.24;
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+
+import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
+
 import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
 
+// TODO Documentation / rename contract
 /**
  * @title Dimo Developer License Account
  * @notice Represents an account holding a DIMO Developer License, capable of signature verification according to ERC1271.
@@ -12,12 +16,30 @@ import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
  * It links a DIMO Developer License to off-chain actions by verifying if signatures are made by authorized signers of the license.
  */
 contract DimoDeveloperLicenseAccount is IERC1271 {
-    /// @notice Reference to the DIMO Developer License contract.
-    IDevLicenseDimo private _license;
-    /// @notice Token ID of the DIMO Developer License associated with this account.
-    uint256 private _tokenId;
-    /// @notice Ensures initialization can only occur once.
-    bool private _initialized;
+    /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
+    struct DimoDeveloperLicenseAccountStorage {
+        /// Reference to the DIMO Developer License contract.
+        IDevLicenseDimo _license;
+        ///  Token ID of the DIMO Developer License associated with this account.
+        uint256 _tokenId;
+        ///  Ensures initialization can only occur once.
+        bool _initialized;
+    }
+
+    // TODO change it after renaiming the contract
+    // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DimoDeveloperLicenseAccount")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant LICENSE_ACCOUNT_STORAGE_LOCATION =
+        0xc61177ca523a3d53b92b866fe86addd26958bebb345f4646ebc7a249fbdd3000;
+
+    function _getLicenseAccountStorage() internal pure returns (DimoDeveloperLicenseAccountStorage storage $) {
+        assembly {
+            $.slot := LICENSE_ACCOUNT_STORAGE_LOCATION
+        }
+    }
+
+    error LicenseAccountAlreadyInitialized();
+    error ZeroAddress();
+    error InvalidTokenId(uint256 tokenId);
 
     /**
      * @notice Initializes the account with a specific token ID and license contract.
@@ -25,11 +47,36 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
      * @param tokenId_ The token ID of the associated DIMO Developer License.
      * @param license_ The address of the DIMO Developer License contract.
      */
-    function initialize(uint256 tokenId_, address license_) public {
-        require(!_initialized, "DimoDeveloperLicenseAccount: invalid operation");
-        _license = IDevLicenseDimo(license_);
-        _tokenId = tokenId_;
-        _initialized = true;
+    function initialize(uint256 tokenId_, address license_) external {
+        DimoDeveloperLicenseAccountStorage storage $ = _getLicenseAccountStorage();
+
+        if ($._initialized) {
+            revert LicenseAccountAlreadyInitialized();
+        }
+        if (license_ == address(0)) {
+            revert ZeroAddress();
+        }
+        if (tokenId_ == 0) {
+            revert InvalidTokenId(tokenId_);
+        }
+
+        $._license = IDevLicenseDimo(license_);
+        $._tokenId = tokenId_;
+        $._initialized = true;
+    }
+
+    /**
+     * @notice Returns the DevLicenseDimo address
+     */
+    function license() public view returns (address) {
+        return address(_getLicenseAccountStorage()._license);
+    }
+
+    /**
+     * @notice Returns the token ID associated with this contract
+     */
+    function tokenId() public view returns (uint256) {
+        return _getLicenseAccountStorage()._tokenId;
     }
 
     /**
@@ -38,8 +85,10 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
      * @param signer The address to check.
      * @return True if the address is an authorized signer, false otherwise.
      */
-    function isSigner(address signer) public view returns (bool) {
-        return _license.isSigner(_tokenId, signer);
+    function isSigner(address signer) external view returns (bool) {
+        DimoDeveloperLicenseAccountStorage storage $ = _getLicenseAccountStorage();
+
+        return $._license.isSigner($._tokenId, signer);
     }
 
     /**
@@ -48,9 +97,11 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
      * @param signature The signature to verify.
      * @return The magic value `0x1626ba7e` if the signature is valid; otherwise, `0xffffffff`.
      */
-    function isValidSignature(bytes32 hashValue, bytes memory signature) external view returns (bytes4) {
+    function isValidSignature(bytes32 hashValue, bytes calldata signature) external view returns (bytes4) {
+        DimoDeveloperLicenseAccountStorage storage $ = _getLicenseAccountStorage();
+
         address recovered = ECDSA.recover(hashValue, signature);
-        if (_license.isSigner(_tokenId, recovered)) {
+        if ($._license.isSigner($._tokenId, recovered)) {
             return IERC1271.isValidSignature.selector; //0x1626ba7e
         } else {
             return 0xffffffff;

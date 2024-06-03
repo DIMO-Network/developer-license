@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
@@ -48,7 +48,7 @@ contract DevLicenseDimoTest is BaseSetUp {
             keccak256(abi.encodePacked(keccak256("\x19Ethereum Signed Message:\n32"), keccak256("Hello World")));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, hashValue);
         bytes memory signature = abi.encodePacked(r, s, v);
-        bytes4 output = DimoDeveloperLicenseAccountBeacon(accountAddress).isValidSignature(hashValue, signature);
+        bytes4 output = DimoDeveloperLicenseAccount(accountAddress).isValidSignature(hashValue, signature);
         //console2.logBytes4(output);
         assertEq(IERC1271.isValidSignature.selector, output);
     }

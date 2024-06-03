@@ -11,8 +11,8 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccountBeacon} from "../../src/licenseAccount/DimoDeveloperLicenseAccountBeacon.sol";
-import {LicenseAccountFactoryBeacon} from "../../src/licenseAccount/LicenseAccountFactoryBeacon.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -52,7 +52,7 @@ contract CalculationsDcTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        LicenseAccountFactoryBeacon factory = _deployLicenseAccountFactory(_admin);
+        LicenseAccountFactory factory = _deployLicenseAccountFactory(_admin);
 
         licenseCostInUsd = 0;
         Options memory opts;
@@ -96,18 +96,18 @@ contract CalculationsDcTest is Test {
         vm.stopPrank();
     }
 
-    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactoryBeacon laf) {
-        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccountBeacon());
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
         address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
 
         Options memory opts;
         opts.unsafeSkipAllChecks = true;
 
         address proxyLaf = Upgrades.deployUUPSProxy(
-            "LicenseAccountFactoryBeacon.sol", abi.encodeCall(LicenseAccountFactoryBeacon.initialize, (beacon)), opts
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
         );
 
-        laf = LicenseAccountFactoryBeacon(proxyLaf);
+        laf = LicenseAccountFactory(proxyLaf);
     }
 
     function test_setDimoCreditRate() public {
