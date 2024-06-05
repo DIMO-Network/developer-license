@@ -11,6 +11,9 @@ export const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000
 export const LICENSE_ADMIN_ROLE = _hashRole("LICENSE_ADMIN_ROLE");
 export const REVOKER_ROLE = _hashRole("REVOKER_ROLE");
 
+// License Account Factory roles
+export const ADMIN_ROLE = _hashRole("ADMIN_ROLE");
+
 // Oracle Source role
 export const ORACLE_ADMIN_ROLE = _hashRole("ORACLE_ADMIN_ROLE");
 

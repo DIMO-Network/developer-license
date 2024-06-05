@@ -20,12 +20,12 @@ import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
 contract DimoDeveloperLicenseAccount is IERC1271 {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
     struct DimoDeveloperLicenseAccountStorage {
-        /// Reference to the DIMO Developer License contract.
-        IDevLicenseDimo _license;
-        /// Token ID of the DIMO Developer License associated with this account.
-        uint256 _tokenId;
         /// Ensures initialization can only occur once.
         bool _initialized;
+        /// Token ID of the DIMO Developer License associated with this account.
+        uint256 _tokenId;
+        /// Reference to the DIMO Developer License contract.
+        IDevLicenseDimo _license;
     }
 
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DimoDeveloperLicenseAccount")) - 1)) & ~bytes32(uint256(0xff))
