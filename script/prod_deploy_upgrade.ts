@@ -188,8 +188,7 @@ async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyCo
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        // TODO Fix passing args (addressDdla, admin)
-        await verifyContractUntilSuccess(addressBeacon, 'UpgradeableBeacon')
+        await verifyContractUntilSuccess(addressBeacon, 'UpgradeableBeacon', [addressDdla, admin])
     }
 
     console.log('\n----- Deploying LicenseAccountFactory contract -----\n');
@@ -229,7 +228,7 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     const { name } = await ethers.provider.getNetwork();
 
     const addressReceiver = instances[name].Receiver;
-    const addressLaf = instances[name].LicenseAccountFactory;
+    const addressLaf = instances[name].LicenseAccountFactory.proxy;
     const addressNpp = instances[name].NormalizedPriceProvider;
     const addressDimoToken = instances[name].DimoToken;
     const addressDc = instances[name].DimoCredit.proxy;
@@ -310,7 +309,6 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     console.log(`\n----- Roles granted -----`)
 }
 
-// TODO Fix it
 async function setup(signer: HardhatEthersSigner) {
     const instances = getAddresses();
 
@@ -323,13 +321,19 @@ async function setup(signer: HardhatEthersSigner) {
 
     const nameLaf = 'LicenseAccountFactory';
     const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
-    const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
-    await contractLaf.setDevLicenseDimo(addressDl)
+    const factoryInstance = new ethers.Contract(addressLaf, outLaf.abi, signer)
 
-    console.log('----- LicenseAccountFactory set -----');
+    if (!(await factoryInstance.hasRole(C.ADMIN_ROLE, signer.address))) {
+        await factoryInstance.grantRole(C.ADMIN_ROLE, signer.address);
+        console.log(`License Account Factory: ADMIN_ROLE (${C.ADMIN_ROLE}) granted`);
+    }
+
+    await factoryInstance.setDevLicenseDimo(addressDl)
+
+    console.log('\n----- LicenseAccountFactory set -----');
 }
 
-async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any) {
+async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any[]) {
     const { chainId } = await ethers.provider.getNetwork();
     const apiKey = process.env.POLYGONSCAN_API_KEY as string;
 
@@ -341,7 +345,7 @@ async function verifyContractUntilSuccess(address: any, contractName: string, ar
         if (!arg) {
             command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
         } else {
-            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg}`;
+            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg.toString()}`;
         }
 
         const attemptVerification = () => {
