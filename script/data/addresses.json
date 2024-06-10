@@ -2,7 +2,12 @@
     "polygon": {
         "TwapV3": "0x4ad4CA434e68D60fa7f98571C17472228cEa6f52",
         "NormalizedPriceProvider": "0x4ad4CA434e68D60fa7f98571C17472228cEa6f52",
-        "LicenseAccountFactory": "0x8416D265Bd765a53A936e2406b2D5d8F6F893BD7",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "0x8416D265Bd765a53A936e2406b2D5d8F6F893BD7",
+            "implementation": ""
+        },
         "DevLicenseDimo": {
             "proxy": "0xc194631194671a44a9eF1c59DF290ef0F3E76EA1",
             "implementation": ""
@@ -18,7 +23,12 @@
     "amoy": {
         "TwapV3": "",
         "NormalizedPriceProvider": "",
-        "LicenseAccountFactory": "",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "",
+            "implementation": ""
+        },
         "DevLicenseDimo": {
             "proxy": "",
             "implementation": ""
@@ -34,10 +44,15 @@
     "hardhat": {
         "TwapV3": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         "NormalizedPriceProvider": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-        "LicenseAccountFactory": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "DimoDeveloperLicenseAccount": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "UpgradeableBeacon": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+        "LicenseAccountFactory": {
+            "proxy": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+            "implementation": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+        },
         "DevLicenseDimo": {
-            "proxy": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-            "implementation": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+            "proxy": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+            "implementation": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
         },
         "DimoCredit": {
             "proxy": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
@@ -50,7 +65,12 @@
     "localhost": {
         "TwapV3": "",
         "NormalizedPriceProvider": "",
-        "LicenseAccountFactory": "",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "",
+            "implementation": ""
+        },
         "DevLicenseDimo": {
             "proxy": "",
             "implementation": ""

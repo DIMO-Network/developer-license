@@ -152,20 +152,68 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
 }
 
 async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyContract: boolean = false) {
-    const gasPrice = await getGasPrice(20n)
+    let gasPrice = await getGasPrice(20n)
     const { name } = await ethers.provider.getNetwork();
     const instances = getAddresses();
 
+    const admin = instances[name].Admin;
+
+    console.log('\n----- Deploying DimoDeveloperLicenseAccount template contract -----\n');
+
+    const nameDdla = 'DimoDeveloperLicenseAccount';
+    const factoryDdla = getContractFactory(signer, nameDdla)
+    const devLicenseAccount: BaseContract = await factoryDdla.deploy({ gasPrice: gasPrice })
+    await devLicenseAccount.waitForDeployment();
+    const addressDdla = await devLicenseAccount.getAddress();
+    console.log(`DimoDeveloperLicenseAccount contract deployed to ${addressDdla}`);
+
+    instances[name].DimoDeveloperLicenseAccount = addressDdla;
+    writeAddresses(instances, name)
+
+    if (verifyContract) {
+        await verifyContractUntilSuccess(addressDdla, nameDdla)
+    }
+
+    console.log('\n----- Deploying UpgradeableBeacon contract -----\n');
+
+    gasPrice = await getGasPrice(20n)
+
+    const beaconFactory = getContractFactory(signer, 'UpgradeableBeacon')
+    const beacon = await beaconFactory.deploy(addressDdla, admin, { gasPrice: gasPrice });
+    await beacon.waitForDeployment();
+    const addressBeacon = await beacon.getAddress();
+    console.log(`UpgradeableBeacon contract deployed to ${addressDdla}`);
+
+    instances[name].UpgradeableBeacon = addressBeacon;
+    writeAddresses(instances, name)
+
+    if (verifyContract) {
+        await verifyContractUntilSuccess(addressBeacon, 'UpgradeableBeacon', [addressDdla, admin])
+    }
+
     console.log('\n----- Deploying LicenseAccountFactory contract -----\n');
+
+    gasPrice = await getGasPrice(20n)
 
     const nameLaf = 'LicenseAccountFactory';
     const factoryLaf = getContractFactory(signer, nameLaf)
-    const licenseAccountFactory: BaseContract = await factoryLaf.deploy({ gasPrice: gasPrice })
-    await licenseAccountFactory.waitForDeployment();
-    const addressLaf = await licenseAccountFactory.getAddress();
+    const factoryProxy = getContractFactory(signer, 'ERC1967Proxy')
+
+    const impl = await factoryLaf.deploy({ gasPrice: gasPrice });
+    await impl.waitForDeployment();
+    const addressImplLaf = await impl.getAddress();
+
+    const proxy = await factoryProxy.deploy(addressImplLaf, "0x", { gasPrice: gasPrice });
+    await proxy.waitForDeployment();
+
+    const licenseAccountFactory: any = impl.attach(await proxy.getAddress());
+    await licenseAccountFactory.initialize(addressBeacon)
+
+    const addressLaf = await proxy.getAddress();
     console.log(`LicenseAccountFactory contract deployed to ${addressLaf}`);
 
-    instances[name].LicenseAccountFactory = addressLaf;
+    instances[name].LicenseAccountFactory.proxy = addressLaf;
+    instances[name].LicenseAccountFactory.implementation = await impl.getAddress();
     writeAddresses(instances, name)
 
     if (verifyContract) {
@@ -180,7 +228,7 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     const { name } = await ethers.provider.getNetwork();
 
     const addressReceiver = instances[name].Receiver;
-    const addressLaf = instances[name].LicenseAccountFactory;
+    const addressLaf = instances[name].LicenseAccountFactory.proxy;
     const addressNpp = instances[name].NormalizedPriceProvider;
     const addressDimoToken = instances[name].DimoToken;
     const addressDc = instances[name].DimoCredit.proxy;
@@ -221,15 +269,6 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     if (verifyContract) {
         await verifyContractUntilSuccess(addressDl, nameDl)
     }
-
-    console.log('\n----- Setting LicenseAccountFactory to DevLicenseDimo -----\n');
-
-    const nameLaf = 'LicenseAccountFactory';
-    const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
-    const contractLaf = new ethers.Contract(addressLaf, outLaf.abi, signer)
-    await contractLaf.setLicense(addressDl)
-
-    console.log('----- LicenseAccountFactory set -----');
 }
 
 async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
@@ -239,6 +278,7 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     const devLicenseDimoInstance = getContractInstance(signer, 'DevLicenseDimo', instances[name].DevLicenseDimo.proxy)
     const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
     const providerInstance = getContractInstance(signer, 'NormalizedPriceProvider', instances[name].NormalizedPriceProvider)
+    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[name].LicenseAccountFactory.proxy)
 
     console.log(`\n----- Granting roles to ${admin} -----\n`)
 
@@ -248,6 +288,11 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     console.log(`Dev License DIMO: REVOKER_ROLE (${C.REVOKER_ROLE}) granted`)
     await devLicenseDimoInstance.grantRole(C.UPGRADER_ROLE, admin)
     console.log(`Dev License DIMO: UPGRADER_ROLE (${C.UPGRADER_ROLE}) granted`)
+
+    await factoryInstance.grantRole(C.ADMIN_ROLE, admin);
+    console.log(`License Account Factory: ADMIN_ROLE (${C.ADMIN_ROLE}) granted`)
+    await factoryInstance.grantRole(C.UPGRADER_ROLE, admin);
+    console.log(`License Account Factory: UPGRADER_ROLE (${C.UPGRADER_ROLE}) granted`)
 
     await dimoCreditInstance.grantRole(C.DC_ADMIN_ROLE, admin);
     console.log(`DIMO Credit: DC_ADMIN_ROLE (${C.DC_ADMIN_ROLE}) granted`)
@@ -264,7 +309,31 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     console.log(`\n----- Roles granted -----`)
 }
 
-async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any) {
+async function setup(signer: HardhatEthersSigner) {
+    const instances = getAddresses();
+
+    const { name } = await ethers.provider.getNetwork();
+
+    const addressDl = instances[name].DevLicenseDimo.proxy;
+    const addressLaf = instances[name].LicenseAccountFactory.proxy;
+
+    console.log('\n----- Setting LicenseAccountFactory to DevLicenseDimo -----\n');
+
+    const nameLaf = 'LicenseAccountFactory';
+    const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
+    const factoryInstance = new ethers.Contract(addressLaf, outLaf.abi, signer)
+
+    if (!(await factoryInstance.hasRole(C.ADMIN_ROLE, signer.address))) {
+        await factoryInstance.grantRole(C.ADMIN_ROLE, signer.address);
+        console.log(`License Account Factory: ADMIN_ROLE (${C.ADMIN_ROLE}) granted`);
+    }
+
+    await factoryInstance.setDevLicenseDimo(addressDl)
+
+    console.log('\n----- LicenseAccountFactory set -----');
+}
+
+async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any[]) {
     const { chainId } = await ethers.provider.getNetwork();
     const apiKey = process.env.POLYGONSCAN_API_KEY as string;
 
@@ -276,7 +345,7 @@ async function verifyContractUntilSuccess(address: any, contractName: string, ar
         if (!arg) {
             command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
         } else {
-            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg}`;
+            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg.toString()}`;
         }
 
         const attemptVerification = () => {
@@ -316,6 +385,8 @@ async function main() {
     await deployDevLicense(signer);
 
     await grantAdminRoles(signer, instances[name].Admin);
+
+    await setup(signer);
 }
 
 main().catch((error) => {

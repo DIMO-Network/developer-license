@@ -5,12 +5,14 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
@@ -50,7 +52,7 @@ contract CalculationsDcTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        LicenseAccountFactory factory = new LicenseAccountFactory();
+        LicenseAccountFactory factory = _deployLicenseAccountFactory(_admin);
 
         licenseCostInUsd = 0;
         Options memory opts;
@@ -87,7 +89,25 @@ contract CalculationsDcTest is Test {
 
         license = DevLicenseDimo(proxyDl);
 
-        factory.setLicense(address(license));
+        factory.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        factory.setDevLicenseDimo(address(license));
+        vm.stopPrank();
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
+        );
+
+        laf = LicenseAccountFactory(proxyLaf);
     }
 
     function test_setDimoCreditRate() public {

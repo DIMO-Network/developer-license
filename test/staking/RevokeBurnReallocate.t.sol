@@ -5,11 +5,13 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC721} from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 
 import {IERC5192} from "../../src/interface/IERC5192.sol";
@@ -61,7 +63,7 @@ contract RevokeBurnReallocateTest is Test {
         twap.initialize(intervalUsdc, intervalDimo);
         provider.addOracleSource(address(twap));
 
-        LicenseAccountFactory laf = new LicenseAccountFactory();
+        LicenseAccountFactory laf = _deployLicenseAccountFactory(_admin);
 
         vm.startPrank(_admin);
         Options memory opts;
@@ -99,7 +101,25 @@ contract RevokeBurnReallocateTest is Test {
         license = DevLicenseDimo(proxyDl);
         vm.stopPrank();
 
-        laf.setLicense(address(license));
+        laf.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        laf.setDevLicenseDimo(address(license));
+        vm.stopPrank();
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
+        );
+
+        laf = LicenseAccountFactory(proxyLaf);
     }
 
     /**

@@ -263,5 +263,5 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @dev Caller must have the upgrader role
      * @param newImplementation New contract implementation address
      */
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyRole(UPGRADER_ROLE) {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }
