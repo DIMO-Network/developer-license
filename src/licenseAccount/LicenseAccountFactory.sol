@@ -24,7 +24,7 @@ import {ILicenseAccountFactory} from "../interface/ILicenseAccountFactory.sol";
  *         for each new license account. This factory pattern minimizes the gas cost for deploying many instances
  *         of license accounts by using EIP-1167 clone contracts. The cloned proxies point to the UpgradeableBeacon
  *         contract based on the Beacon Proxy from OZ (https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/proxy/beacon)
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract LicenseAccountFactory is Initializable, AccessControlUpgradeable, UUPSUpgradeable, ILicenseAccountFactory {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore

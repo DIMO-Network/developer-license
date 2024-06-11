@@ -26,7 +26,7 @@ import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
  * @custom:coauthor Rob Solomon (@robmsolomon)
  *
  * @dev Contract for managing non-transferable tokens for use within the DIMO developer ecosystem.
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  * @notice This contract manages the issuance (minting) and destruction (burning) of DIMO Credits,
  *         leveraging the $DIMO token and a price provider for exchange rate information. Approve
  *         this contract on $DIMO token (0xE261D618a959aFfFd53168Cd07D12E37B26761db) before minting.

@@ -31,10 +31,10 @@ contract MetadataTest is BaseSetUp {
                             '{"name":"',
                             string(abi.encodePacked("DIMO Developer License #", Strings.toString(tokenId))),
                             '", "description":"',
-                            license.descriptionToken(),
+                            license.tokenDescription(),
                             '", "image": "',
                             "data:image/svg+xml;base64,",
-                            license.imageToken(),
+                            license.tokenImage(),
                             '"}'
                         )
                     )
@@ -51,8 +51,8 @@ contract MetadataTest is BaseSetUp {
         license.grantRole(LICENSE_ADMIN_ROLE, _admin);
 
         vm.startPrank(_admin);
-        license.setImageContract("image");
-        license.setDescriptionContract("description");
+        license.setContractImage("image");
+        license.setContractDescription("description");
         vm.stopPrank();
 
         string memory data00 = license.contractURI();

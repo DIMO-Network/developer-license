@@ -13,7 +13,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
 /**
  * @title Developer License Core
  * @dev Implements the core functionalities for managing developer licenses within the DIMO ecosystem.
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  * @notice This contract manages the creation, administration, and validation of developer licenses,
  *         integrating with DIMO's token and credit systems.
  */
@@ -25,7 +25,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         NormalizedPriceProvider _provider;
         ILicenseAccountFactory _licenseAccountFactory;
         /// @notice The period after which a signer is considered expired.
-        uint256 _periodValidity;
+        uint256 periodValidity;
         /// @notice Cost of a single license in USD with 18 decimals.
         uint256 _licenseCostInUsd1e18;
         /// @notice Counter to keep track of the issued licenses.
@@ -124,7 +124,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        $._periodValidity = 365 days;
+        $.periodValidity = 365 days;
 
         $._receiver = receiver_;
 
@@ -135,89 +135,73 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         $._dimoToken = IDimoToken(dimoTokenAddress_);
         $._licenseCostInUsd1e18 = licenseCostInUsd1e18_;
 
-        emit UpdatePeriodValidity($._periodValidity);
+        emit UpdatePeriodValidity($.periodValidity);
         emit UpdateLicenseCost(licenseCostInUsd1e18_);
     }
 
     /**
      * @notice Returns the DIMO Token address
      */
-    function dimoToken() public view returns (address) {
-        return address(_getDevLicenseCoreStorage()._dimoToken);
+    function dimoToken() public view returns (address dimoToken_) {
+        dimoToken_ = address(_getDevLicenseCoreStorage()._dimoToken);
     }
 
     /**
      * @notice Returns the DIMO Credit address
      */
-    function dimoCredit() public view returns (address) {
-        return address(_getDevLicenseCoreStorage()._dimoCredit);
+    function dimoCredit() public view returns (address dimoCredit_) {
+        dimoCredit_ = address(_getDevLicenseCoreStorage()._dimoCredit);
     }
 
     /**
      * @notice Returns the Provider address
      */
-    function provider() public view returns (address) {
-        return address(_getDevLicenseCoreStorage()._provider);
+    function provider() public view returns (address provider_) {
+        provider_ = address(_getDevLicenseCoreStorage()._provider);
     }
 
     /**
      * @notice Returns the License Account Factory address
      */
-    function licenseAccountFactory() public view returns (address) {
-        return address(_getDevLicenseCoreStorage()._licenseAccountFactory);
+    function licenseAccountFactory() public view returns (address licenseAccountFactory_) {
+        licenseAccountFactory_ = address(_getDevLicenseCoreStorage()._licenseAccountFactory);
     }
 
     /**
      * @notice Returns the period of validity of a Developer License
      */
-    function periodValidity() public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._periodValidity;
+    function periodValidity() public view returns (uint256 periodValidity_) {
+        periodValidity_ = _getDevLicenseCoreStorage().periodValidity;
     }
 
     /**
      * @notice Returns the Developer License cost in USD (1e18 decimal places)
      */
-    function licenseCostInUsd1e18() public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._licenseCostInUsd1e18;
+    function licenseCostInUsd1e18() public view returns (uint256 licenseCostInUsd1e18_) {
+        licenseCostInUsd1e18_ = _getDevLicenseCoreStorage()._licenseCostInUsd1e18;
     }
 
     /**
      * @notice Returns the Receiver address
      */
-    function receiver() public view returns (address) {
-        return _getDevLicenseCoreStorage()._receiver;
+    function receiver() public view returns (address receiver_) {
+        receiver_ = _getDevLicenseCoreStorage()._receiver;
     }
 
     /**
      * @notice Returns the Client Id address associated to a Developer License token Id
      * @param tokenId The unique identifier for the license token
      */
-    function tokenIdToClientId(uint256 tokenId) public view returns (address) {
-        return _getDevLicenseCoreStorage()._tokenIdToClientId[tokenId];
+    function tokenIdToClientId(uint256 tokenId) public view returns (address clientId) {
+        clientId = _getDevLicenseCoreStorage()._tokenIdToClientId[tokenId];
     }
 
     /**
      * @notice Returns the Developer License token Id associated to a Client Id
      * @param clientId The client Id address
      */
-    function clientIdToTokenId(address clientId) public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._clientIdToTokenId[clientId];
-    }
-
-    /**
-     * @notice Returns the alias associated to a Developer License token Id
-     * @param tokenId The unique identifier for the license token
-     */
-    function tokenIdToAlias(uint256 tokenId) public view returns (bytes32) {
-        return _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
-    }
-
-    /**
-     * @notice Returns the Developer License token Id associated to an alias
-     * @param licenseAlias The developer license alias
-     */
-    function aliasToTokenId(bytes32 licenseAlias) public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
+    function clientIdToTokenId(address clientId) public view returns (uint256 tokenId) {
+        tokenId = _getDevLicenseCoreStorage()._clientIdToTokenId[clientId];
     }
 
     /**
@@ -225,8 +209,8 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param tokenId The unique identifier for the license token
      * @param signer The unique identifier for the license token
      */
-    function signers(uint256 tokenId, address signer) public view returns (uint256) {
-        return _getDevLicenseCoreStorage()._signers[tokenId][signer];
+    function signers(uint256 tokenId, address signer) public view returns (uint256 timestamp) {
+        timestamp = _getDevLicenseCoreStorage()._signers[tokenId][signer];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -332,21 +316,21 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
 
     /**
      * @notice Checks whether a given address is currently an enabled signer for a specified token ID.
-     *         The signer's enabled status is valid only for the period defined by `_periodValidity`.
+     *         The signer's enabled status is valid only for the period defined by `periodValidity`.
      * @dev This function calculates the difference between the current block timestamp and the timestamp
-     *      when the signer was enabled. If the difference exceeds `_periodValidity`, the signer is
+     *      when the signer was enabled. If the difference exceeds `periodValidity`, the signer is
      *      considered no longer enabled.
      * @param tokenId The unique identifier for the license token.
      * @param signer The address to check for being an enabled signer for the specified token ID.
-     * @return bool Returns true if the `signer` is currently enabled for the `tokenId` and the period of
+     * @return isSigner_ Returns true if the `signer` is currently enabled for the `tokenId` and the period of
      *         validity has not expired; otherwise, returns false.
      */
-    function isSigner(uint256 tokenId, address signer) public view returns (bool) {
+    function isSigner(uint256 tokenId, address signer) public view returns (bool isSigner_) {
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         uint256 timestampInit = $._signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        return timestampCurrent - timestampInit <= $._periodValidity;
+        isSigner_ = timestampCurrent - timestampInit <= $.periodValidity;
     }
 
     /**
@@ -397,7 +381,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param periodValidity_ The new validity period for the license in seconds.
      */
     function setPeriodValidity(uint256 periodValidity_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _getDevLicenseCoreStorage()._periodValidity = periodValidity_;
+        _getDevLicenseCoreStorage().periodValidity = periodValidity_;
         emit UpdatePeriodValidity(periodValidity_);
     }
 

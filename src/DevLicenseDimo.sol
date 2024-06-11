@@ -30,7 +30,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * @dev Implements the DIMO Developer License system, enabling the minting, management, and revocation of developer
  *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
@@ -97,15 +97,15 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /**
      * @notice Returns the ERC721 name
      */
-    function name() public view returns (string memory) {
-        return _getDevLicenseDimoStorage()._name;
+    function name() public view returns (string memory name_) {
+        name_ = _getDevLicenseDimoStorage()._name;
     }
 
     /**
      * @notice Returns the ERC721 symbol
      */
-    function symbol() public view returns (string memory) {
-        return _getDevLicenseDimoStorage()._symbol;
+    function symbol() public view returns (string memory symbol_) {
+        symbol_ = _getDevLicenseDimoStorage()._symbol;
     }
 
     /*//////////////////////////////////////////////////////////////

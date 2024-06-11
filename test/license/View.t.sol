@@ -12,7 +12,7 @@ import {DevLicenseCore} from "../../src/DevLicenseCore.sol";
 
 import {BaseSetUp} from "../helper/BaseSetUp.t.sol";
 
-//forge test --match-path ./test/View.t.sol -vv
+//forge test --match-path ./test/license/View.t.sol -vv
 contract ViewTest is BaseSetUp {
     uint256 _licenseCostInUsd;
 

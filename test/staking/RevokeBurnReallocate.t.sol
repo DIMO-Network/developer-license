@@ -204,7 +204,7 @@ contract RevokeBurnReallocateTest is Test {
         license.lock(tokenId, amount99);
         vm.stopPrank();
 
-        uint256 amount00 = license.stakedBalances(tokenId);
+        uint256 amount00 = license.stakedBalance(tokenId);
         uint256 amount01 = dimoToken.balanceOf(address(license));
         assertEq(amount00, amount01);
 
@@ -217,7 +217,7 @@ contract RevokeBurnReallocateTest is Test {
         license.adminReallocate(tokenId, amount00, _user2);
         vm.stopPrank();
 
-        uint256 amount02 = license.stakedBalances(tokenId);
+        uint256 amount02 = license.stakedBalance(tokenId);
         assertEq(amount02, 0);
 
         uint256 amount0x = dimoToken.balanceOf(_user2);

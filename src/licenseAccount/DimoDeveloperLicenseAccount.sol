@@ -15,7 +15,7 @@ import {IDevLicenseDimo} from "../interface/IDevLicenseDimo.sol";
  *      It links a DIMO Developer License to off-chain actions by verifying if signatures are made by authorized signers of the license.
  * @dev This is the implementation contract of the UpgradeableBeacon contract based on the Beacon Proxy from OZ
  *      (https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/proxy/beacon)
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DimoDeveloperLicenseAccount is IERC1271 {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore

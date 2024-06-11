@@ -10,15 +10,15 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 /**
  * @title DevLicenseMeta
  * @dev Extends DevLicenseStake to add metadata functionality, including image and description handling.
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseMeta is Initializable, DevLicenseStake {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseMeta
     struct DevLicenseMetaStorage {
-        string _imageToken;
-        string _imageContract;
-        string _descriptionToken;
-        string _descriptionContract;
+        string _tokenImage;
+        string _contractImage;
+        string _tokenDescription;
+        string _contractDescription;
     }
 
     // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseMeta")) - 1)) & ~bytes32(uint256(0xff))
@@ -38,7 +38,7 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
 
     /**
      * @dev Sets initial metadata for tokens and the contract itself.
-     * @param image String of a SVG for contract and token URIS
+     * @param image String of a SVG for contract and token URIs
      * @param description String with a description for contract and token URIs
      */
     function __DevLicenseMeta_init(string calldata image, string calldata description) internal onlyInitializing {
@@ -46,39 +46,39 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
 
         DevLicenseMetaStorage storage $ = _getDevLicenseMetaStorage();
 
-        $._imageToken = Base64.encode(bytes(image));
-        $._imageContract = Base64.encode(bytes(image));
+        $._tokenImage = Base64.encode(bytes(image));
+        $._contractImage = Base64.encode(bytes(image));
 
-        $._descriptionToken = description;
-        $._descriptionContract = description;
+        $._tokenDescription = description;
+        $._contractDescription = description;
     }
 
     /**
      * @notice Returns the image token
      */
-    function imageToken() external view returns (string memory) {
-        return _getDevLicenseMetaStorage()._imageToken;
+    function tokenImage() external view returns (string memory tokenImage_) {
+        tokenImage_ = _getDevLicenseMetaStorage()._tokenImage;
     }
 
     /**
      * @notice Returns the image contract
      */
-    function imageContract() external view returns (string memory) {
-        return _getDevLicenseMetaStorage()._imageContract;
+    function contractImage() external view returns (string memory contractImage_) {
+        contractImage_ = _getDevLicenseMetaStorage()._contractImage;
     }
 
     /**
      * @notice Returns the token description
      */
-    function descriptionToken() external view returns (string memory) {
-        return _getDevLicenseMetaStorage()._descriptionToken;
+    function tokenDescription() external view returns (string memory tokenDescription_) {
+        tokenDescription_ = _getDevLicenseMetaStorage()._tokenDescription;
     }
 
     /**
      * @notice Returns the contract description
      */
-    function descriptionContract() external view returns (string memory) {
-        return _getDevLicenseMetaStorage()._descriptionContract;
+    function contractDescription() external view returns (string memory contractDescription_) {
+        contractDescription_ = _getDevLicenseMetaStorage()._contractDescription;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -90,8 +90,8 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
      * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
      * @param image_ New image data for the tokens.
      */
-    function setImageToken(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _getDevLicenseMetaStorage()._imageToken = Base64.encode(bytes(image_));
+    function setTokenImage(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _getDevLicenseMetaStorage()._tokenImage = Base64.encode(bytes(image_));
     }
 
     /**
@@ -99,8 +99,8 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
      * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
      * @param image_ New image data for the contract.
      */
-    function setImageContract(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _getDevLicenseMetaStorage()._imageContract = Base64.encode(bytes(image_));
+    function setContractImage(string calldata image_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _getDevLicenseMetaStorage()._contractImage = Base64.encode(bytes(image_));
     }
 
     /**
@@ -108,8 +108,8 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
      * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
      * @param description_ New description for the tokens.
      */
-    function setDescriptionToken(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _getDevLicenseMetaStorage()._descriptionToken = description_;
+    function setTokenDescription(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _getDevLicenseMetaStorage()._tokenDescription = description_;
     }
 
     /**
@@ -117,8 +117,8 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
      * @dev Only accessible by accounts with the LICENSE_ADMIN_ROLE.
      * @param description_ New description for the contract.
      */
-    function setDescriptionContract(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
-        _getDevLicenseMetaStorage()._descriptionContract = description_;
+    function setContractDescription(string calldata description_) external onlyRole(LICENSE_ADMIN_ROLE) {
+        _getDevLicenseMetaStorage()._contractDescription = description_;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -127,21 +127,21 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
 
     /**
      * @notice Generates the contract URI for marketplace display.
-     * @return string URI of the contract metadata.
+     * @return contractURI_ URI of the contract metadata.
      */
-    function contractURI() external view returns (string memory) {
+    function contractURI() external view returns (string memory contractURI_) {
         DevLicenseMetaStorage storage $ = _getDevLicenseMetaStorage();
-        return string(
+        contractURI_ = string(
             abi.encodePacked(
                 "data:application/json;base64,",
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
                             '{"name":"DIMO Developer License",' '"description":',
-                            $._descriptionContract,
+                            $._contractDescription,
                             "," '"image": "',
                             "data:image/svg+xml;base64,",
-                            $._imageContract,
+                            $._contractImage,
                             '",' '"external_link": "https://dimo.zone/",'
                             '"collaborators": ["0x0000000000000000000000000000000000000000"]}'
                         )
@@ -155,11 +155,11 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
      * @notice Generates the token URI for a given token ID.
      * @dev Concatenates base data with the token-specific ID to create unique metadata for each token.
      * @param tokenId The ID of the token.
-     * @return string URI of the token's metadata.
+     * @return tokenURI_ URI of the token's metadata.
      */
-    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory tokenURI_) {
         DevLicenseMetaStorage storage $ = _getDevLicenseMetaStorage();
-        return string(
+        tokenURI_ = string(
             abi.encodePacked(
                 "data:application/json;base64,",
                 Base64.encode(
@@ -168,10 +168,10 @@ contract DevLicenseMeta is Initializable, DevLicenseStake {
                             '{"name":"',
                             string(abi.encodePacked("DIMO Developer License #", Strings.toString(tokenId))),
                             '", "description":"',
-                            $._descriptionToken,
+                            $._tokenDescription,
                             '", "image": "',
                             "data:image/svg+xml;base64,",
-                            $._imageToken,
+                            $._tokenImage,
                             '"}'
                         )
                     )

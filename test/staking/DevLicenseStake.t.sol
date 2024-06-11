@@ -28,7 +28,7 @@ contract DevLicenseStakeTest is BaseSetUp {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00);
 
-        assertEq(license.stakedBalances(tokenId), amount00);
+        assertEq(license.stakedBalance(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
     }
 
@@ -41,7 +41,7 @@ contract DevLicenseStakeTest is BaseSetUp {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00);
 
-        assertEq(license.stakedBalances(tokenId), amount00);
+        assertEq(license.stakedBalance(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
         license.adminBurnLockedFunds(tokenId, amount00);
 

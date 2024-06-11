@@ -12,7 +12,7 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * Implements locking of tokens against licenses and facilitates staking rewards and penalties.
  * Utilizes ReentrancyGuard from OpenZeppelin to prevent reentrancy attacks.
  * For more information on DIMO tokenomics: https://dimo.zone/news/on-dimo-tokenomics
- * @dev To facilitate potential upgrades, this agreement employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
 contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicenseCore {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseStake
@@ -60,7 +60,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     }
 
     /**
-     * @dev Initializes the contract by setting a `receiver_`, `licenseAccountFactory_`, `provider_`, `dimoTokenAddress_`, and `dimoCreditAddress_`, and the `licenseCostInUsd_`.
+     * @dev Initializes the contract
      */
     function __DevLicenseStake_init() internal onlyInitializing {
         __ReentrancyGuard_init();
@@ -69,16 +69,16 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     /**
      * @notice Returns the total amount of $DIMO staked in the contract
      */
-    function stakeTotal() public view returns (uint256) {
-        return _getDevLicenseStakeStorage()._stakeTotal;
+    function stakeTotal() public view returns (uint256 stakeTotal_) {
+        stakeTotal_ = _getDevLicenseStakeStorage()._stakeTotal;
     }
 
     /**
      * @notice Returns if a token Id is frozen
      * @param tokenId The unique identifier for the license token
      */
-    function frozen(uint256 tokenId) public view returns (bool) {
-        return _getDevLicenseStakeStorage()._frozen[tokenId];
+    function frozen(uint256 tokenId) public view returns (bool frozen_) {
+        frozen_ = _getDevLicenseStakeStorage()._frozen[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -140,10 +140,10 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     /**
      * @notice Returns the amount of DIMO tokens staked against a specific license.
      * @param tokenId The ID of the license.
-     * @return stakedBalance The amount of tokens staked against the license.
+     * @return stakedBalance_ The amount of tokens staked against the license.
      */
-    function stakedBalances(uint256 tokenId) public view returns (uint256 stakedBalance) {
-        stakedBalance = _getDevLicenseStakeStorage()._stakedBalances[tokenId];
+    function stakedBalance(uint256 tokenId) public view returns (uint256 stakedBalance_) {
+        stakedBalance_ = _getDevLicenseStakeStorage()._stakedBalances[tokenId];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -216,8 +216,8 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
         DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
 
-        uint256 balaceOf = dlcs._dimoToken.balanceOf(address(this));
-        uint256 amount = balaceOf - $._stakeTotal;
+        uint256 balanceOf = dlcs._dimoToken.balanceOf(address(this));
+        uint256 amount = balanceOf - $._stakeTotal;
         dlcs._dimoToken.transfer(to, amount);
     }
 }
