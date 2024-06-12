@@ -13,6 +13,7 @@ import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
+import {IDevLicenseErrors} from "../../src/interface/IDevLicenseErrors.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 
@@ -149,7 +150,7 @@ contract IntegrationStakeTest is Test, ForkProvider {
 
         vm.startPrank(user);
         uint256 amountWithdraw = license.stakedBalance(tokenId);
-        vm.expectRevert("DevLicenseDimo: funds inaccessible");
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.FrozenToken.selector, tokenId));
         license.withdraw(tokenId, amountWithdraw);
         vm.stopPrank();
     }

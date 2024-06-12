@@ -20,6 +20,7 @@ import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
+import {IDevLicenseErrors} from "../../src/interface/IDevLicenseErrors.sol";
 
 //forge test --match-path ./test/staking/RevokeBurnReallocate.t.sol -vv
 contract RevokeBurnReallocateTest is Test {
@@ -148,8 +149,7 @@ contract RevokeBurnReallocateTest is Test {
         license.revoke(tokenId);
         vm.stopPrank();
 
-        // vm.expectRevert("DevLicenseDimo: invalid tokenId");
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.NonexistentToken.selector, 1));
         license.ownerOf(tokenId);
     }
 

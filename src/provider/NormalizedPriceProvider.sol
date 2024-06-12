@@ -31,22 +31,31 @@ contract NormalizedPriceProvider is AccessControl {
     event OracleSourceAdded(address indexed source);
 
     uint256 constant MAX_ORACLE_SOURCES = 12;
-    string private constant ERROR_INVALID_INDEX = "NormalizedPriceProvider: invalid index";
-    string private constant ERROR_MAX_ORACLES_REACHED = "NormalizedPriceProvider: max oracle sources reached";
+
+    error ZeroAddress();
+    error InvalidIndex();
+    error MaxOraclesReached();
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function addOracleSource(address source) external onlyRole(PROVIDER_ADMIN_ROLE) {
-        require(source != address(0), "NormalizedPriceProvider: invalid source address");
-        require(_oracleSources.length < MAX_ORACLE_SOURCES, ERROR_MAX_ORACLES_REACHED);
+        if (source == address(0)) {
+            revert ZeroAddress();
+        }
+        if (_oracleSources.length >= MAX_ORACLE_SOURCES) {
+            revert MaxOraclesReached();
+        }
+
         _oracleSources.push(IOracleSource(source));
         emit OracleSourceAdded(source);
     }
 
     function setPrimaryOracleSource(uint256 index) external onlyRole(PROVIDER_ADMIN_ROLE) {
-        require(index < _oracleSources.length, ERROR_INVALID_INDEX);
+        if (index >= _oracleSources.length) {
+            revert InvalidIndex();
+        }
         _primaryIndex = index;
         emit PrimaryOracleSourceSet(_primaryIndex);
     }
@@ -56,7 +65,9 @@ contract NormalizedPriceProvider is AccessControl {
      * the last element and then popping from the array
      */
     function removeOracleSource(uint256 indexToRemove) external onlyRole(PROVIDER_ADMIN_ROLE) {
-        require(indexToRemove < _oracleSources.length && indexToRemove != _primaryIndex, ERROR_INVALID_INDEX);
+        if (indexToRemove >= _oracleSources.length || indexToRemove == _primaryIndex) {
+            revert InvalidIndex();
+        }
 
         emit OracleSourceRemoved(address(_oracleSources[indexToRemove]));
 
