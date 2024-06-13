@@ -9,6 +9,7 @@ import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
 import {IDevLicenseDimo} from "./interface/IDevLicenseDimo.sol";
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
+import {IDevLicenseErrors} from "./interface/IDevLicenseErrors.sol";
 
 /**
  * @title Developer License Core
@@ -17,7 +18,7 @@ import {IDimoToken} from "./interface/IDimoToken.sol";
  * @notice This contract manages the creation, administration, and validation of developer licenses,
  *         integrating with DIMO's token and credit systems.
  */
-contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseDimo {
+contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseDimo, IDevLicenseErrors {
     /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseCore
     struct DevLicenseCoreStorage {
         IDimoToken _dimoToken;
@@ -52,8 +53,6 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         }
     }
 
-    error AliasAlreadyInUse(bytes32 licenseAlias);
-
     /*//////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
@@ -74,14 +73,6 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     event UpdateLicenseAccountFactoryAddress(address licenseAccountFactory_);
 
     /*//////////////////////////////////////////////////////////////
-                            Error Messages
-    //////////////////////////////////////////////////////////////*/
-
-    string INVALID_TOKEN_ID = "DevLicenseDimo: invalid tokenId";
-    string INVALID_OPERATION = "DevLicenseDimo: invalid operation";
-    string INVALID_MSG_SENDER = "DevLicenseDimo: invalid msg.sender";
-
-    /*//////////////////////////////////////////////////////////////
                             Modifiers
     //////////////////////////////////////////////////////////////*/
 
@@ -89,7 +80,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev Ensures the caller is the owner of the specified token ID.
      */
     modifier onlyTokenOwner(uint256 tokenId) {
-        require(msg.sender == ownerOf(tokenId), INVALID_MSG_SENDER);
+        if (msg.sender != ownerOf(tokenId)) {
+            revert InvalidSender(msg.sender);
+        }
         _;
     }
 
@@ -434,7 +427,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev This contract does not support approvals, attempting to do so will cause a revert.
      */
     function approve(address, /*spender*/ uint256 /*id*/ ) public virtual {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /**
@@ -442,7 +435,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev This contract does not support setting approval for all, attempting to do so will cause a revert.
      */
     function setApprovalForAll(address, /*operator*/ bool /*approved*/ ) public virtual {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /**
@@ -450,7 +443,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev This contract does not support transferring tokens, attempting to do so will cause a revert.
      */
     function transferFrom(address, /*from*/ address, /*to*/ uint256 /*id*/ ) public virtual {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /**
@@ -458,7 +451,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev This contract does not support safe transferring of tokens without data, attempting to do so will cause a revert.
      */
     function safeTransferFrom(address, /*from*/ address, /*to*/ uint256 /*id*/ ) public virtual {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /**
@@ -469,7 +462,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         public
         virtual
     {
-        revert(INVALID_OPERATION);
+        revert InvalidOperation();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -494,7 +487,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         owner = $._ownerOf[tokenId];
-        if (owner == address(0)) revert(INVALID_TOKEN_ID);
+        if (owner == address(0)) {
+            revert NonexistentToken(tokenId);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -506,7 +501,10 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * soulbinding EIP-721 NFTs
      */
     function locked(uint256 tokenId) external view returns (bool locked_) {
-        require(locked_ = _exists(tokenId), INVALID_TOKEN_ID);
+        locked_ = _exists(tokenId);
+        if (!locked_) {
+            revert NonexistentToken(tokenId);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////

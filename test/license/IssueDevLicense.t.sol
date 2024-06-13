@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
+import {IDevLicenseErrors} from "../../src/interface/IDevLicenseErrors.sol";
 import {DevLicenseCore} from "../../src/DevLicenseCore.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
 
@@ -45,7 +46,7 @@ contract IssueDevLicenseTest is BaseSetUp {
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        vm.expectRevert(abi.encodeWithSelector(DevLicenseCore.AliasAlreadyInUse.selector, LICENSE_ALIAS));
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.AliasAlreadyInUse.selector, LICENSE_ALIAS));
         license.issueInDimo(LICENSE_ALIAS);
     }
 

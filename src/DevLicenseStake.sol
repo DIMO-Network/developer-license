@@ -48,12 +48,6 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     /// @notice Emitted upon withdrawal of stake from a license.
     event StakeWithdraw(uint256 indexed tokenId, address indexed user, uint256 amount);
 
-    /*//////////////////////////////////////////////////////////////
-                            Error Messages
-    //////////////////////////////////////////////////////////////*/
-
-    string INVALID_PARAM = "DevLicenseDimo: invalid param";
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -92,7 +86,9 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
      * @param amount The amount of DIMO tokens to stake.
      */
     function lock(uint256 tokenId, uint256 amount) external {
-        require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
+        if (msg.sender != ownerOf(tokenId)) {
+            revert InvalidSender(msg.sender);
+        }
 
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
         DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
@@ -114,10 +110,18 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
     function withdraw(uint256 tokenId, uint256 amount) public nonReentrant {
         DevLicenseStakeStorage storage $ = _getDevLicenseStakeStorage();
 
-        require(amount > 0, INVALID_PARAM);
-        require(msg.sender == ownerOf(tokenId), INVALID_PARAM);
-        require(!$._frozen[tokenId], "DevLicenseDimo: funds inaccessible");
-        require($._stakedBalances[tokenId] >= amount, INVALID_PARAM);
+        if (amount == 0) {
+            revert InvalidAmount(amount);
+        }
+        if (msg.sender != ownerOf(tokenId)) {
+            revert InvalidSender(msg.sender);
+        }
+        if ($._frozen[tokenId]) {
+            revert FrozenToken(tokenId);
+        }
+        if ($._stakedBalances[tokenId] < amount) {
+            revert InsufficientStakedFunds(tokenId, amount);
+        }
 
         _transferOut(tokenId, amount);
         _getDevLicenseCoreStorage()._dimoToken.transferFrom(address(this), msg.sender, amount);
@@ -184,7 +188,9 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
      * @param amount The amount of staked assets to forfeit.
      */
     function adminBurnLockedFunds(uint256 tokenId, uint256 amount) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_getDevLicenseStakeStorage()._stakedBalances[tokenId] >= amount, INVALID_PARAM);
+        if (amount > _getDevLicenseStakeStorage()._stakedBalances[tokenId]) {
+            revert InsufficientStakedFunds(tokenId, amount);
+        }
 
         _transferOut(tokenId, amount);
 
@@ -199,7 +205,9 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
      * @param to The address to which the assets are reallocated.
      */
     function adminReallocate(uint256 tokenId, uint256 amount, address to) external onlyRole(LICENSE_ADMIN_ROLE) {
-        require(_getDevLicenseStakeStorage()._stakedBalances[tokenId] <= amount, INVALID_PARAM);
+        if (amount > _getDevLicenseStakeStorage()._stakedBalances[tokenId]) {
+            revert InsufficientStakedFunds(tokenId, amount);
+        }
 
         _transferOut(tokenId, amount);
 

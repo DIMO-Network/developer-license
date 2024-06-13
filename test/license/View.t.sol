@@ -7,6 +7,7 @@ import {IERC5192} from "../../src/interface/IERC5192.sol";
 import {IERC721Metadata} from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 
+import {IDevLicenseErrors} from "../../src/interface/IDevLicenseErrors.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 import {DevLicenseCore} from "../../src/DevLicenseCore.sol";
 
@@ -25,9 +26,9 @@ contract ViewTest is BaseSetUp {
         (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
         bool locked = license.locked(tokenId);
         assertEq(locked, true);
-        // vm.expectRevert("DevLicenseDimo: invalid tokenId");
-        vm.expectRevert();
-        license.locked(300);
+
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.NonexistentToken.selector, 99));
+        license.locked(99);
     }
 
     function test_ownerOfSuccess() public {
@@ -36,20 +37,17 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_ownerOfFail() public {
-        // vm.expectRevert("DevLicenseDimo: invalid tokenId");
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.NonexistentToken.selector, type(uint256).max));
         license.ownerOf(type(uint256).max);
     }
 
     function test_name() public view {
         string memory name = license.name();
-        //console2.log("name: %s", name);
         assertEq(name, "DIMO Developer License");
     }
 
     function test_symbol() public view {
         string memory symbol = license.symbol();
-        //console2.log("symbol: %s", symbol);
         assertEq(symbol, "DLX");
     }
 
@@ -279,7 +277,7 @@ contract ViewTest is BaseSetUp {
         license.setLicenseCost(1_000_000 ether);
 
         vm.startPrank(user);
-        vm.expectRevert();
+        vm.expectRevert("ERC20: insufficient allowance");
         license.issueInDimo(LICENSE_ALIAS);
         vm.stopPrank();
     }
@@ -310,8 +308,7 @@ contract ViewTest is BaseSetUp {
         assertEq(aliasBefore, LICENSE_ALIAS);
 
         vm.startPrank(address(0x999));
-        // vm.expectRevert("DevLicenseDimo: invalid msg.sender");
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.InvalidSender.selector, address(0x999)));
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
         vm.stopPrank();
     }
@@ -319,7 +316,7 @@ contract ViewTest is BaseSetUp {
     function test_setLicenseAlias_revertAliasAlreadySet() public {
         license.issueInDimo(LICENSE_ALIAS);
 
-        vm.expectRevert(abi.encodeWithSelector(DevLicenseCore.AliasAlreadyInUse.selector, LICENSE_ALIAS));
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.AliasAlreadyInUse.selector, LICENSE_ALIAS));
         license.issueInDimo(LICENSE_ALIAS);
     }
 }

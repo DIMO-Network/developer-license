@@ -240,7 +240,9 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
         DevLicenseStakeStorage storage dlss = _getDevLicenseStakeStorage();
 
-        require(dlss._stakedBalances[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
+        if (dlss._stakedBalances[tokenId] != 0) {
+            revert StakedFunds(tokenId);
+        }
 
         address tokenOwner = dlcs._ownerOf[tokenId];
         delete dlcs._ownerOf[tokenId];
