@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {DimoDeveloperLicenseAccount} from "../../src/DimoDeveloperLicenseAccount.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
@@ -27,7 +27,7 @@ contract DevLicenseDimoTest is BaseSetUp {
         assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
 
         assertEq(dimoToken.balanceOf(_receiver), tokenTransferAmount);
     }

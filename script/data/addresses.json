@@ -1,0 +1,86 @@
+{
+    "polygon": {
+        "TwapV3": "0x4ad4CA434e68D60fa7f98571C17472228cEa6f52",
+        "NormalizedPriceProvider": "0x4ad4CA434e68D60fa7f98571C17472228cEa6f52",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "0x8416D265Bd765a53A936e2406b2D5d8F6F893BD7",
+            "implementation": ""
+        },
+        "DevLicenseDimo": {
+            "proxy": "0xc194631194671a44a9eF1c59DF290ef0F3E76EA1",
+            "implementation": ""
+        },
+        "DimoCredit": {
+            "proxy": "0x35eb1FF746f9BD6c3E211953AE91B6C32536A611",
+            "implementation": ""
+        },
+        "DimoToken": "0xe261d618a959afffd53168cd07d12e37b26761db",
+        "Receiver": "0xA2f0fD6A9411f4911b992C2389A53FfAb1E2BE88",
+        "Admin": "0xCED3c922200559128930180d3f0bfFd4d9f4F123"
+    },
+    "amoy": {
+        "TwapV3": "",
+        "NormalizedPriceProvider": "",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DevLicenseDimo": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DimoCredit": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DimoToken": "0x21cFE003997fB7c2B3cfe5cf71e7833B7B2eCe10",
+        "Receiver": "0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b",
+        "Admin": "0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b"
+    },
+    "hardhat": {
+        "TwapV3": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "NormalizedPriceProvider": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "DimoDeveloperLicenseAccount": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "UpgradeableBeacon": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+        "LicenseAccountFactory": {
+            "proxy": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+            "implementation": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+        },
+        "DevLicenseDimo": {
+            "proxy": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+            "implementation": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+        },
+        "DimoCredit": {
+            "proxy": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+            "implementation": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+        },
+        "DimoToken": "0x0000000000000000000000000000000000000001",
+        "Receiver": "0x0000000000000000000000000000000000000002",
+        "Admin": "0x0000000000000000000000000000000000000003"
+    },
+    "localhost": {
+        "TwapV3": "",
+        "NormalizedPriceProvider": "",
+        "DimoDeveloperLicenseAccount": "",
+        "UpgradeableBeacon": "",
+        "LicenseAccountFactory": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DevLicenseDimo": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DimoCredit": {
+            "proxy": "",
+            "implementation": ""
+        },
+        "DimoToken": "0x0000000000000000000000000000000000000001",
+        "Receiver": "0x0000000000000000000000000000000000000002",
+        "Admin": "0x0000000000000000000000000000000000000003"
+    }
+}

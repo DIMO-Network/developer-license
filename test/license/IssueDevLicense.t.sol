@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {DevLicenseCore} from "../../src/DevLicenseCore.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
@@ -25,7 +25,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         assertEq(license.ownerOf(tokenId), address(this));
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
         assertEq(dimoToken.balanceOf(_receiver), tokenTransferAmount);
     }
 
@@ -57,7 +57,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         license.setReceiverAddress(_receiver);
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
         deal(address(dimoToken), _licenseHolder, tokenTransferAmount);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(license), tokenTransferAmount);
@@ -77,7 +77,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         license.setReceiverAddress(_receiver);
 
         (uint256 amountUsdPerToken,) = provider.getAmountUsdPerToken();
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / amountUsdPerToken) * 1 ether;
         deal(address(dimoToken), _licenseHolder, tokenTransferAmount);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(license), tokenTransferAmount);
@@ -90,7 +90,7 @@ contract IssueDevLicenseTest is BaseSetUp {
     }
 
     function test_issueInDc() public {
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         dimoToken.approve(address(dimoCredit), 1_000_000 ether);
         dimoCredit.mint(address(this), tokenTransferAmount, "");
@@ -104,7 +104,7 @@ contract IssueDevLicenseTest is BaseSetUp {
     }
 
     function test_issueInDc_emitLicenseAliasSet() public {
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         dimoToken.approve(address(dimoCredit), 1_000_000 ether);
         dimoCredit.mint(address(this), tokenTransferAmount, "");
@@ -116,7 +116,7 @@ contract IssueDevLicenseTest is BaseSetUp {
     }
 
     function test_issueInDcSenderSuccess() public {
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);
@@ -140,7 +140,7 @@ contract IssueDevLicenseTest is BaseSetUp {
     }
 
     function test_issueInDcSender_emitLicenseAliasSet() public {
-        uint256 tokenTransferAmount = (license._licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
+        uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);

@@ -1,17 +1,24 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+
 import {ForkProvider} from "../helper/ForkProvider.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 
 //forge test --match-path ./test/credits/DcCalc.t.sol -vv
 contract DcCalcTest is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
+
     DimoCredit dc;
     IDimoToken dimoToken;
 
@@ -34,7 +41,19 @@ contract DcCalcTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(oracle));
 
-        dc = new DimoCredit(_receiver, address(provider));
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
+        );
+
+        dc = DimoCredit(proxyDc);
     }
 
     function test_calc() public {

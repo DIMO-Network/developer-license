@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 
@@ -9,8 +9,8 @@ interface IGrantRole {
     function grantRole(bytes32 role, address account) external;
 }
 
-//forge test --match-path ./test/DevLicenseLock.t.sol -vv
-contract DevLicenseDimoTest is BaseSetUp {
+//forge test --match-path ./test/staking/DevLicenseStake.t.sol -vv
+contract DevLicenseStakeTest is BaseSetUp {
     uint256 tokenId;
     address clientId;
 
@@ -28,7 +28,7 @@ contract DevLicenseDimoTest is BaseSetUp {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00);
 
-        assertEq(license.licenseStaked(tokenId), amount00);
+        assertEq(license.stakedBalance(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
     }
 
@@ -41,7 +41,7 @@ contract DevLicenseDimoTest is BaseSetUp {
         uint256 amount00 = 1 ether;
         license.lock(tokenId, amount00);
 
-        assertEq(license.licenseStaked(tokenId), amount00);
+        assertEq(license.stakedBalance(tokenId), amount00);
         assertEq(dimoToken.balanceOf(address(license)), amount00);
         license.adminBurnLockedFunds(tokenId, amount00);
 

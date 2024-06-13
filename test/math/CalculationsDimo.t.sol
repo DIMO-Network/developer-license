@@ -1,21 +1,32 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {TestOracleSource} from "../helper/TestOracleSource.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {DevLicenseDimo} from "../../src/DevLicenseDimo.sol";
-import {LicenseAccountFactory} from "../../src/LicenseAccountFactory.sol";
+import {DimoDeveloperLicenseAccount} from "../../src/licenseAccount/DimoDeveloperLicenseAccount.sol";
+import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFactory.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
 //forge test --match-path ./test/math/CalculationsDimo.t.sol -vv
 contract CalculationsDimoTest is Test {
+    string constant DC_NAME = "DIMO Credit";
+    string constant DC_SYMBOL = "DCX";
+    uint256 constant DC_VALIDATION_PERIOD = 1 days;
+    uint256 constant DC_RATE = 0.001 ether;
     bytes32 constant LICENSE_ALIAS = "licenseAlias";
+    string constant IMAGE_SVG =
+        '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
+    string constant METADATA_DESCRIPTION =
+        "This is an NFT collection minted for developers building on the DIMO Network";
 
     DimoCredit dimoCredit;
     IDimoToken dimoToken;
@@ -33,8 +44,7 @@ contract CalculationsDimoTest is Test {
         _receiver = address(0x123);
         _admin = address(0x1);
 
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-        vm.createSelectFork("https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", 50573735);
+        vm.createSelectFork("https://polygon-rpc.com", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         testOracleSource = new TestOracleSource();
@@ -42,16 +52,63 @@ contract CalculationsDimoTest is Test {
         provider.grantRole(keccak256("PROVIDER_ADMIN_ROLE"), address(this));
         provider.addOracleSource(address(testOracleSource));
 
-        LicenseAccountFactory factory = new LicenseAccountFactory();
-
-        dimoCredit = new DimoCredit(_receiver, address(provider));
-
         licenseCostInUsd = 0;
-        license = new DevLicenseDimo(
-            _receiver, address(factory), address(provider), address(dimoToken), address(dimoCredit), licenseCostInUsd
+
+        LicenseAccountFactory factory = _deployLicenseAccountFactory(_admin);
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyDc = Upgrades.deployUUPSProxy(
+            "DimoCredit.sol",
+            abi.encodeCall(
+                DimoCredit.initialize,
+                (DC_NAME, DC_SYMBOL, address(dimoToken), _receiver, address(provider), DC_VALIDATION_PERIOD, DC_RATE)
+            ),
+            opts
         );
 
-        factory.setLicense(address(license));
+        dimoCredit = DimoCredit(proxyDc);
+
+        address proxyDl = Upgrades.deployUUPSProxy(
+            "DevLicenseDimo.sol",
+            abi.encodeCall(
+                DevLicenseDimo.initialize,
+                (
+                    _receiver,
+                    address(factory),
+                    address(provider),
+                    address(dimoToken),
+                    address(dimoCredit),
+                    licenseCostInUsd,
+                    IMAGE_SVG,
+                    METADATA_DESCRIPTION
+                )
+            ),
+            opts
+        );
+
+        license = DevLicenseDimo(proxyDl);
+
+        factory.grantRole(keccak256("ADMIN_ROLE"), _admin);
+
+        vm.startPrank(_admin);
+        factory.setDevLicenseDimo(address(license));
+        vm.stopPrank();
+    }
+
+    function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
+        address devLicenseAccountTemplate = address(new DimoDeveloperLicenseAccount());
+        address beacon = address(new UpgradeableBeacon(devLicenseAccountTemplate, admin));
+
+        Options memory opts;
+        opts.unsafeSkipAllChecks = true;
+
+        address proxyLaf = Upgrades.deployUUPSProxy(
+            "LicenseAccountFactory.sol", abi.encodeCall(LicenseAccountFactory.initialize, (beacon)), opts
+        );
+
+        laf = LicenseAccountFactory(proxyLaf);
     }
 
     function test_1to1simpleCase() public {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 interface ILicenseAccountFactory {
-    function setLicense(address license) external;
+    function setDevLicenseDimo(address license) external;
     function create(uint256 tokenId) external returns (address clone);
 }

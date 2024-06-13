@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
@@ -26,12 +26,8 @@ contract TwapIntervalTest is Test {
     TwapV3 twap;
 
     function setUp() public {
-        //vm.createSelectFork('https://polygon-mainnet.g.alchemy.com/v2/NlPy1jSLyP-tUCHAuilxrsfaLcFaxSTm', 50573735);
-
         uint256 marchTwnetyFourPmEst = 54889372;
-        vm.createSelectFork(
-            "https://polygon-mainnet.infura.io/v3/89d890fd291a4096a41aea9b3122eb28", marchTwnetyFourPmEst
-        );
+        vm.createSelectFork("https://polygon-rpc.com", marchTwnetyFourPmEst);
 
         // 1 USDC ~ 1.00428 MATIC
         // 1 DIMO ~ 0.44209 MATIC

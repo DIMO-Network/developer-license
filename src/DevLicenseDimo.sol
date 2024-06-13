@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.24;
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {IDimoCredit} from "./interface/IDimoCredit.sol";
 import {IDimoToken} from "./interface/IDimoToken.sol";
@@ -27,27 +30,32 @@ import {DevLicenseCore} from "./DevLicenseCore.sol";
  * @dev Implements the DIMO Developer License system, enabling the minting, management, and revocation of developer
  *      licenses on the DIMO platform. Incorporates functionalities for redirect URI management and license issuance
  *      through DIMO tokens or DIMO Credits.
+ * @dev To facilitate potential upgrades, this contract employs the Namespaced Storage Layout (https://eips.ethereum.org/EIPS/eip-7201)
  */
-contract DevLicenseDimo is DevLicenseMeta {
-    /*//////////////////////////////////////////////////////////////
-                             Access Controls
-    //////////////////////////////////////////////////////////////*/
+contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
+    /// @custom:storage-location erc7201:DIMOdevLicense.storage.DevLicenseDimo
+    struct DevLicenseDimoStorage {
+        /// @notice The name of the token (license).
+        string _name;
+        /// @notice The symbol of the token (license).
+        string _symbol;
+        /// @dev Tracks the enabled status of redirect URIs for each tokenId.
+        mapping(uint256 tokenId => mapping(string redirectUri => bool enabled)) _redirectUris; // TODO replace by bitmap?
+    }
 
     /// @notice Role identifier for addresses authorized to revoke licenses.
     bytes32 public constant REVOKER_ROLE = keccak256("REVOKER_ROLE");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    /*//////////////////////////////////////////////////////////////
-                            Member Variables
-    //////////////////////////////////////////////////////////////*/
+    // keccak256(abi.encode(uint256(keccak256("DIMOdevLicense.storage.DevLicenseDimo")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant DEV_LICENSE_DIMO_STORAGE_LOCATION =
+        0x3ec62ea9233f9c7540d233a460e4ee7db69eb3bd4222a12045874d0a665b4300;
 
-    /// @notice The name of the token (license).
-    string public name;
-    /// @notice The symbol of the token (license).
-    string public symbol;
-
-    /*//////////////////////////////////////////////////////////////
-                                Events
-    //////////////////////////////////////////////////////////////*/
+    function _getDevLicenseDimoStorage() internal pure returns (DevLicenseDimoStorage storage $) {
+        assembly {
+            $.slot := DEV_LICENSE_DIMO_STORAGE_LOCATION
+        }
+    }
 
     /// @notice Emitted when a redirect URI is enabled for a license.
     event RedirectUriEnabled(uint256 indexed tokenId, string uri);
@@ -56,35 +64,48 @@ contract DevLicenseDimo is DevLicenseMeta {
     /// @notice Emitted when a license is issued to an owner and associated with a clientId.
     event Issued(uint256 indexed tokenId, address indexed owner, address indexed clientId);
 
-    /*//////////////////////////////////////////////////////////////
-                               Mappings
-    //////////////////////////////////////////////////////////////*/
-
-    /// @dev Tracks the enabled status of redirect URIs for each tokenId.
-    mapping(uint256 => mapping(string => bool)) private _redirectUris;
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Sets initial values for `name` and `symbol`, and forwards constructor parameters to the DevLicenseMeta contract.
      */
-    constructor(
+    function initialize(
         address receiver_,
         address licenseAccountFactory_,
         address provider_,
         address dimoTokenAddress_,
         address dimoCreditAddress_,
-        uint256 licenseCostInUsd_
-    )
-        DevLicenseMeta(
-            receiver_,
-            licenseAccountFactory_,
-            provider_,
-            dimoTokenAddress_,
-            dimoCreditAddress_,
-            licenseCostInUsd_
-        )
-    {
-        symbol = "DLX";
-        name = "DIMO Developer License";
+        uint256 licenseCostInUsd_,
+        string calldata image_,
+        string calldata description_
+    ) external initializer {
+        __UUPSUpgradeable_init();
+        __DevLicenseMeta_init(image_, description_);
+        __DevLicenseCore_init(
+            receiver_, licenseAccountFactory_, provider_, dimoTokenAddress_, dimoCreditAddress_, licenseCostInUsd_
+        );
+
+        DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
+
+        $._symbol = "DLX";
+        $._name = "DIMO Developer License";
+    }
+
+    /**
+     * @notice Returns the ERC721 name
+     */
+    function name() public view returns (string memory name_) {
+        name_ = _getDevLicenseDimoStorage()._name;
+    }
+
+    /**
+     * @notice Returns the ERC721 symbol
+     */
+    function symbol() public view returns (string memory symbol_) {
+        symbol_ = _getDevLicenseDimoStorage()._symbol;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -98,7 +119,7 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return enabled True if the URI is enabled, false otherwise.
      */
     function redirectUriStatus(uint256 tokenId, string calldata uri) external view returns (bool enabled) {
-        enabled = _redirectUris[tokenId][uri];
+        enabled = _getDevLicenseDimoStorage()._redirectUris[tokenId][uri];
     }
 
     /**
@@ -109,11 +130,12 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @param uri The redirect URI to modify.
      */
     function setRedirectUri(uint256 tokenId, bool enabled, string calldata uri) external onlyTokenOwner(tokenId) {
+        DevLicenseDimoStorage storage $ = _getDevLicenseDimoStorage();
         if (enabled) {
-            _redirectUris[tokenId][uri] = enabled;
+            $._redirectUris[tokenId][uri] = enabled;
             emit RedirectUriEnabled(tokenId, uri);
         } else {
-            delete _redirectUris[tokenId][uri];
+            delete $._redirectUris[tokenId][uri];
             emit RedirectUriDisabled(tokenId, uri);
         }
     }
@@ -141,11 +163,13 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return clientId The address of the license account holding the new license.
      */
     function issueInDimo(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
-        (uint256 amountUsdPerToken,) = _provider.getAmountUsdPerToken();
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
 
-        uint256 tokenTransferAmount = (_licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
+        (uint256 amountUsdPerToken,) = dlcs._provider.getAmountUsdPerToken();
 
-        _dimoToken.transferFrom(to, _receiver, tokenTransferAmount);
+        uint256 tokenTransferAmount = (dlcs._licenseCostInUsd1e18 / amountUsdPerToken) * 1 ether;
+
+        dlcs._dimoToken.transferFrom(to, dlcs._receiver, tokenTransferAmount);
 
         return _issue(to, licenseAlias);
     }
@@ -169,8 +193,10 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return clientId The address of the license account holding the new license.
      */
     function issueInDc(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
-        uint256 dcTransferAmount = (_licenseCostInUsd1e18 / _dimoCredit.dimoCreditRate()) * 1 ether;
-        _dimoCredit.burn(to, dcTransferAmount);
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
+
+        uint256 dcTransferAmount = (dlcs._licenseCostInUsd1e18 / dlcs._dimoCredit.dimoCreditRate()) * 1 ether;
+        dlcs._dimoCredit.burn(to, dcTransferAmount);
 
         return _issue(to, licenseAlias);
     }
@@ -183,12 +209,14 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @return clientId The address of the license account holding the new license.
      */
     function _issue(address to, bytes32 licenseAlias) private returns (uint256 tokenId, address clientId) {
-        tokenId = ++_counter;
-        clientId = _licenseAccountFactory.create(tokenId);
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
 
-        _tokenIdToClientId[tokenId] = clientId;
-        _clientIdToTokenId[clientId] = tokenId;
-        _ownerOf[tokenId] = to;
+        tokenId = ++dlcs._counter;
+        clientId = dlcs._licenseAccountFactory.create(tokenId);
+
+        dlcs._tokenIdToClientId[tokenId] = clientId;
+        dlcs._clientIdToTokenId[clientId] = tokenId;
+        dlcs._ownerOf[tokenId] = to;
 
         emit Issued(tokenId, to, clientId);
 
@@ -209,21 +237,31 @@ contract DevLicenseDimo is DevLicenseMeta {
      * @param tokenId The ID of the license to revoke.
      */
     function revoke(uint256 tokenId) external onlyRole(REVOKER_ROLE) {
-        require(_stakeLicense[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
+        DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
+        DevLicenseStakeStorage storage dlss = _getDevLicenseStakeStorage();
 
-        address tokenOwner = _ownerOf[tokenId];
-        delete _ownerOf[tokenId];
+        require(dlss._stakedBalances[tokenId] == 0, "DevLicenseDimo: resolve staked funds prior to revocation");
 
-        address clientId = _tokenIdToClientId[tokenId];
-        delete _tokenIdToClientId[tokenId];
-        delete _clientIdToTokenId[clientId];
+        address tokenOwner = dlcs._ownerOf[tokenId];
+        delete dlcs._ownerOf[tokenId];
 
-        bytes32 licenseAlias = _tokenIdToAlias[tokenId];
+        address clientId = dlcs._tokenIdToClientId[tokenId];
+        delete dlcs._tokenIdToClientId[tokenId];
+        delete dlcs._clientIdToTokenId[clientId];
+
+        bytes32 licenseAlias = dlcs._tokenIdToAlias[tokenId];
         if (licenseAlias.length > 0) {
-            delete _tokenIdToAlias[tokenId];
-            delete _aliasToTokenId[licenseAlias];
+            delete dlcs._tokenIdToAlias[tokenId];
+            delete dlcs._aliasToTokenId[licenseAlias];
         }
 
         emit Transfer(tokenOwner, address(0), tokenId);
     }
+
+    /**
+     * @notice Internal function to authorize contract upgrade
+     * @dev Caller must have the upgrader role
+     * @param newImplementation New contract implementation address
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }
