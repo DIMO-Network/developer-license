@@ -470,14 +470,6 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev Returns the total number of tokens in existence.
-     * @return totalSupply_ The total supply of tokens.
-     */
-    function totalSupply() external view returns (uint256 totalSupply_) {
-        totalSupply_ = _getDevLicenseCoreStorage()._counter;
-    }
-
-    /**
      * @dev Returns the address of the owner of a given tokenId.
      * @param tokenId The identifier for a token.
      * @return owner The address of the owner of the specified token.
@@ -527,7 +519,6 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    // TODO Remember to organize supportsInterface better
     /**
      * @dev See {IERC165-supportsInterface}.
      * @notice Checks if the contract implements an interface.

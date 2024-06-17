@@ -40,7 +40,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         /// @notice The symbol of the token (license).
         string _symbol;
         /// @dev Tracks the enabled status of redirect URIs for each tokenId.
-        mapping(uint256 tokenId => mapping(string redirectUri => bool enabled)) _redirectUris; // TODO replace by bitmap?
+        mapping(uint256 tokenId => mapping(string redirectUri => bool enabled)) _redirectUris;
     }
 
     /// @notice Role identifier for addresses authorized to revoke licenses.

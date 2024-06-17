@@ -20,7 +20,7 @@ contract DevLicenseStake is Initializable, ReentrancyGuardUpgradeable, DevLicens
         /// @notice Total amount of DIMO tokens staked in the contract.
         uint256 _stakeTotal;
         /// @notice Maps a tokenId to its frozen status, where true indicates it is frozen.
-        mapping(uint256 tokenId => bool isFrozen) _frozen; // TODO replace by bitmap?
+        mapping(uint256 tokenId => bool isFrozen) _frozen;
         /// @notice Maps a tokenId to the amount of DIMO tokens staked against it.
         mapping(uint256 tokenId => uint256 stakedAmount) _stakedBalances;
     }
