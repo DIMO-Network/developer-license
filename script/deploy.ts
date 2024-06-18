@@ -1,4 +1,3 @@
-import dotenv from 'dotenv'
 import * as fs from 'fs'
 import path from 'path'
 import { BaseContract } from 'ethers'
@@ -60,20 +59,20 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
     const { name } = await ethers.provider.getNetwork();
     let instances = getAddresses();
 
-    console.log('\n----- Deploying TwapV3 contract -----\n');
+    console.log('\n----- Deploying Oracle Source contract -----\n');
 
-    const nameTwap = 'TwapV3'
-    const setTwap = getContractFactory(signer, nameTwap)
-    const twap = await setTwap.deploy({ gasPrice: gasPrice })
-    await twap.waitForDeployment()
-    const addressTwap = await twap.getAddress()
-    console.log(`TwapV3 contract deployed to ${addressTwap}`);
+    const nameOracle = name === 'amoy' ? 'MockOracleSource' : 'TwapV3'
+    const setOracle = getContractFactory(signer, nameOracle)
+    const oracle = await setOracle.deploy({ gasPrice: gasPrice })
+    await oracle.waitForDeployment()
+    const addressOracle = await oracle.getAddress()
+    console.log(`${nameOracle} contract deployed to ${addressOracle}`);
 
-    instances[name].TwapV3 = addressTwap;
+    instances[name][nameOracle] = addressOracle;
     writeAddresses(instances, name)
 
     if (verifyContract) {
-        await verifyContractUntilSuccess(addressTwap, nameTwap)
+        await verifyContractUntilSuccess(addressOracle, nameOracle)
     }
 
     console.log('\n----- Deploying NormalizedPriceProvider contract -----\n');
@@ -95,14 +94,14 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
         await verifyContractUntilSuccess(addressNpp, nameNpp)
     }
 
-    console.log('\n----- Adding TwapV3 to NormalizedPriceProvider as oracle source -----\n');
+    console.log('\n----- Adding Oracle Source to NormalizedPriceProvider as oracle source -----\n');
 
     const contractNpp = getContractInstance(signer, nameNpp, addressNpp)
     const txn0x = await contractNpp.grantRole(C.PROVIDER_ADMIN_ROLE, signer.address)
     await txn0x.wait()
-    await contractNpp.addOracleSource(addressTwap)
+    await contractNpp.addOracleSource(addressOracle)
 
-    console.log('----- TwapV3 added -----');
+    console.log('----- Oracle Source added -----');
 }
 
 async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boolean = false) {
@@ -255,7 +254,7 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
         addressDimoToken,
         addressDc,
         licenseCostInUsd,
-        getDevLicenseMetaImage(),
+        getDevLicenseMetaImage(), // Set to empty if it reverts due to too much data
         C.METADATA_DESCRIPTION
     )
 
@@ -274,7 +273,9 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
 async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     const instances = getAddresses();
     const { name } = await ethers.provider.getNetwork();
+    const oracleSourceName = name === 'amoy' ? 'MockOracleSource' : 'TwapV3';
 
+    const oracleSourceInstance = getContractInstance(signer, oracleSourceName, instances[name][oracleSourceName])
     const devLicenseDimoInstance = getContractInstance(signer, 'DevLicenseDimo', instances[name].DevLicenseDimo.proxy)
     const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
     const providerInstance = getContractInstance(signer, 'NormalizedPriceProvider', instances[name].NormalizedPriceProvider)
@@ -301,6 +302,9 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     await dimoCreditInstance.grantRole(C.BURNER_ROLE, admin);
     console.log(`DIMO Credit: BURNER_ROLE (${C.BURNER_ROLE}) granted`)
 
+    await oracleSourceInstance.grantRole(C.ORACLE_ADMIN_ROLE, admin);
+    console.log(`Oracle Source: ORACLE_ADMIN_ROLE (${C.ORACLE_ADMIN_ROLE}) granted`);
+
     await providerInstance.grantRole(C.PROVIDER_ADMIN_ROLE, admin);
     console.log(`Normalized Price Provider: PROVIDER_ADMIN_ROLE (${C.PROVIDER_ADMIN_ROLE}) granted`)
     await providerInstance.grantRole(C.UPDATER_ROLE, admin);
@@ -324,7 +328,7 @@ async function setup(signer: HardhatEthersSigner) {
     const factoryInstance = new ethers.Contract(addressLaf, outLaf.abi, signer)
 
     if (!(await factoryInstance.hasRole(C.ADMIN_ROLE, signer.address))) {
-        await factoryInstance.grantRole(C.ADMIN_ROLE, signer.address);
+        await (await factoryInstance.grantRole(C.ADMIN_ROLE, signer.address)).wait();
         console.log(`License Account Factory: ADMIN_ROLE (${C.ADMIN_ROLE}) granted`);
     }
 
