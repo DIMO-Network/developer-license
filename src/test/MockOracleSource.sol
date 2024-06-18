@@ -3,18 +3,16 @@ pragma solidity ^0.8.24;
 
 import {OracleSource} from "../provider/OracleSource.sol";
 
-/**
- */
-contract MockOracleSource is OracleSource {
-    constructor() {}
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-    /**
-     *
-     */
-    function getAmountUsdPerToken() external pure returns (uint256 amountUsdPerToken, uint256 updateTimestamp) {
-        uint256 _amountUsdPerToken = 110262839782427950;
-        uint256 _updateTimestamp = 1701349809;
-        return (_amountUsdPerToken, _updateTimestamp);
+contract MockOracleSource is OracleSource, AccessControl {
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function getAmountUsdPerToken() external pure returns (uint256 amountUsdPerToken_, uint256 updateTimestamp_) {
+        amountUsdPerToken_ = 110262839782427950;
+        updateTimestamp_ = 1701349809;
     }
 
     function getAmountUsdPerToken(bytes calldata /*data*/ )
