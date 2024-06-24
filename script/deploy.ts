@@ -319,27 +319,37 @@ async function setup(signer: HardhatEthersSigner) {
     const { name } = await ethers.provider.getNetwork();
 
     const addressDl = instances[name].DevLicenseDimo.proxy;
-    const addressLaf = instances[name].LicenseAccountFactory.proxy;
 
-    console.log('\n----- Setting LicenseAccountFactory to DevLicenseDimo -----\n');
+    console.log('\n----- Starting setup -----\n');
 
-    const nameLaf = 'LicenseAccountFactory';
-    const outLaf = JSON.parse(fs.readFileSync(`./out/${nameLaf}.sol/${nameLaf}.json`, 'utf8'))
-    const factoryInstance = new ethers.Contract(addressLaf, outLaf.abi, signer)
+    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[name].LicenseAccountFactory.proxy)
+    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
 
     if (!(await factoryInstance.hasRole(C.ADMIN_ROLE, signer.address))) {
+        console.log(`Granting ADMIN_ROLE (${C.ADMIN_ROLE}) to ${signer.address}`)
         await (await factoryInstance.grantRole(C.ADMIN_ROLE, signer.address)).wait();
         console.log(`License Account Factory: ADMIN_ROLE (${C.ADMIN_ROLE}) granted`);
     }
 
+    console.log('Setting LicenseAccountFactory to DevLicenseDimo');
     await factoryInstance.setDevLicenseDimo(addressDl)
+    console.log('LicenseAccountFactory set');
 
-    console.log('\n----- LicenseAccountFactory set -----');
+    console.log(`Granting BURNER_ROLE (${C.BURNER_ROLE}) to ${addressDl}`)
+    await dimoCreditInstance.grantRole(C.BURNER_ROLE, addressDl);
+    console.log(`DIMO Credit: BURNER_ROLE (${C.BURNER_ROLE}) granted`)
+
+    console.log('\n----- Setup done -----');
 }
 
 async function verifyContractUntilSuccess(address: any, contractName: string, arg?: any[]) {
     const { chainId } = await ethers.provider.getNetwork();
     const apiKey = process.env.POLYGONSCAN_API_KEY as string;
+    let verifier = ''
+
+    if (chainId.toString() === '80002') {//amoy
+        verifier = '--verifier-url https://api-amoy.polygonscan.com/api'
+    }
 
     return new Promise((resolve, _) => {
 
@@ -347,9 +357,9 @@ async function verifyContractUntilSuccess(address: any, contractName: string, ar
 
         let command: string;
         if (!arg) {
-            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
+            command = `forge verify-contract ${verifier} ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey}`;
         } else {
-            command = `forge verify-contract ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg.toString()}`;
+            command = `forge verify-contract ${verifier} ${address} ${contractName} --chain-id ${chainId} --etherscan-api-key ${apiKey} --constructor-args ${arg.toString()}`;
         }
 
         const attemptVerification = () => {
