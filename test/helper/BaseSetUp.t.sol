@@ -6,9 +6,9 @@ import {Test, console2} from "forge-std/Test.sol";
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 import {IERC1271} from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
+import {IDimoToken} from "../../src/interface/IDimoToken.sol";
 import {TwapV3} from "../../src/provider/TwapV3.sol";
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
@@ -27,7 +27,7 @@ contract BaseSetUp is Test {
     string constant METADATA_DESCRIPTION =
         "This is an NFT collection minted for developers building on the DIMO Network";
 
-    ERC20 public dimoToken;
+    IDimoToken public dimoToken;
     DevLicenseDimo public license;
 
     DimoCredit public dimoCredit;
@@ -43,7 +43,7 @@ contract BaseSetUp is Test {
         _licenseHolder = address(0x999);
 
         vm.createSelectFork("https://polygon-rpc.com", 50573735);
-        dimoToken = ERC20(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
+        dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         LicenseAccountFactory laf = _deployLicenseAccountFactory(_admin);
 
@@ -102,6 +102,10 @@ contract BaseSetUp is Test {
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(license), 1_000_000 ether);
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123); // Foundation
+        dimoToken.grantRole(keccak256("BURNER_ROLE"), address(dimoCredit));
+        vm.stopPrank();
     }
 
     function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {

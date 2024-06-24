@@ -54,6 +54,10 @@ contract DcCalcTest is Test {
         );
 
         dc = DimoCredit(proxyDc);
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123); // Foundation
+        dimoToken.grantRole(keccak256("BURNER_ROLE"), address(dc));
+        vm.stopPrank();
     }
 
     function test_calc() public {
@@ -65,15 +69,12 @@ contract DcCalcTest is Test {
         dimoToken.approve(address(dc), 100 ether);
         vm.stopPrank();
 
-        dc.mint(user, 100 ether, "");
+        dc.mint(user, 100 ether);
 
-        uint256 balanceOf01 = ERC20(address(dc)).balanceOf(user);
-        assertEq(balanceOf01, 200_000 ether);
+        uint256 dcUserBalance = dc.balanceOf(user);
+        assertEq(dcUserBalance, 200_000 ether);
 
-        uint256 balanceOf00 = ERC20(address(dimoToken)).balanceOf(user);
-        assertEq(balanceOf00, 0);
-
-        uint256 balanceOf02 = ERC20(address(dimoToken)).balanceOf(_receiver);
-        assertEq(balanceOf02, 100 ether);
+        uint256 dimoUserBalance = dimoToken.balanceOf(user);
+        assertEq(dimoUserBalance, 0);
     }
 }

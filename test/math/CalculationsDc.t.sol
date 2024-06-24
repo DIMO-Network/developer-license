@@ -94,6 +94,10 @@ contract CalculationsDcTest is Test {
         vm.startPrank(_admin);
         factory.setDevLicenseDimo(address(license));
         vm.stopPrank();
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123); // Foundation
+        dimoToken.grantRole(keccak256("BURNER_ROLE"), address(dimoCredit));
+        vm.stopPrank();
     }
 
     function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
