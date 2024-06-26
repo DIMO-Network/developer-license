@@ -122,13 +122,10 @@ contract IssueDevLicenseTest is BaseSetUp {
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(dimoCredit), tokenTransferAmount);
+        uint256 amountDc = dimoCredit.mint(_licenseHolder, tokenTransferAmount);
         vm.stopPrank();
 
-        //dimoCredit.mintAmountDc(_licenseHolder, tokenTransferAmount, "");
-
-        dimoCredit.mint(_licenseHolder, tokenTransferAmount, "");
-
-        //assertEq(dimoCredit.balanceOf(_licenseHolder), tokenTransferAmount);
+        assertEq(dimoCredit.balanceOf(_licenseHolder), amountDc);
 
         vm.expectEmit(true, true, false, false);
         emit DevLicenseDimo.Issued(1, _licenseHolder, address(0));
@@ -137,7 +134,7 @@ contract IssueDevLicenseTest is BaseSetUp {
 
         assertEq(tokenId, 1);
         assertEq(license.ownerOf(tokenId), _licenseHolder);
-        // assertEq(dimoCredit.balanceOf(_licenseHolder), 0);
+        assertLt(dimoCredit.balanceOf(_licenseHolder), amountDc);
     }
 
     function test_issueInDcSender_emitLicenseAliasSet() public {
@@ -146,13 +143,10 @@ contract IssueDevLicenseTest is BaseSetUp {
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(dimoCredit), tokenTransferAmount);
+        uint256 amountDc = dimoCredit.mint(_licenseHolder, tokenTransferAmount, "");
         vm.stopPrank();
 
-        //dimoCredit.mintAmountDc(_licenseHolder, tokenTransferAmount, "");
-
-        dimoCredit.mint(_licenseHolder, tokenTransferAmount, "");
-
-        //assertEq(dimoCredit.balanceOf(_licenseHolder), tokenTransferAmount);
+        assertEq(dimoCredit.balanceOf(_licenseHolder), amountDc);
 
         vm.expectEmit();
         emit DevLicenseCore.LicenseAliasSet(1, LICENSE_ALIAS);

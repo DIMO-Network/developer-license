@@ -146,4 +146,20 @@ contract BurnDimoCreditTest is Test {
         assertEq(dimoToken.balanceOf(user), 0);
         assertEq(dimoToken.totalSupply(), totalSupplyBefore - amountIn);
     }
+
+    function test_mintDcxToAnotherUser() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mint(user, amountIn);
+        vm.stopPrank();
+
+        assertEq(dimoToken.balanceOf(sender), 0);
+        assertEq(dc.balanceOf(user), amountDc);
+    }
 }
