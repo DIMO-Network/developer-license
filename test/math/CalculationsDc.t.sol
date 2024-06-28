@@ -16,7 +16,7 @@ import {LicenseAccountFactory} from "../../src/licenseAccount/LicenseAccountFact
 import {NormalizedPriceProvider} from "../../src/provider/NormalizedPriceProvider.sol";
 import {IDimoDeveloperLicenseAccount} from "../../src/interface/IDimoDeveloperLicenseAccount.sol";
 
-//forge test --match-path ./test/CalculationsDc.t.sol -vv
+//forge test --match-path ./test/math/CalculationsDc.t.sol -vv
 contract CalculationsDcTest is Test {
     string constant DC_NAME = "DIMO Credit";
     string constant DC_SYMBOL = "DCX";
@@ -94,6 +94,10 @@ contract CalculationsDcTest is Test {
         vm.startPrank(_admin);
         factory.setDevLicenseDimo(address(license));
         vm.stopPrank();
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123); // Foundation
+        dimoToken.grantRole(keccak256("BURNER_ROLE"), address(dimoCredit));
+        vm.stopPrank();
     }
 
     function _deployLicenseAccountFactory(address admin) private returns (LicenseAccountFactory laf) {
@@ -145,9 +149,8 @@ contract CalculationsDcTest is Test {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
+        dimoCredit.mint(to, amountIn);
         vm.stopPrank();
-
-        dimoCredit.mint(to, amountIn, "");
 
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
 

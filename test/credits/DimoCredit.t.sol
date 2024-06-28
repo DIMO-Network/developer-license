@@ -13,7 +13,7 @@ import {IDimoCredit} from "../../src/interface/IDimoCredit.sol";
 import {DimoCredit} from "../../src/DimoCredit.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-//forge test --match-path ./test/credits/BurnDimoCredit.t.sol -vv
+//forge test --match-path ./test/credits/DimoCredit.t.sol -vv
 contract BurnDimoCreditTest is Test {
     string constant DC_NAME = "DIMO Credit";
     string constant DC_SYMBOL = "DCX";
@@ -58,20 +58,21 @@ contract BurnDimoCreditTest is Test {
         dc = DimoCredit(proxyDc);
 
         dc.grantRole(keccak256("BURNER_ROLE"), address(this));
+
+        vm.startPrank(0xCED3c922200559128930180d3f0bfFd4d9f4F123); // Foundation
+        dimoToken.grantRole(keccak256("BURNER_ROLE"), address(dc));
+        vm.stopPrank();
     }
 
-    /**
-     */
     function test_burnSuccess() public {
         address user = address(0x1337);
         uint256 amountIn = 1 ether;
-        bytes memory data = "";
 
         deal(address(dimoToken), user, amountIn);
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn, data);
+        uint256 amountDc = dc.mint(user, amountIn);
         vm.stopPrank();
 
         assertEq(dc.balanceOf(user), amountDc);
@@ -83,13 +84,12 @@ contract BurnDimoCreditTest is Test {
     function test_burnFail() public {
         address user = address(0x1337);
         uint256 amountIn = 1 ether;
-        bytes memory data = "";
 
         deal(address(dimoToken), user, amountIn);
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn, data);
+        uint256 amountDc = dc.mint(user, amountIn);
         vm.stopPrank();
         assertEq(dc.balanceOf(user), amountDc);
 
@@ -106,13 +106,12 @@ contract BurnDimoCreditTest is Test {
     function test_burnSuccessAddAddressBurnAgainSuccess() public {
         address user = address(0x1337);
         uint256 amountIn = 1 ether;
-        bytes memory data = "";
 
         deal(address(dimoToken), user, amountIn);
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn, data);
+        uint256 amountDc = dc.mint(user, amountIn);
         vm.stopPrank();
 
         assertEq(dc.balanceOf(user), amountDc);
@@ -129,5 +128,38 @@ contract BurnDimoCreditTest is Test {
         vm.stopPrank();
 
         assertEq(dc.balanceOf(user), amountDc - 1 - 1);
+    }
+
+    function test_burnDimoAfterDcMint() public {
+        address user = address(0x1337);
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), user, amountIn);
+
+        uint256 totalSupplyBefore = dimoToken.totalSupply();
+
+        vm.startPrank(user);
+        dimoToken.approve(address(dc), amountIn);
+        dc.mint(user, amountIn);
+        vm.stopPrank();
+
+        assertEq(dimoToken.balanceOf(user), 0);
+        assertEq(dimoToken.totalSupply(), totalSupplyBefore - amountIn);
+    }
+
+    function test_mintDcxToAnotherUser() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mint(user, amountIn);
+        vm.stopPrank();
+
+        assertEq(dimoToken.balanceOf(sender), 0);
+        assertEq(dc.balanceOf(user), amountDc);
     }
 }
