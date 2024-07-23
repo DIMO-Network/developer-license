@@ -122,9 +122,9 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
 
     const impl = await factoryDc.deploy({ gasPrice: gasPrice });
     await impl.waitForDeployment();
-    const addressImplDl = await impl.getAddress();
+    const addressImplDc = await impl.getAddress();
 
-    const proxy = await factoryProxy.deploy(addressImplDl, "0x", { gasPrice: gasPrice });
+    const proxy = await factoryProxy.deploy(addressImplDc, "0x", { gasPrice: gasPrice });
     await proxy.waitForDeployment();
 
     const dimoCredit: any = impl.attach(await proxy.getAddress());

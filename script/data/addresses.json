@@ -35,7 +35,7 @@
         },
         "DimoCredit": {
             "proxy": "0x49c120f4C3c6679Ebd357F2d749E4D1C03598d65",
-            "implementation": "0xaAef38AdD48970e23aB65Bec2B9A79688DCD76C7"
+            "implementation": "0xe833F49E60C61B76F711AFff76A0dF91AE2c274c"
         },
         "DimoToken": "0x21cFE003997fB7c2B3cfe5cf71e7833B7B2eCe10",
         "Receiver": "0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b",
