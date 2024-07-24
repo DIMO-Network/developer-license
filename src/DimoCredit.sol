@@ -17,7 +17,7 @@ import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 //  \___/                  \___/
 /**
  * @title DIMO Credit
- * @custom:version 1.0.0
+ * @custom:version 1.2.0
  * @author Sean Matt English (@smatthewenglish)
  * @custom:coauthor Lorran Sutter (@LorranSutter)
  * @custom:coauthor Dylan Moreland (@elffjs)
