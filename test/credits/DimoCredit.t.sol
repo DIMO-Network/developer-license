@@ -179,4 +179,38 @@ contract BurnDimoCreditTest is Test {
         assertLt(dimoToken.balanceOf(sender), amountIn);
         assertEq(dc.balanceOf(user), amountOut);
     }
+
+    function test_getQuote() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        // Perform a mint to update the price
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
+        vm.stopPrank();
+
+        // Check if the latest updated price matches the getQuote
+        assertEq(dc.getQuote(), amountDc);
+    }
+
+    function test_getQuoteWithValue() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 10 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        // Perform a mint to update the price
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
+        vm.stopPrank();
+
+        // Check if the latest updated price matches the getQuote
+        assertEq(dc.getQuote(amountIn), amountDc);
+    }
 }
