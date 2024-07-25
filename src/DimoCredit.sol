@@ -192,11 +192,11 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
      * @dev Converts the amount of DIMO tokens to DIMO Credits using the current exchange rate from the price provider.
      * @dev Any amount of $DIMO exchanged for $DCX will be burned.
      * @param to The address to receive the minted non-transferable DIMO Credits.
-     * @param amountIn The amount of DIMO tokens to convert.
+     * @param amountDimoTokens The amount of DIMO tokens to convert.
      * @return dimoCredits The amount of DIMO Credits minted.
      */
-    function mint(address to, uint256 amountIn) external returns (uint256 dimoCredits) {
-        dimoCredits = mint(to, amountIn, "");
+    function mintInDimo(address to, uint256 amountDimoTokens) external returns (uint256 dimoCredits) {
+        dimoCredits = mintInDimo(to, amountDimoTokens, "");
     }
 
     /**
@@ -204,22 +204,55 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
      * @dev Converts the amount of DIMO tokens to DIMO Credits using the current exchange rate from the price provider.
      * @dev Any amount of $DIMO exchanged for $DCX will be burned.
      * @param to The address to receive the minted non-transferable DIMO Credits.
-     * @param amountIn The amount of DIMO tokens to convert.
+     * @param amountDimoTokens The amount of DIMO tokens to convert.
      * @param data Additional data required by the price provider to determine the exchange rate (Optional).
      * @return dimoCredits The amount of DIMO Credits minted.
      */
-    function mint(address to, uint256 amountIn, bytes memory data) public returns (uint256 dimoCredits) {
+    function mintInDimo(address to, uint256 amountDimoTokens, bytes memory data) public returns (uint256 dimoCredits) {
         DimoCreditStorage storage $ = _getDimoCreditStorage();
 
         (uint256 amountUsdPerTokenInWei,) = $._provider.getAmountUsdPerToken(data);
 
         // Perform the multiplication
-        uint256 usdAmountInWei = (amountIn * amountUsdPerTokenInWei);
+        uint256 usdAmountInWei = (amountDimoTokens * amountUsdPerTokenInWei);
 
-        // Convert USD amount to data credits
+        // Convert USD amount to DIMO credits
         dimoCredits = (usdAmountInWei / $._dimoCreditRateInWei);
 
-        _mint(to, amountIn, dimoCredits);
+        _mint(to, amountDimoTokens, dimoCredits);
+    }
+
+    /**
+     * @notice Mints DIMO Credits to a specified address based on the provided DIMO token amount.
+     * @dev Calculates the amount of DIMO tokens needed to mint the equivalent amount of DIMO Credits.
+     * @dev Converts the amount of DIMO tokens to DIMO Credits using the current exchange rate from the price provider.
+     * @dev Any amount of $DIMO exchanged for $DCX will be burned.
+     * @param to The address to receive the minted non-transferable DIMO Credits.
+     * @param amountDimoCredits The amount of DIMO Credits to be minted.
+     */
+    function mint(address to, uint256 amountDimoCredits) external {
+        mint(to, amountDimoCredits, "");
+    }
+
+    /**
+     * @notice Mints DIMO Credits to a specified address based on the provided DIMO token amount.
+     * @dev Calculates the amount of DIMO tokens needed to mint the equivalent amount of DIMO Credits.
+     * @dev Converts the amount of DIMO tokens to DIMO Credits using the current exchange rate from the price provider.
+     * @dev Any amount of $DIMO exchanged for $DCX will be burned.
+     * @param to The address to receive the minted non-transferable DIMO Credits.
+     * @param amountDimoCredits The amount of DIMO Credits to be minted.
+     * @param data Additional data required by the price provider to determine the exchange rate (Optional).
+     */
+    function mint(address to, uint256 amountDimoCredits, bytes memory data) public {
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        (uint256 amountUsdPerDimoTokenWei,) = $._provider.getAmountUsdPerToken(data);
+
+        // Convert DIMO credits to USD amount
+        uint256 usdAmountInWei = amountDimoCredits * $._dimoCreditRateInWei;
+        uint256 amountDimoTokens = usdAmountInWei / amountUsdPerDimoTokenWei;
+
+        _mint(to, amountDimoTokens, amountDimoCredits);
     }
 
     /**
@@ -227,23 +260,23 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
      * @dev Any amount of $DIMO exchanged for $DCX will be burned.
      * @param to The address to receive the minted credits.
      * @param amountDimo The amount of DIMO tokens used for minting.
-     * @param amountDataCredits The amount of DIMO Credits to mint.
+     * @param amountDimoCredits The amount of DIMO Credits to mint.
      */
-    function _mint(address to, uint256 amountDimo, uint256 amountDataCredits) private {
+    function _mint(address to, uint256 amountDimo, uint256 amountDimoCredits) private {
         DimoCreditStorage storage $ = _getDimoCreditStorage();
 
         $._dimo.transferFrom(_msgSender(), address(this), amountDimo);
         $._dimo.burn(address(this), amountDimo);
 
-        $._totalSupply += amountDataCredits;
+        $._totalSupply += amountDimoCredits;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            $._balanceOf[to] += amountDataCredits;
+            $._balanceOf[to] += amountDimoCredits;
         }
 
-        emit Transfer(address(0), to, amountDataCredits);
+        emit Transfer(address(0), to, amountDimoCredits);
     }
 
     /**

@@ -94,7 +94,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         dimoToken.approve(address(dimoCredit), 1_000_000 ether);
-        dimoCredit.mint(address(this), tokenTransferAmount, "");
+        dimoCredit.mintInDimo(address(this), tokenTransferAmount);
 
         vm.expectEmit(true, true, false, false);
         emit DevLicenseDimo.Issued(1, address(this), address(0));
@@ -108,7 +108,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         uint256 tokenTransferAmount = (license.licenseCostInUsd1e18() / dimoCredit.dimoCreditRate()) * 1 ether;
 
         dimoToken.approve(address(dimoCredit), 1_000_000 ether);
-        dimoCredit.mint(address(this), tokenTransferAmount, "");
+        dimoCredit.mintInDimo(address(this), tokenTransferAmount);
 
         vm.expectEmit();
         emit DevLicenseCore.LicenseAliasSet(1, LICENSE_ALIAS);
@@ -122,7 +122,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(dimoCredit), tokenTransferAmount);
-        uint256 amountDc = dimoCredit.mint(_licenseHolder, tokenTransferAmount);
+        uint256 amountDc = dimoCredit.mintInDimo(_licenseHolder, tokenTransferAmount);
         vm.stopPrank();
 
         assertEq(dimoCredit.balanceOf(_licenseHolder), amountDc);
@@ -143,7 +143,7 @@ contract IssueDevLicenseTest is BaseSetUp {
         deal(address(dimoToken), _licenseHolder, 1_000_000 ether);
         vm.startPrank(_licenseHolder);
         dimoToken.approve(address(dimoCredit), tokenTransferAmount);
-        uint256 amountDc = dimoCredit.mint(_licenseHolder, tokenTransferAmount, "");
+        uint256 amountDc = dimoCredit.mintInDimo(_licenseHolder, tokenTransferAmount);
         vm.stopPrank();
 
         assertEq(dimoCredit.balanceOf(_licenseHolder), amountDc);
