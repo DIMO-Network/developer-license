@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {IERC1822Proxiable} from "@openzeppelin/contracts/interfaces/draft-IERC1822.sol";
 
-interface IDimoCredit is IAccessControl {
+interface IDimoCredit is IAccessControl, IERC1822Proxiable {
     function dimoCreditRate() external view returns (uint256);
     function periodValidity() external view returns (uint256);
     function receiver() external view returns (address);
