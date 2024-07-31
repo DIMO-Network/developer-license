@@ -72,7 +72,7 @@ contract BurnDimoCreditTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
         vm.stopPrank();
 
         assertEq(dc.balanceOf(user), amountDc);
@@ -89,7 +89,7 @@ contract BurnDimoCreditTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
         vm.stopPrank();
         assertEq(dc.balanceOf(user), amountDc);
 
@@ -111,7 +111,7 @@ contract BurnDimoCreditTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
         vm.stopPrank();
 
         assertEq(dc.balanceOf(user), amountDc);
@@ -140,14 +140,14 @@ contract BurnDimoCreditTest is Test {
 
         vm.startPrank(user);
         dimoToken.approve(address(dc), amountIn);
-        dc.mint(user, amountIn);
+        dc.mintInDimo(user, amountIn);
         vm.stopPrank();
 
         assertEq(dimoToken.balanceOf(user), 0);
         assertEq(dimoToken.totalSupply(), totalSupplyBefore - amountIn);
     }
 
-    function test_mintDcxToAnotherUser() public {
+    function test_mintDcxInDimoToAnotherUser() public {
         address sender = address(0x1337);
         address user = address(0x13399);
         uint256 amountIn = 1 ether;
@@ -156,10 +156,61 @@ contract BurnDimoCreditTest is Test {
 
         vm.startPrank(sender);
         dimoToken.approve(address(dc), amountIn);
-        uint256 amountDc = dc.mint(user, amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
         vm.stopPrank();
 
         assertEq(dimoToken.balanceOf(sender), 0);
         assertEq(dc.balanceOf(user), amountDc);
+    }
+
+    function test_mintDcxToAnotherUser() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountOut = 10 ether;
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        dc.mint(user, amountOut);
+        vm.stopPrank();
+
+        assertLt(dimoToken.balanceOf(sender), amountIn);
+        assertEq(dc.balanceOf(user), amountOut);
+    }
+
+    function test_getQuote() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 1 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        // Perform a mint to update the price
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
+        vm.stopPrank();
+
+        // Check if the latest updated price matches the getQuote
+        assertEq(dc.getQuote(), amountDc);
+    }
+
+    function test_getQuoteWithValue() public {
+        address sender = address(0x1337);
+        address user = address(0x13399);
+        uint256 amountIn = 10 ether;
+
+        deal(address(dimoToken), sender, amountIn);
+
+        // Perform a mint to update the price
+        vm.startPrank(sender);
+        dimoToken.approve(address(dc), amountIn);
+        uint256 amountDc = dc.mintInDimo(user, amountIn);
+        vm.stopPrank();
+
+        // Check if the latest updated price matches the getQuote
+        assertEq(dc.getQuote(amountIn), amountDc);
     }
 }

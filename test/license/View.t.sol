@@ -86,7 +86,7 @@ contract ViewTest is BaseSetUp {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
-        dimoCredit.mint(to, amountIn);
+        dimoCredit.mintInDimo(to, amountIn);
         vm.stopPrank();
 
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
@@ -123,7 +123,7 @@ contract ViewTest is BaseSetUp {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
-        dimoCredit.mint(to, amountIn);
+        dimoCredit.mintInDimo(to, amountIn);
         vm.stopPrank();
 
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
@@ -155,7 +155,7 @@ contract ViewTest is BaseSetUp {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
-        dimoCredit.mint(to, amountIn, "");
+        dimoCredit.mintInDimo(to, amountIn);
         vm.stopPrank();
 
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
@@ -194,7 +194,7 @@ contract ViewTest is BaseSetUp {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
-        dimoCredit.mint(to, amountIn);
+        dimoCredit.mintInDimo(to, amountIn);
         vm.stopPrank();
 
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));

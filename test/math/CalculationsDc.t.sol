@@ -149,7 +149,7 @@ contract CalculationsDcTest is Test {
         deal(address(dimoToken), to, amountIn);
         vm.startPrank(to);
         dimoToken.approve(address(dimoCredit), amountIn);
-        dimoCredit.mint(to, amountIn);
+        dimoCredit.mintInDimo(to, amountIn);
         vm.stopPrank();
 
         dimoCredit.grantRole(keccak256("BURNER_ROLE"), address(license));
