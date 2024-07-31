@@ -400,5 +400,29 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         emit UpdatePeriodValidity(periodValidity_);
     }
 
+    /**
+     * @notice Gets the quote of $DCX for 1 $DIMO
+     * @dev Gets the last recorded amount of USD per $DIMO to perform the calculation
+     * @return quote The quote of $DCX
+     */
+    function getQuote() external view returns (uint256 quote) {
+        return getQuote(1 ether);
+    }
+
+    /**
+     * @notice Gets the quote of $DCX for a given value of $DIMO
+     * @dev Gets the last recorded amount of USD per $DIMO to perform the calculation
+     * @return quote The quote of $DCX
+     */
+    function getQuote(uint256 amountDimoTokens) public view returns (uint256 quote) {
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        (uint256 lastAmountUsdPerToken,) = $._provider.getLastAmountUsdPerToken();
+        uint256 usdAmountInWei = (amountDimoTokens * lastAmountUsdPerToken);
+
+        // Convert USD amount to DIMO credits
+        quote = (usdAmountInWei / $._dimoCreditRateInWei);
+    }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 }

@@ -105,6 +105,15 @@ contract NormalizedPriceProvider is AccessControl {
         (amountUsdPerToken, updateTimestamp) = _oracleSources[_primaryIndex].getAmountUsdPerToken(data);
     }
 
+    function getLastAmountUsdPerToken()
+        public
+        view
+        returns (uint256 lastAmountUsdPerToken, uint256 lastUpdateTimestamp)
+    {
+        (lastAmountUsdPerToken, lastUpdateTimestamp) =
+            (_oracleSources[_primaryIndex]._amountUsdPerToken(), _oracleSources[_primaryIndex]._updateTimestamp());
+    }
+
     function isUpdatable() external view returns (bool updatable) {
         updatable = _oracleSources[_primaryIndex].isUpdatable();
     }
