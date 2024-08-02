@@ -28,7 +28,11 @@ forge doc --serve --port 40000
 Using `$DIMO`.
 
 ```
-npx ts-node ./script/prod_deploy_upgrade.ts
+npx hardhat run script/deploy.ts
+```
+
+```
+npx hardhat run script/upgrade.ts
 ```
 
 ## Normalized Price Provider
