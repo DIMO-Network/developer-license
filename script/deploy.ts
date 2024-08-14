@@ -54,22 +54,21 @@ function getContractInstance(signer: HardhatEthersSigner, contractName: string, 
     return new ethers.Contract(contractAddress, contractJson.abi, signer)
 }
 
-async function deployProvider(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function deployProvider(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
     let gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
     let instances = getAddresses();
 
     console.log('\n----- Deploying Oracle Source contract -----\n');
 
-    const nameOracle = name === 'amoy' ? 'MockOracleSource' : 'TwapV3'
+    const nameOracle = networkName === 'amoy' ? 'MockOracleSource' : 'TwapV3'
     const setOracle = getContractFactory(signer, nameOracle)
     const oracle = await setOracle.deploy({ gasPrice: gasPrice })
     await oracle.waitForDeployment()
     const addressOracle = await oracle.getAddress()
     console.log(`${nameOracle} contract deployed to ${addressOracle}`);
 
-    instances[name][nameOracle] = addressOracle;
-    writeAddresses(instances, name)
+    instances[networkName][nameOracle] = addressOracle;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressOracle, nameOracle)
@@ -87,8 +86,8 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
     console.log(`NormalizedPriceProvider contract deployed to ${addressNpp}`);
 
     instances = getAddresses();
-    instances[name].NormalizedPriceProvider = addressNpp;
-    writeAddresses(instances, name)
+    instances[networkName].NormalizedPriceProvider = addressNpp;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressNpp, nameNpp)
@@ -104,15 +103,13 @@ async function deployProvider(signer: HardhatEthersSigner, verifyContract: boole
     console.log('----- Oracle Source added -----');
 }
 
-async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function deployDimoCredit(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
     const gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
-
     const instances = getAddresses();
 
-    const addressDimoToken = instances[name].DimoToken;
-    const addressReceiver = instances[name].Receiver;
-    const addressNpp = instances[name].NormalizedPriceProvider;
+    const addressDimoToken = instances[networkName].DimoToken;
+    const addressReceiver = instances[networkName].Receiver;
+    const addressNpp = instances[networkName].NormalizedPriceProvider;
 
     console.log('\n----- Deploying DimoCredit contract -----\n');
 
@@ -141,21 +138,20 @@ async function deployDimoCredit(signer: HardhatEthersSigner, verifyContract: boo
     const addressDc = await proxy.getAddress();
     console.log(`DimoCredit contract deployed to ${addressDc}`);
 
-    instances[name].DimoCredit.proxy = addressDc;
-    instances[name].DimoCredit.implementation = await impl.getAddress();
-    writeAddresses(instances, name)
+    instances[networkName].DimoCredit.proxy = addressDc;
+    instances[networkName].DimoCredit.implementation = await impl.getAddress();
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressDc, nameDc)
     }
 }
 
-async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function deployLicenseAccountFactory(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
     let gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
     const instances = getAddresses();
 
-    const admin = instances[name].Admin;
+    const admin = instances[networkName].Admin;
 
     console.log('\n----- Deploying DimoDeveloperLicenseAccount template contract -----\n');
 
@@ -166,8 +162,8 @@ async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyCo
     const addressDdla = await devLicenseAccount.getAddress();
     console.log(`DimoDeveloperLicenseAccount contract deployed to ${addressDdla}`);
 
-    instances[name].DimoDeveloperLicenseAccount = addressDdla;
-    writeAddresses(instances, name)
+    instances[networkName].DimoDeveloperLicenseAccount = addressDdla;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressDdla, nameDdla)
@@ -183,8 +179,8 @@ async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyCo
     const addressBeacon = await beacon.getAddress();
     console.log(`UpgradeableBeacon contract deployed to ${addressDdla}`);
 
-    instances[name].UpgradeableBeacon = addressBeacon;
-    writeAddresses(instances, name)
+    instances[networkName].UpgradeableBeacon = addressBeacon;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressBeacon, 'UpgradeableBeacon', [addressDdla, admin])
@@ -211,26 +207,24 @@ async function deployLicenseAccountFactory(signer: HardhatEthersSigner, verifyCo
     const addressLaf = await proxy.getAddress();
     console.log(`LicenseAccountFactory contract deployed to ${addressLaf}`);
 
-    instances[name].LicenseAccountFactory.proxy = addressLaf;
-    instances[name].LicenseAccountFactory.implementation = await impl.getAddress();
-    writeAddresses(instances, name)
+    instances[networkName].LicenseAccountFactory.proxy = addressLaf;
+    instances[networkName].LicenseAccountFactory.implementation = await impl.getAddress();
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressLaf, nameLaf)
     }
 }
 
-async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function deployDevLicense(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
     const instances = getAddresses();
-
     let gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
 
-    const addressReceiver = instances[name].Receiver;
-    const addressLaf = instances[name].LicenseAccountFactory.proxy;
-    const addressNpp = instances[name].NormalizedPriceProvider;
-    const addressDimoToken = instances[name].DimoToken;
-    const addressDc = instances[name].DimoCredit.proxy;
+    const addressReceiver = instances[networkName].Receiver;
+    const addressLaf = instances[networkName].LicenseAccountFactory.proxy;
+    const addressNpp = instances[networkName].NormalizedPriceProvider;
+    const addressDimoToken = instances[networkName].DimoToken;
+    const addressDc = instances[networkName].DimoCredit.proxy;
     const licenseCostInUsd = C.licenseCostInUsd;
 
     console.log('\n----- Deploying DevLicenseDimo contract -----\n');
@@ -261,25 +255,24 @@ async function deployDevLicense(signer: HardhatEthersSigner, verifyContract: boo
     const addressDl = await proxy.getAddress();
     console.log(`DevLicenseDimo contract deployed to ${addressDl}`);
 
-    instances[name].DevLicenseDimo.proxy = addressDl;
-    instances[name].DevLicenseDimo.implementation = await impl.getAddress();
-    writeAddresses(instances, name)
+    instances[networkName].DevLicenseDimo.proxy = addressDl;
+    instances[networkName].DevLicenseDimo.implementation = await impl.getAddress();
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressDl, nameDl)
     }
 }
 
-async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
+async function grantAdminRoles(signer: HardhatEthersSigner, networkName: string, admin: string) {
     const instances = getAddresses();
-    const { name } = await ethers.provider.getNetwork();
-    const oracleSourceName = name === 'amoy' ? 'MockOracleSource' : 'TwapV3';
+    const oracleSourceName = networkName === 'amoy' ? 'MockOracleSource' : 'TwapV3';
 
-    const oracleSourceInstance = getContractInstance(signer, oracleSourceName, instances[name][oracleSourceName])
-    const devLicenseDimoInstance = getContractInstance(signer, 'DevLicenseDimo', instances[name].DevLicenseDimo.proxy)
-    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
-    const providerInstance = getContractInstance(signer, 'NormalizedPriceProvider', instances[name].NormalizedPriceProvider)
-    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[name].LicenseAccountFactory.proxy)
+    const oracleSourceInstance = getContractInstance(signer, oracleSourceName, instances[networkName][oracleSourceName])
+    const devLicenseDimoInstance = getContractInstance(signer, 'DevLicenseDimo', instances[networkName].DevLicenseDimo.proxy)
+    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[networkName].DimoCredit.proxy)
+    const providerInstance = getContractInstance(signer, 'NormalizedPriceProvider', instances[networkName].NormalizedPriceProvider)
+    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[networkName].LicenseAccountFactory.proxy)
 
     console.log(`\n----- Granting roles to ${admin} -----\n`)
 
@@ -313,17 +306,15 @@ async function grantAdminRoles(signer: HardhatEthersSigner, admin: string) {
     console.log(`\n----- Roles granted -----`)
 }
 
-async function setup(signer: HardhatEthersSigner) {
+async function setup(signer: HardhatEthersSigner, networkName: string) {
     const instances = getAddresses();
 
-    const { name } = await ethers.provider.getNetwork();
-
-    const addressDl = instances[name].DevLicenseDimo.proxy;
+    const addressDl = instances[networkName].DevLicenseDimo.proxy;
 
     console.log('\n----- Starting setup -----\n');
 
-    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[name].LicenseAccountFactory.proxy)
-    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[name].DimoCredit.proxy)
+    const factoryInstance = getContractInstance(signer, 'LicenseAccountFactory', instances[networkName].LicenseAccountFactory.proxy)
+    const dimoCreditInstance = getContractInstance(signer, 'DimoCredit', instances[networkName].DimoCredit.proxy)
 
     if (!(await factoryInstance.hasRole(C.ADMIN_ROLE, signer.address))) {
         console.log(`Granting ADMIN_ROLE (${C.ADMIN_ROLE}) to ${signer.address}`)
@@ -389,18 +380,32 @@ async function verifyContractUntilSuccess(address: any, contractName: string, ar
 }
 
 async function main() {
-    const [signer] = await ethers.getSigners();
+    let [signer, user1] = await ethers.getSigners();
     const instances = getAddresses();
-    const { name } = await ethers.provider.getNetwork();
+    let { name } = await ethers.provider.getNetwork();
 
-    await deployProvider(signer);
-    await deployDimoCredit(signer);
-    await deployLicenseAccountFactory(signer);
-    await deployDevLicense(signer);
+    if (name === 'localhost') {
+        name = 'polygon'
+        // 0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1 Prod account
+        // 0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b Shared dev account
+        signer = await ethers.getImpersonatedSigner(
+            '0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1'
+        );
 
-    await grantAdminRoles(signer, instances[name].Admin);
+        await user1.sendTransaction({
+            to: signer.address,
+            value: ethers.parseEther('10')
+        });
+    }
 
-    await setup(signer);
+    await deployProvider(signer, name);
+    await deployDimoCredit(signer, name);
+    await deployLicenseAccountFactory(signer, name);
+    await deployDevLicense(signer, name);
+
+    await grantAdminRoles(signer, instances[name].Admin, name);
+
+    await setup(signer, name);
 }
 
 main().catch((error) => {
