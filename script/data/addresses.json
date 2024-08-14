@@ -1,7 +1,7 @@
 {
     "polygon": {
         "TwapV3": "0x9F69397e4DA560A5189d8cEC1f2c0B6354d48c01",
-        "NormalizedPriceProvider": "0x46D02a98721C5798EaE2cFA8f328582a31039AB3",
+        "NormalizedPriceProvider": "0x5d6CF6603f74Dea0037A18456Db4b8093e3FE22c",
         "DimoDeveloperLicenseAccount": "0x9748978c2E2C7DD3CA6B6Af86D0D001AbB797eD8",
         "UpgradeableBeacon": "0x734bc70E7A600D0c1fdc6D7a74120e397058051D",
         "LicenseAccountFactory": {
