@@ -62,7 +62,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     event SignerEnabled(uint256 indexed tokenId, address indexed signer);
     event SignerDisabled(uint256 indexed tokenId, address indexed signer);
     event Locked(uint256 indexed tokenId);
-    event LicenseAliasSet(uint256 indexed tokenId, bytes32 licenseAlias);
+    event LicenseAliasSet(uint256 indexed tokenId, string licenseAlias);
 
     event UpdateLicenseCost(uint256 licenseCost);
     event UpdateReceiverAddress(address receiver_);
@@ -245,8 +245,8 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @param tokenId The unique identifier for the license token.
      * @param licenseAlias The alias string to be set
      */
-    function setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) public onlyTokenOwner(tokenId) {
-        _safeSetLicenseAlias(tokenId, licenseAlias);
+    function setLicenseAlias(uint256 tokenId, string calldata licenseAlias) public onlyTokenOwner(tokenId) {
+        _setLicenseAlias(tokenId, licenseAlias);
     }
 
     /**
@@ -277,33 +277,33 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
 
     /**
      * @notice Internal function to set an alias to a token ID
+     * @dev The license alias can be up to 32 bytes long
      * @param tokenId The unique identifier for the license token.
      * @param licenseAlias The alias string to be set
      */
-    function _safeSetLicenseAlias(uint256 tokenId, bytes32 licenseAlias) internal {
+    function _setLicenseAlias(uint256 tokenId, string memory licenseAlias) internal {
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
-        if ($._aliasToTokenId[licenseAlias] != 0) {
+        if (bytes(licenseAlias).length > 32) {
+            revert AliasExceedsMaxLength();
+        }
+
+        bytes32 licenseAliasBytes32;
+        assembly {
+            licenseAliasBytes32 := mload(add(licenseAlias, 32))
+        }
+
+        if ($._aliasToTokenId[licenseAliasBytes32] != 0) {
             revert AliasAlreadyInUse(licenseAlias);
         }
-        _setLicenseAlias(tokenId, licenseAlias);
-    }
-
-    /**
-     * @notice Internal function to set an alias to a token ID
-     * @param tokenId The unique identifier for the license token.
-     * @param licenseAlias The alias string to be set
-     */
-    function _setLicenseAlias(uint256 tokenId, bytes32 licenseAlias) private {
-        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         bytes32 currentLicenseAlias = $._tokenIdToAlias[tokenId];
         if (currentLicenseAlias.length > 0) {
             delete $._aliasToTokenId[currentLicenseAlias];
         }
 
-        $._tokenIdToAlias[tokenId] = licenseAlias;
-        $._aliasToTokenId[licenseAlias] = tokenId;
+        $._tokenIdToAlias[tokenId] = licenseAliasBytes32;
+        $._aliasToTokenId[licenseAliasBytes32] = tokenId;
         emit LicenseAliasSet(tokenId, licenseAlias);
     }
 
@@ -331,8 +331,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @dev It returns an empty string if no alias is associated with the token ID
      * @param tokenId The unique identifier for the license token.
      */
-    function getLicenseAliasByTokenId(uint256 tokenId) public view returns (bytes32 licenseAlias) {
-        licenseAlias = _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
+    function getLicenseAliasByTokenId(uint256 tokenId) public view returns (string memory licenseAlias) {
+        bytes32 licenseAliasBytes32 = _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
+        licenseAlias = fromSmallString(licenseAliasBytes32);
     }
 
     /**
@@ -342,6 +343,21 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      */
     function getTokenIdByLicenseAlias(bytes32 licenseAlias) public view returns (uint256 tokenId) {
         tokenId = _getDevLicenseCoreStorage()._aliasToTokenId[licenseAlias];
+    }
+
+    /**
+     * @notice It returns the token Id associated with a license alias
+     * @dev It returns 0 if no token ID is associated with the license alias
+     * @param licenseAlias The unique alias for the license token.
+     */
+    function getTokenIdByLicenseAlias(string memory licenseAlias) public view returns (uint256 tokenId) {
+        if (bytes(licenseAlias).length <= 32) {
+            bytes32 licenseAliasBytes32;
+            assembly {
+                licenseAliasBytes32 := mload(add(licenseAlias, 32))
+            }
+            tokenId = _getDevLicenseCoreStorage()._aliasToTokenId[licenseAliasBytes32];
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -533,5 +549,24 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
             || interfaceId == 0xb45a3c0e // ERC165 Interface ID for ERC5192
             || interfaceId == 0x5b5e139f // ERC165 Interface ID for ERC721Metadata
             || super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev Returns a string from a small bytes32 string.
+     * `s` must be null-terminated, or behavior will be undefined.
+     * @dev From https://github.com/Vectorized/solady/tree/main
+     */
+    function fromSmallString(bytes32 s) internal pure returns (string memory result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let n := 0
+            for {} byte(n, s) { n := add(n, 1) } {} // Scan for '\0'.
+            mstore(result, n) // Store the length.
+            let o := add(result, 0x20)
+            mstore(o, s) // Store the bytes of the string.
+            mstore(add(o, n), 0) // Zeroize the slot after the string.
+            mstore(0x40, add(result, 0x40)) // Allocate memory.
+        }
     }
 }

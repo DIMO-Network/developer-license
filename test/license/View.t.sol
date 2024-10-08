@@ -283,34 +283,41 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_setLicenseAlias() public {
-        bytes32 NEW_LICENSE_ALIAS = "new license alias";
+        string memory NEW_LICENSE_ALIAS = "new license alias";
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        string memory aliasBefore = license.getLicenseAliasByTokenId(1);
         uint256 tokenIdBefore = license.getTokenIdByLicenseAlias(LICENSE_ALIAS);
         assertEq(aliasBefore, LICENSE_ALIAS);
         assertEq(tokenIdBefore, 1);
 
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
-        bytes32 aliasAfter = license.getLicenseAliasByTokenId(1);
+        string memory aliasAfter = license.getLicenseAliasByTokenId(1);
         uint256 tokenIdAfter = license.getTokenIdByLicenseAlias(NEW_LICENSE_ALIAS);
         assertEq(aliasAfter, NEW_LICENSE_ALIAS);
         assertEq(tokenIdAfter, 1);
     }
 
     function test_setLicenseAlias_revertNotTokenOwner() public {
-        bytes32 NEW_LICENSE_ALIAS = "new license alias";
+        string memory NEW_LICENSE_ALIAS = "new license alias";
 
         license.issueInDimo(LICENSE_ALIAS);
 
-        bytes32 aliasBefore = license.getLicenseAliasByTokenId(1);
+        string memory aliasBefore = license.getLicenseAliasByTokenId(1);
         assertEq(aliasBefore, LICENSE_ALIAS);
 
         vm.startPrank(address(0x999));
         vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.InvalidSender.selector, address(0x999)));
         license.setLicenseAlias(1, NEW_LICENSE_ALIAS);
         vm.stopPrank();
+    }
+
+    function test_setLicenseAlias_revertAliasExceedsMaxLength() public {
+        string memory LINCESE_ALIAS_TOO_LONG = "licenseAliasLicenseAliasLicenseAliasLicenseAlias";
+
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.AliasExceedsMaxLength.selector));
+        license.issueInDimo(LINCESE_ALIAS_TOO_LONG);
     }
 
     function test_setLicenseAlias_revertAliasAlreadySet() public {
