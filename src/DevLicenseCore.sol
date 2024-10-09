@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {LibString} from "solady/utils/LibString.sol";
 
 import {NormalizedPriceProvider} from "./provider/NormalizedPriceProvider.sol";
 import {ILicenseAccountFactory} from "./interface/ILicenseAccountFactory.sol";
@@ -333,7 +334,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      */
     function getLicenseAliasByTokenId(uint256 tokenId) public view returns (string memory licenseAlias) {
         bytes32 licenseAliasBytes32 = _getDevLicenseCoreStorage()._tokenIdToAlias[tokenId];
-        licenseAlias = fromSmallString(licenseAliasBytes32);
+        licenseAlias = LibString.fromSmallString(licenseAliasBytes32);
     }
 
     /**
@@ -549,24 +550,5 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
             || interfaceId == 0xb45a3c0e // ERC165 Interface ID for ERC5192
             || interfaceId == 0x5b5e139f // ERC165 Interface ID for ERC721Metadata
             || super.supportsInterface(interfaceId);
-    }
-
-    /**
-     * @dev Returns a string from a small bytes32 string.
-     * `s` must be null-terminated, or behavior will be undefined.
-     * @dev From https://github.com/Vectorized/solady/tree/main
-     */
-    function fromSmallString(bytes32 s) internal pure returns (string memory result) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            result := mload(0x40)
-            let n := 0
-            for {} byte(n, s) { n := add(n, 1) } {} // Scan for '\0'.
-            mstore(result, n) // Store the length.
-            let o := add(result, 0x20)
-            mstore(o, s) // Store the bytes of the string.
-            mstore(add(o, n), 0) // Zeroize the slot after the string.
-            mstore(0x40, add(result, 0x40)) // Allocate memory.
-        }
     }
 }
