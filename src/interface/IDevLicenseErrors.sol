@@ -8,7 +8,8 @@ interface IDevLicenseErrors {
     error InvalidOperation();
     error InvalidSender(address sender);
     error NonexistentToken(uint256 tokenId);
-    error AliasAlreadyInUse(bytes32 licenseAlias);
+    error AliasExceedsMaxLength();
+    error AliasAlreadyInUse(string licenseAlias);
     error InvalidAmount(uint256 amount);
     error FrozenToken(uint256 tokenId);
     error InsufficientStakedFunds(uint256 tokenId, uint256 amount);

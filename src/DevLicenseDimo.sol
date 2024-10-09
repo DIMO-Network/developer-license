@@ -150,7 +150,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @return tokenId The ID of the issued license.
      * @return clientId The ID of the client associated with the issued license.
      */
-    function issueInDimo(bytes32 licenseAlias) external returns (uint256 tokenId, address clientId) {
+    function issueInDimo(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
         return issueInDimo(msg.sender, licenseAlias);
     }
 
@@ -162,7 +162,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDimo(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
+    function issueInDimo(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
 
         (uint256 amountUsdPerToken,) = dlcs._provider.getAmountUsdPerToken();
@@ -181,7 +181,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc(bytes32 licenseAlias) external returns (uint256 tokenId, address clientId) {
+    function issueInDc(string calldata licenseAlias) external returns (uint256 tokenId, address clientId) {
         return issueInDc(msg.sender, licenseAlias);
     }
 
@@ -192,7 +192,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function issueInDc(address to, bytes32 licenseAlias) public returns (uint256 tokenId, address clientId) {
+    function issueInDc(address to, string calldata licenseAlias) public returns (uint256 tokenId, address clientId) {
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
 
         uint256 dcTransferAmount = (dlcs._licenseCostInUsd1e18 / dlcs._dimoCredit.dimoCreditRate()) * 1 ether;
@@ -208,7 +208,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
-    function _issue(address to, bytes32 licenseAlias) private returns (uint256 tokenId, address clientId) {
+    function _issue(address to, string calldata licenseAlias) private returns (uint256 tokenId, address clientId) {
         DevLicenseCoreStorage storage dlcs = _getDevLicenseCoreStorage();
 
         tokenId = ++dlcs._counter;
@@ -221,8 +221,8 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
         emit Issued(tokenId, to, clientId);
 
         /// Calling it here to emit LicenseAliasSet after Issued event
-        if (licenseAlias.length > 0) {
-            _safeSetLicenseAlias(tokenId, licenseAlias);
+        if (bytes(licenseAlias).length > 0) {
+            _setLicenseAlias(tokenId, licenseAlias);
         }
 
         /// @dev Indicates the license is locked according to ERC5192.
