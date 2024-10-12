@@ -40,6 +40,16 @@ contract IssueDevLicenseTest is BaseSetUp {
         license.issueInDimo(LICENSE_ALIAS);
     }
 
+    function test_issueInDimoSuccess_revertAliasExceedsMaxLength() public {
+        string memory LINCESE_ALIAS_TOO_LONG = "licenseAliasLicenseAliasLicenseAliasLicenseAlias";
+
+        license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
+        license.setReceiverAddress(_receiver);
+
+        vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.AliasExceedsMaxLength.selector));
+        license.issueInDimo(LINCESE_ALIAS_TOO_LONG);
+    }
+
     function test_issueInDimoSuccess_revertAliasAlreadySet() public {
         license.grantRole(keccak256("LICENSE_ADMIN_ROLE"), address(this));
         license.setReceiverAddress(_receiver);

@@ -21,7 +21,7 @@ contract BaseSetUp is Test {
     string constant DC_SYMBOL = "DCX";
     uint256 constant DC_VALIDATION_PERIOD = 1 days;
     uint256 constant DC_RATE = 0.001 ether;
-    bytes32 constant LICENSE_ALIAS = "licenseAlias";
+    string constant LICENSE_ALIAS = "licenseAlias";
     string constant IMAGE_SVG =
         '<svg width="1872" height="1872" viewBox="0 0 1872 1872" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="1872" height="1872" fill="#191919"/></svg>';
     string constant METADATA_DESCRIPTION =
