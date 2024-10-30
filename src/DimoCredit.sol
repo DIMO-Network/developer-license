@@ -410,6 +410,15 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
     }
 
     /**
+     * @notice Gets the quote of $DIMO for 1 $DCX
+     * @dev Gets the last recorded amount of USD per $DIMO to perform the calculation
+     * @return quote The quote of $DIMO
+     */
+    function getQuoteDc() external view returns (uint256 quote) {
+        return getQuoteDc(1 ether);
+    }
+
+    /**
      * @notice Gets the quote of $DCX for a given value of $DIMO
      * @dev Gets the last recorded amount of USD per $DIMO to perform the calculation
      * @return quote The quote of $DCX
@@ -422,6 +431,20 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
 
         // Convert USD amount to DIMO credits
         quote = (usdAmountInWei / $._dimoCreditRateInWei);
+    }
+
+    /**
+     * @notice Gets the quote of $DIMO for a given value of $DCX
+     * @dev Gets the last recorded amount of USD per $DIMO to perform the calculation
+     * @return quote The quote of $DIMO
+     */
+    function getQuoteDc(uint256 amountDcxTokens) public view returns (uint256 quote) {
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        (uint256 lastAmountUsdPerToken,) = $._provider.getLastAmountUsdPerToken();
+        uint256 usdAmountInWei = amountDcxTokens * $._dimoCreditRateInWei;
+
+        quote = usdAmountInWei / lastAmountUsdPerToken;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
