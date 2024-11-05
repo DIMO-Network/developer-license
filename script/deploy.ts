@@ -387,7 +387,7 @@ async function main() {
     if (name === 'localhost') {
         name = 'polygon'
         // 0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1 Prod account
-        // 0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b Shared dev account
+        // 0x8E58b98d569B0679713273c5105499C249e9bC84 Shared dev account
         signer = await ethers.getImpersonatedSigner(
             '0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1'
         );

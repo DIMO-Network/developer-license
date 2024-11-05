@@ -21,7 +21,7 @@
         "Admin": "0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1"
     },
     "amoy": {
-        "MockOracleSource": "0xe5C820a27665b3b8D4B1fF1c0dD47B755f990b33",
+        "MockOracleSource": "0x510919c578f54038C68F71703dEAbac2945f0bc8",
         "NormalizedPriceProvider": "0x6b64BcfF0219200fc39F026bFdA8E61Ab885813A",
         "DimoDeveloperLicenseAccount": "0x465264C8aA542ECA9598345084b93A28D20d4Aa1",
         "UpgradeableBeacon": "0x938Dae8B8B99950b9e75f6dFdA59F2007211c697",
