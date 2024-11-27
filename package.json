@@ -10,7 +10,8 @@
   "scripts": {
     "build": "forge clean && forge build --sizes --skip test",
     "build-all": "forge clean && forge build --sizes",
-    "test": "forge test -vvv"
+    "test": "forge test -vvv",
+    "selectors": "forge selectors list > Selectors.md"
   },
   "repository": {
     "type": "git",
