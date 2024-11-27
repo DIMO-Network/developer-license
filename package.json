@@ -8,10 +8,10 @@
     "test": "test"
   },
   "scripts": {
-    "build": "forge clean && forge build --sizes --skip test",
+    "build": "forge clean && forge build --sizes --skip test && npm run selectors",
     "build-all": "forge clean && forge build --sizes",
     "test": "forge test -vvv",
-    "selectors": "forge selectors list > Selectors.md"
+    "selectors": "npx hardhat run script/listSelectors.ts"
   },
   "repository": {
     "type": "git",
