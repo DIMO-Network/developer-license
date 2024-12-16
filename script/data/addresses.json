@@ -14,7 +14,7 @@
         },
         "DimoCredit": {
             "proxy": "0x7186F9aC35d24c9a4cf1E58a797c04DF1b334322",
-            "implementation": "0x458DeDE5d57739085CE1De645d3DF0b17556A5d6"
+            "implementation": "0x79a49C6547096Ce2AaD2F2F2d631705E9eFDFE6C"
         },
         "DimoToken": "0xe261d618a959afffd53168cd07d12e37b26761db",
         "Receiver": "0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1",
@@ -35,7 +35,7 @@
         },
         "DimoCredit": {
             "proxy": "0x49c120f4C3c6679Ebd357F2d749E4D1C03598d65",
-            "implementation": "0x6D76fF34C7Eec80695809a925b1D841C46aff09B"
+            "implementation": "0x86af97aa201d69b824942b24A9cbE7Ea4cd481bf"
         },
         "DimoToken": "0x21cFE003997fB7c2B3cfe5cf71e7833B7B2eCe10",
         "Receiver": "0x07B584f6a7125491C991ca2a45ab9e641B1CeE1b",

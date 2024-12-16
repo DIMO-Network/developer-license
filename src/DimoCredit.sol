@@ -265,8 +265,7 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
     function _mint(address to, uint256 amountDimo, uint256 amountDimoCredits) private {
         DimoCreditStorage storage $ = _getDimoCreditStorage();
 
-        $._dimo.transferFrom(_msgSender(), address(this), amountDimo);
-        $._dimo.burn(address(this), amountDimo);
+        $._dimo.transferFrom(_msgSender(), $._receiver, amountDimo);
 
         $._totalSupply += amountDimoCredits;
 
