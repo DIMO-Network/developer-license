@@ -201,11 +201,14 @@
 | 0x4c9c8ce3 | ERC1967InvalidImplementation(address) |
 | 0xb398979f | ERC1967NonPayable() |
 | 0x1425ea42 | FailedInnerCall() |
+| 0xdb42144d | InsufficientBalance(address,uint256,uint256) |
 | 0xf92ee8a9 | InvalidInitialization() |
 | 0x398d4d32 | InvalidOperation() |
 | 0xd7e6bcf8 | NotInitializing() |
 | 0xe07c8dba | UUPSUnauthorizedCallContext() |
 | 0xaa1d49a4 | UUPSUnsupportedProxiableUUID(bytes32) |
+| 0x82b42900 | Unauthorized() |
+| 0xd92e233d | ZeroAddress() |
 
 ## LicenseAccountFactory
 #### Functions

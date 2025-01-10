@@ -36,7 +36,6 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
     struct DimoCreditStorage {
         uint256 _dimoCreditRateInWei;
         uint256 _periodValidity;
-        ///@dev receives proceeds from sale of credits
         address _receiver;
         IDimoToken _dimo;
         NormalizedPriceProvider _provider;
@@ -50,8 +49,9 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
     bytes32 private constant DIMO_CREDIT_STORAGE_LOCATION =
         0xecac8b0340dd336c3ac98ce70f7645fc65001c59d70f7941ce9a0837ff7b7c00;
 
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant DC_ADMIN_ROLE = keccak256("DC_ADMIN_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant TRANSFERER_ROLE = keccak256("TRANSFERER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     function _getDimoCreditStorage() private pure returns (DimoCreditStorage storage $) {
@@ -72,7 +72,10 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
     event UpdatePeriodValidity(uint256 periodValidity);
     event UpdatePriceProviderAddress(address indexed provider);
 
+    error Unauthorized(address account);
     error InvalidOperation();
+    error ZeroAddress();
+    error InsufficientBalance(address from, uint256 fromBalance, uint256 amount);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -298,22 +301,17 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         emit Transfer(from, address(0), amount);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                            NO-OP ERC20 Logic
-    //////////////////////////////////////////////////////////////*/
-
     /// @notice Prevents transferring of DIMO Credits.
-    function transfer(address, /*_to*/ uint256 /*_value*/ ) public pure returns (bool /*success*/ ) {
-        revert InvalidOperation();
+    function transfer(address to, uint256 amount) public onlyRole(TRANSFERER_ROLE) returns (bool) {
+        _transfer(msg.sender, to, amount);
+        return true;
     }
 
     /// @notice Prevents transferring of DIMO Credits from one address to another.
-    function transferFrom(address, /*_from*/ address, /*_to*/ uint256 /*_value*/ )
-        public
-        pure
-        returns (bool /*success*/ )
-    {
-        revert InvalidOperation();
+    function transferFrom(address from, address to, uint256 amount) public onlyRole(TRANSFERER_ROLE) returns (bool) {
+        // _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        return true;
     }
 
     /// @notice Prevents approval of DIMO Credits for spending by third parties.
@@ -444,6 +442,27 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         uint256 usdAmountInWei = amountDcxTokens * $._dimoCreditRateInWei;
 
         quote = usdAmountInWei / lastAmountUsdPerToken;
+    }
+
+    function _transfer(address from, address to, uint256 amount) internal {
+        if (from == address(0) || to == address(0)) {
+            revert ZeroAddress();
+        }
+
+        DimoCreditStorage storage $ = _getDimoCreditStorage();
+
+        uint256 fromBalance = $._balanceOf[from];
+        if (fromBalance < amount) {
+            revert InsufficientBalance(from, fromBalance, amount);
+        }
+        unchecked {
+            $._balanceOf[from] = fromBalance - amount;
+            // Cannot overflow because the sum of all user
+            // balances can't exceed the max uint256 value.
+            $._balanceOf[to] += amount;
+        }
+
+        emit Transfer(from, to, amount);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
