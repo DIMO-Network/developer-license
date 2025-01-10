@@ -301,17 +301,25 @@ contract DimoCredit is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
         emit Transfer(from, address(0), amount);
     }
 
-    /// @notice Prevents transferring of DIMO Credits.
+    /**
+     * @notice Transfers DIMO Credits from the sender to a specified address
+     * @dev This function can only be called by accounts with the TRANSFERER_ROLE
+     * @param to The address to receive the DIMO Credits
+     * @param amount The amount of DIMO Credits to transfer
+     * @return A boolean value indicating whether the transfer was successful
+     */
     function transfer(address to, uint256 amount) public onlyRole(TRANSFERER_ROLE) returns (bool) {
         _transfer(msg.sender, to, amount);
         return true;
     }
 
     /// @notice Prevents transferring of DIMO Credits from one address to another.
-    function transferFrom(address from, address to, uint256 amount) public onlyRole(TRANSFERER_ROLE) returns (bool) {
-        // _spendAllowance(from, spender, amount);
-        _transfer(from, to, amount);
-        return true;
+    function transferFrom(address, /*_from*/ address, /*_to*/ uint256 /*_value*/ )
+        public
+        pure
+        returns (bool /*success*/ )
+    {
+        revert InvalidOperation();
     }
 
     /// @notice Prevents approval of DIMO Credits for spending by third parties.
