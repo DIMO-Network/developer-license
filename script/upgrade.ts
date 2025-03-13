@@ -50,158 +50,66 @@ function getContractInstance(signer: HardhatEthersSigner, contractName: string, 
     return new ethers.Contract(contractAddress, contractJson.abi, signer)
 }
 
-async function upgradeDimoCredit(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
-    const gasPrice = await getGasPrice(20n)
-
-    const instances = getAddresses();
-
-    const addressProxy = instances[networkName].DimoCredit.proxy;
-
-    console.log('\n----- Upgrading DimoCredit contract -----\n');
-
-    const nameDc = 'DimoCredit';
-    const factoryDc = getContractFactory(signer, nameDc)
-
-    const impl = await factoryDc.deploy({ gasPrice: gasPrice });
-    await impl.waitForDeployment();
-    const addressImplDc = await impl.getAddress();
-
-    console.log(`${nameDc} contract implementation deployed to ${addressImplDc}`);
-
-    const proxy = getContractInstance(signer, nameDc, addressProxy)
-    await proxy.upgradeToAndCall(addressImplDc, '0x');
-
-    console.log(`${nameDc} contract was upgraded to ${addressImplDc}`);
-
-    instances[networkName].DimoCredit.implementation = addressImplDc;
-    writeAddresses(instances, networkName)
-
-    if (verifyContract) {
-        await verifyContractUntilSuccess(addressImplDc, nameDc)
-    }
-}
-
-async function upgradeLicenseAccountFactory(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function upgradeLicenseAccount(signer: HardhatEthersSigner, networkName: string, verifyContract: boolean = false) {
     let gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
     const instances = getAddresses();
-
-    const admin = instances[name].Admin;
-
-    console.log('\n----- Deploying DimoDeveloperLicenseAccount template contract -----\n');
-
     const nameDdla = 'DimoDeveloperLicenseAccount';
+
+    console.log(`\n----- Upgrading ${nameDdla} template contract -----\n`);
+
     const factoryDdla = getContractFactory(signer, nameDdla)
     const devLicenseAccount: BaseContract = await factoryDdla.deploy({ gasPrice: gasPrice })
     await devLicenseAccount.waitForDeployment();
     const addressDdla = await devLicenseAccount.getAddress();
-    console.log(`DimoDeveloperLicenseAccount contract deployed to ${addressDdla}`);
 
-    instances[name].DimoDeveloperLicenseAccount = addressDdla;
-    writeAddresses(instances, name)
+    console.log(`${nameDdla} contract implementation deployed to ${addressDdla}`);
+
+    const addressProxy = instances[networkName].UpgradeableBeacon;
+    const proxy = getContractInstance(signer, 'UpgradeableBeacon', addressProxy)
+    await (await proxy.upgradeTo(addressDdla)).wait()
+
+    console.log(`${nameDdla} template contract was upgraded to ${addressDdla}`);
+
+    instances[networkName].DimoDeveloperLicenseAccount = addressDdla;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
         await verifyContractUntilSuccess(addressDdla, nameDdla)
     }
-
-    console.log('\n----- Deploying UpgradeableBeacon contract -----\n');
-
-    gasPrice = await getGasPrice(20n)
-
-    const beaconFactory = getContractFactory(signer, 'UpgradeableBeacon')
-    const beacon = await beaconFactory.deploy(addressDdla, admin, { gasPrice: gasPrice });
-    await beacon.waitForDeployment();
-    const addressBeacon = await beacon.getAddress();
-    console.log(`UpgradeableBeacon contract deployed to ${addressDdla}`);
-
-    instances[name].UpgradeableBeacon = addressBeacon;
-    writeAddresses(instances, name)
-
-    if (verifyContract) {
-        await verifyContractUntilSuccess(addressBeacon, 'UpgradeableBeacon', [addressDdla, admin])
-    }
-
-    console.log('\n----- Deploying LicenseAccountFactory contract -----\n');
-
-    gasPrice = await getGasPrice(20n)
-
-    const nameLaf = 'LicenseAccountFactory';
-    const factoryLaf = getContractFactory(signer, nameLaf)
-    const factoryProxy = getContractFactory(signer, 'ERC1967Proxy')
-
-    const impl = await factoryLaf.deploy({ gasPrice: gasPrice });
-    await impl.waitForDeployment();
-    const addressImplLaf = await impl.getAddress();
-
-    console.log(`${nameLaf} contract implementation deployed to ${addressImplLaf}`);
-
-    const proxy = await factoryProxy.deploy(addressImplLaf, "0x", { gasPrice: gasPrice });
-    await proxy.waitForDeployment();
-
-    const licenseAccountFactory: any = impl.attach(await proxy.getAddress());
-    await licenseAccountFactory.initialize(addressBeacon)
-
-    const addressLaf = await proxy.getAddress();
-    console.log(`LicenseAccountFactory contract deployed to ${addressLaf}`);
-
-    instances[name].LicenseAccountFactory.proxy = addressLaf;
-    instances[name].LicenseAccountFactory.implementation = await impl.getAddress();
-    writeAddresses(instances, name)
-
-    if (verifyContract) {
-        await verifyContractUntilSuccess(addressLaf, nameLaf)
-    }
 }
 
-async function upgradeDevLicense(signer: HardhatEthersSigner, verifyContract: boolean = false) {
+async function upgradeContract(
+    contractName: "DevLicenseDimo" | "DimoCredit" | "LicenseAccountFactory",
+    signer: HardhatEthersSigner,
+    networkName: string,
+    verifyContract: boolean = false
+) {
+    const gasPrice = await getGasPrice(20n)
+
     const instances = getAddresses();
 
-    let gasPrice = await getGasPrice(20n)
-    const { name } = await ethers.provider.getNetwork();
+    const addressProxy = instances[networkName][contractName].proxy;
 
-    const addressReceiver = instances[name].Receiver;
-    const addressLaf = instances[name].LicenseAccountFactory.proxy;
-    const addressNpp = instances[name].NormalizedPriceProvider;
-    const addressDimoToken = instances[name].DimoToken;
-    const addressDc = instances[name].DimoCredit.proxy;
-    const licenseCostInUsd = C.licenseCostInUsd;
+    console.log(`\n----- Upgrading ${contractName} contract -----\n`);
 
-    console.log('\n----- Deploying DevLicenseDimo contract -----\n');
+    const factory = getContractFactory(signer, contractName)
 
-    const nameDl = 'DevLicenseDimo';
-    const factoryDl = getContractFactory(signer, nameDl)
-    const factoryProxy = getContractFactory(signer, 'ERC1967Proxy')
-
-    const impl = await factoryDl.deploy({ gasPrice: gasPrice });
+    const impl = await factory.deploy({ gasPrice: gasPrice });
     await impl.waitForDeployment();
-    const addressImplDl = await impl.getAddress();
+    const addressImpl = await impl.getAddress();
 
-    console.log(`${nameDl} contract implementation deployed to ${addressImplDl}`);
+    console.log(`${contractName} contract implementation deployed to ${addressImpl}`);
 
-    const proxy = await factoryProxy.deploy(addressImplDl, '0x', { gasPrice: gasPrice });
-    await proxy.waitForDeployment();
+    const proxy = getContractInstance(signer, contractName, addressProxy)
+    await proxy.upgradeToAndCall(addressImpl, '0x');
 
-    const devLicenseDimo: any = impl.attach(await proxy.getAddress());
-    await devLicenseDimo.initialize(
-        addressReceiver,
-        addressLaf,
-        addressNpp,
-        addressDimoToken,
-        addressDc,
-        licenseCostInUsd,
-        "",
-        C.METADATA_DESCRIPTION
-    )
+    console.log(`${contractName} contract was upgraded to ${addressImpl}`);
 
-    const addressDl = await proxy.getAddress();
-    console.log(`DevLicenseDimo contract deployed to ${addressDl}`);
-
-    instances[name].DevLicenseDimo.proxy = addressDl;
-    instances[name].DevLicenseDimo.implementation = await impl.getAddress();
-    writeAddresses(instances, name)
+    instances[networkName][contractName].implementation = addressImpl;
+    writeAddresses(instances, networkName)
 
     if (verifyContract) {
-        await verifyContractUntilSuccess(addressDl, nameDl)
+        await verifyContractUntilSuccess(addressImpl, contractName)
     }
 }
 
@@ -253,9 +161,9 @@ async function main() {
     if (name === 'localhost') {
         name = 'amoy'
         // 0x62b98e019e0d3e4A1Ad8C786202e09017Bd995e1 Prod account
-        // 0x8E58b98d569B0679713273c5105499C249e9bC84 Shared dev account
+        // 0xC008EF40B0b42AAD7e34879EB024385024f753ea Shared dev account
         deployer = await ethers.getImpersonatedSigner(
-            '0x8E58b98d569B0679713273c5105499C249e9bC84'
+            '0xC008EF40B0b42AAD7e34879EB024385024f753ea'
         );
 
         await user1.sendTransaction({
@@ -264,9 +172,10 @@ async function main() {
         });
     }
 
-    await upgradeDimoCredit(deployer, name, false);
-    await upgradeLicenseAccountFactory(deployer, false);
-    await upgradeDevLicense(deployer, false);
+    await upgradeContract("DimoCredit", deployer, name, false);
+    await upgradeContract("DevLicenseDimo", deployer, name, false);
+    await upgradeContract("LicenseAccountFactory", deployer, name, false);
+    await upgradeLicenseAccount(deployer, name, false);
 }
 
 main().catch((error) => {

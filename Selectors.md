@@ -136,6 +136,7 @@
 | 0x282c51f3 | BURNER_ROLE() |
 | 0x43b80b81 | DC_ADMIN_ROLE() |
 | 0xa217fddf | DEFAULT_ADMIN_ROLE() |
+| 0x0ade7dc1 | TRANSFERER_ROLE() |
 | 0xf72c0d8b | UPGRADER_ROLE() |
 | 0xad3cb1cc | UPGRADE_INTERFACE_VERSION() |
 | 0xdd62ed3e | allowance(address,address) |
@@ -207,7 +208,7 @@
 | 0xd7e6bcf8 | NotInitializing() |
 | 0xe07c8dba | UUPSUnauthorizedCallContext() |
 | 0xaa1d49a4 | UUPSUnsupportedProxiableUUID(bytes32) |
-| 0x82b42900 | Unauthorized() |
+| 0x8e4a23d6 | Unauthorized(address) |
 | 0xd92e233d | ZeroAddress() |
 
 ## LicenseAccountFactory
