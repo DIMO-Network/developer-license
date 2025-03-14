@@ -61,6 +61,7 @@ contract MintDimoCreditTest is Test {
 
         dc = DimoCredit(proxyDc);
         dc.grantRole(dc.DC_ADMIN_ROLE(), _admin);
+        dc.grantRole(dc.DEFAULT_ADMIN_ROLE(), _admin);
     }
 
     function testTransferRevertNonAuthorized() public {
@@ -158,16 +159,23 @@ contract MintDimoCreditTest is Test {
     function testTransferRevertInsufficientBalance() public {
         address authorizedSender = address(0x123);
         address recipient = address(0x456);
-        uint256 senderBalance = 100;
-        uint256 transferAmount = 150;
+        uint256 mintAmount = 100;
+        uint256 transferAmount = 10000000;
+
+        deal(address(dimoToken), authorizedSender, mintAmount);
 
         // Set up the sender's balance
-        vm.prank(address(dc));
-        dc.mint(authorizedSender, senderBalance);
+        vm.startPrank(authorizedSender);
+        dimoToken.approve(address(dc), mintAmount);
+        dc.mintInDimo(authorizedSender, mintAmount);
+        vm.stopPrank();
 
-        // Authorize the sender for transfers
-        vm.prank(_admin);
+        uint256 senderBalance = dc.balanceOf(authorizedSender);
+
+        // // Authorize the sender for transfers
+        vm.startPrank(_admin);
         dc.grantRole(dc.TRANSFERER_ROLE(), authorizedSender);
+        vm.stopPrank();
 
         // Attempt to transfer more than the sender's balance
         vm.expectRevert(
@@ -175,8 +183,9 @@ contract MintDimoCreditTest is Test {
                 DimoCredit.InsufficientBalance.selector, authorizedSender, senderBalance, transferAmount
             )
         );
-        vm.prank(authorizedSender);
+        vm.startPrank(authorizedSender);
         dc.transfer(recipient, transferAmount);
+        vm.stopPrank();
     }
 
     function testTransferRevertZeroAddress() public {
