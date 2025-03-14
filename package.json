@@ -8,10 +8,11 @@
     "test": "test"
   },
   "scripts": {
-    "build": "forge clean && forge build --sizes --skip test && npm run selectors",
+    "build": "forge clean && forge build --sizes --skip test && npm run selectors && npm run extract-abis",
     "build-all": "forge clean && forge build --sizes",
     "test": "forge test -vvv",
-    "selectors": "npx hardhat run script/listSelectors.ts"
+    "selectors": "npx hardhat run script/listSelectors.ts",
+    "extract-abis": "npx ts-node script/extractAbis.ts"
   },
   "repository": {
     "type": "git",
