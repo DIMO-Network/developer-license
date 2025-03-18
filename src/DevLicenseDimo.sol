@@ -146,7 +146,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
 
     /**
      * @notice Issues a license in exchange for DIMO tokens.
-     * @param licenseAlias The license alias to be set (optional)
+     * @param licenseAlias The license alias to be set with limit of 32 bytes (optional)
      * @return tokenId The ID of the issued license.
      * @return clientId The ID of the client associated with the issued license.
      */
@@ -158,7 +158,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
      * @notice Issues a new license to a specified address in exchange for DIMO tokens.
      *         Transfers spent $DIMO to the receiver address.
      * @param to The address to receive the license.
-     * @param licenseAlias The license alias to be set (optional)
+     * @param licenseAlias The license alias to be set with limit of 32 bytes (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -177,7 +177,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /**
      * @notice Issues a new license in exchange for DIMO Credits (DC).
      * @dev This function is a wrapper over `issueInDc(address to)` for the sender.
-     * @param licenseAlias The license alias to be set (optional)
+     * @param licenseAlias The license alias to be set with limit of 32 bytes (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -188,7 +188,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /**
      * @notice Issues a new license to a specified address in exchange for DIMO Credits.
      * @param to The address to receive the license.
-     * @param licenseAlias The license alias to be set (optional)
+     * @param licenseAlias The license alias to be set with limit of 32 bytes (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */
@@ -204,7 +204,7 @@ contract DevLicenseDimo is Initializable, DevLicenseMeta, UUPSUpgradeable {
     /**
      * @dev Internal function to handle the issuance of a new license.
      * @param to The address to receive the license.
-     * @param licenseAlias The license alias to be set.
+     * @param licenseAlias The license alias to be set with limit of 32 bytes (optional)
      * @return tokenId The ID of the newly issued license.
      * @return clientId The address of the license account holding the new license.
      */

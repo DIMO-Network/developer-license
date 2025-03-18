@@ -244,7 +244,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @notice It sets an alias to a token ID
      * @dev Only the token ID owner can call this function
      * @param tokenId The unique identifier for the license token.
-     * @param licenseAlias The alias string to be set
+     * @param licenseAlias The alias string to be set with limit of 32 bytes
      */
     function setLicenseAlias(uint256 tokenId, string calldata licenseAlias) public onlyTokenOwner(tokenId) {
         _setLicenseAlias(tokenId, licenseAlias);
@@ -280,7 +280,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
      * @notice Internal function to set an alias to a token ID
      * @dev The license alias can be up to 32 bytes long
      * @param tokenId The unique identifier for the license token.
-     * @param licenseAlias The alias string to be set
+     * @param licenseAlias The alias string to be set with limit of 32 bytes
      */
     function _setLicenseAlias(uint256 tokenId, string memory licenseAlias) internal {
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
