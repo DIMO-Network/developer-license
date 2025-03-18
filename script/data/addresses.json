@@ -10,7 +10,7 @@
         },
         "DevLicenseDimo": {
             "proxy": "0x9A9D2E717bB005B240094ba761Ff074d392C7C85",
-            "implementation": "0x957C77635e3BeD284abECBFa9AA9F85AC0c94D60"
+            "implementation": "0x13F643daE444286Ecc5E01D2222d8Fc2F37B4230"
         },
         "DimoCredit": {
             "proxy": "0x7186F9aC35d24c9a4cf1E58a797c04DF1b334322",
