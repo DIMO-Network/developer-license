@@ -109,6 +109,12 @@ contract ViewTest is BaseSetUp {
 
         bool isSigner01 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer);
         assertEq(isSigner01, false);
+
+        address signer2 = address(0x456);
+        vm.warp(0);
+
+        bool isSigner03 = IDimoDeveloperLicenseAccount(clientId).isSigner(signer2);
+        assertEq(isSigner03, false);
     }
 
     function test_enableSignerEvent() public {
@@ -330,11 +336,16 @@ contract ViewTest is BaseSetUp {
     function test_signers() public {
         (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
 
-        address signer = address(0x123);
+        address signer1 = address(0x123);
         uint256 initTimestamp = block.timestamp;
-        license.enableSigner(tokenId, signer);
+        license.enableSigner(tokenId, signer1);
         vm.warp(block.timestamp + 1);
-        uint256 timestamp = license.signers(tokenId, signer);
-        assertEq(timestamp, initTimestamp + license.periodValidity());
+        uint256 timestamp1 = license.signers(tokenId, signer1);
+        assertEq(timestamp1, initTimestamp + license.periodValidity());
+
+        address signer2 = address(0x456);
+        vm.warp(0);
+        uint256 timestamp2 = license.signers(tokenId, signer2);
+        assertEq(timestamp2, 0);
     }
 }
