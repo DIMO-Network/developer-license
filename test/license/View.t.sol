@@ -326,4 +326,14 @@ contract ViewTest is BaseSetUp {
         vm.expectRevert(abi.encodeWithSelector(IDevLicenseErrors.AliasAlreadyInUse.selector, LICENSE_ALIAS));
         license.issueInDimo(LICENSE_ALIAS);
     }
+
+    function test_signers() public {
+        (uint256 tokenId, address clientId) = license.issueInDimo(LICENSE_ALIAS);
+
+        address signer = address(0x123);
+        license.enableSigner(tokenId, signer);
+
+        uint256 timestamp = license.signers(tokenId, signer);
+        assertEq(timestamp, block.timestamp + license.periodValidity());
+    }
 }

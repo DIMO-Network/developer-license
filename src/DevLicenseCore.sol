@@ -201,10 +201,13 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     /**
      * @notice Returns the expiration timestamp of a signer
      * @param tokenId The unique identifier for the license token
-     * @param signer The unique identifier for the license token
+     * @param signer The address of the signer to check
      */
     function signers(uint256 tokenId, address signer) public view returns (uint256 timestamp) {
-        timestamp = _getDevLicenseCoreStorage()._signers[tokenId][signer];
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        uint256 timestampInit = $._signers[tokenId][signer];
+        timestamp = timestampInit + $.periodValidity;
     }
 
     /*//////////////////////////////////////////////////////////////
