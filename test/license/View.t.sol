@@ -331,9 +331,10 @@ contract ViewTest is BaseSetUp {
         (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
 
         address signer = address(0x123);
+        uint256 initTimestamp = block.timestamp;
         license.enableSigner(tokenId, signer);
-
+        vm.warp(block.timestamp + 1);
         uint256 timestamp = license.signers(tokenId, signer);
-        assertEq(timestamp, block.timestamp + license.periodValidity());
+        assertEq(timestamp, initTimestamp + license.periodValidity());
     }
 }
