@@ -328,7 +328,7 @@ contract ViewTest is BaseSetUp {
     }
 
     function test_signers() public {
-        (uint256 tokenId, address clientId) = license.issueInDimo(LICENSE_ALIAS);
+        (uint256 tokenId,) = license.issueInDimo(LICENSE_ALIAS);
 
         address signer = address(0x123);
         license.enableSigner(tokenId, signer);
