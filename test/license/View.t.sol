@@ -340,12 +340,12 @@ contract ViewTest is BaseSetUp {
         uint256 initTimestamp = block.timestamp;
         license.enableSigner(tokenId, signer1);
         vm.warp(block.timestamp + 1);
-        uint256 timestamp1 = license.signers(tokenId, signer1);
+        uint256 timestamp1 = license.getSignerExpiration(tokenId, signer1);
         assertEq(timestamp1, initTimestamp + license.periodValidity());
 
         address signer2 = address(0x456);
         vm.warp(0);
-        uint256 timestamp2 = license.signers(tokenId, signer2);
+        uint256 timestamp2 = license.getSignerExpiration(tokenId, signer2);
         assertEq(timestamp2, 0);
     }
 }
