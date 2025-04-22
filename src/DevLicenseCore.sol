@@ -207,6 +207,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         uint256 timestampInit = $._signers[tokenId][signer];
+        if (timestampInit == 0) {
+            return 0;
+        }
         timestamp = timestampInit + $.periodValidity;
     }
 
@@ -327,7 +330,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
 
         uint256 timestampInit = $._signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        isSigner_ = timestampCurrent - timestampInit <= $.periodValidity;
+        isSigner_ = (timestampCurrent != 0) && (timestampCurrent - timestampInit <= $.periodValidity);
     }
 
     /**
