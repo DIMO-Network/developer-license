@@ -324,7 +324,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
 
         uint256 timestampInit = $._signers[tokenId][signer];
         uint256 timestampCurrent = block.timestamp;
-        isSigner_ = (timestampCurrent != 0) && (timestampCurrent - timestampInit <= $.periodValidity);
+        isSigner_ = (timestampInit != 0) && (timestampCurrent - timestampInit <= $.periodValidity);
     }
 
     /**
