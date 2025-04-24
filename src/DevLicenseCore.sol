@@ -199,7 +199,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     }
 
     /**
-     * @notice Returns the timestamp when the signer was last enabled
+     * @notice Returns the timestamp when the signer was last enabled, if the signer was not enabled, it returns 0
      * @param tokenId The unique identifier for the license token
      * @param signer The address of the signer to check
      */
@@ -323,8 +323,7 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         uint256 timestampInit = $._signers[tokenId][signer];
-        uint256 timestampCurrent = block.timestamp;
-        isSigner_ = (timestampInit != 0) && (timestampCurrent - timestampInit <= $.periodValidity);
+        isSigner_ = (timestampInit != 0) && (block.timestamp - timestampInit <= $.periodValidity);
     }
 
     /**
