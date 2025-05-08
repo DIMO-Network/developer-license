@@ -199,9 +199,9 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
     }
 
     /**
-     * @notice Returns the expiration timestamp of a signer
+     * @notice Returns the timestamp when the signer was last enabled, if the signer was not enabled, it returns 0
      * @param tokenId The unique identifier for the license token
-     * @param signer The unique identifier for the license token
+     * @param signer The address of the signer to check
      */
     function signers(uint256 tokenId, address signer) public view returns (uint256 timestamp) {
         timestamp = _getDevLicenseCoreStorage()._signers[tokenId][signer];
@@ -323,8 +323,24 @@ contract DevLicenseCore is Initializable, AccessControlUpgradeable, IDevLicenseD
         DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
 
         uint256 timestampInit = $._signers[tokenId][signer];
-        uint256 timestampCurrent = block.timestamp;
-        isSigner_ = timestampCurrent - timestampInit <= $.periodValidity;
+        isSigner_ = (timestampInit != 0) && (block.timestamp - timestampInit <= $.periodValidity);
+    }
+
+    /**
+     * @notice Returns the expiration timestamp of a signer
+     * @dev Calculates the expiration timestamp by adding the period validity to the timestamp when the signer was last enabled.
+     *      If the signer was not enabled, it returns 0.
+     * @param tokenId The unique identifier for the license token
+     * @param signer The address of the signer to check
+     */
+    function getSignerExpiration(uint256 tokenId, address signer) public view returns (uint256 timestamp) {
+        DevLicenseCoreStorage storage $ = _getDevLicenseCoreStorage();
+
+        uint256 timestampInit = $._signers[tokenId][signer];
+        if (timestampInit == 0) {
+            return 0;
+        }
+        timestamp = timestampInit + $.periodValidity;
     }
 
     /**
