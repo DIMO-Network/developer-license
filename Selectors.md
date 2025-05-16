@@ -23,6 +23,7 @@
 | 0xe9ac0440 | frozen(uint256) |
 | 0x3aea1a10 | getLicenseAliasByTokenId(uint256) |
 | 0x248a9ca3 | getRoleAdmin(bytes32) |
+| 0x0efbfa42 | getSignerExpiration(uint256,address) |
 | 0x6eac1c40 | getTokenIdByLicenseAlias(string) |
 | 0xf5c7223d | getTokenIdByLicenseAlias(bytes32) |
 | 0x2f2ff15d | grantRole(bytes32,address) |
