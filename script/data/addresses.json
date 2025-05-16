@@ -31,7 +31,7 @@
         },
         "DevLicenseDimo": {
             "proxy": "0xdb6c0dBbaf48b9D9Bcf5ca3C45cFF3811D70eD96",
-            "implementation": "0xf42906734a884eE645E72D7401b4838164837fF6"
+            "implementation": "0x6df60E94b8d0c5FB18f0D97a859929950C3DD539"
         },
         "DimoCredit": {
             "proxy": "0x49c120f4C3c6679Ebd357F2d749E4D1C03598d65",
