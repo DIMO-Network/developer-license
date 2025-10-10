@@ -41,3 +41,13 @@ npx hardhat run script/upgrade.ts
 
 - [PRD](https://docs.google.com/document/d/1V7qlsMj8GgujmnHYlQ1ZiW_DDkxHWkvkDQ70itPtRsg/edit)
 - [Spec #0](https://docs.google.com/document/d/1fFXOi_lmVBGG-vYmwSCZVd9nRRf3d0jP1hZjJq-G8MA/edit)
+
+### Go ABI
+
+To regenerate the Go bindings for, e.g., [the devices API](https://github.com/DIMO-Network/devices-api/blob/main/internal/contracts/registry.go), you would run
+
+```sh
+npm run abigen
+```
+
+and copy over the generated files from [bindings](/bindings) folder.

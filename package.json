@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "build": "forge clean && forge build --sizes --skip test && npm run selectors && npm run extract-abis",
+    "build": "forge clean && forge build --skip test && npm run selectors && npm run extract-abis && npm run abigen",
+    "abigen": "bash script/generate-bindings.sh",
     "build-all": "forge clean && forge build --sizes",
     "test": "forge test -vvv",
     "selectors": "npx hardhat run script/listSelectors.ts",

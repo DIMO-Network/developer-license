@@ -116,7 +116,7 @@
 | 0xe7414602 | AliasExceedsMaxLength() |
 | 0x4c9c8ce3 | ERC1967InvalidImplementation(address) |
 | 0xb398979f | ERC1967NonPayable() |
-| 0x1425ea42 | FailedInnerCall() |
+| 0xd6bda275 | FailedCall() |
 | 0x32072f30 | FrozenToken(uint256) |
 | 0xe3f8e56c | InsufficientStakedFunds(uint256,uint256) |
 | 0x3728b83d | InvalidAmount(uint256) |
@@ -202,7 +202,7 @@
 | 0x9996b315 | AddressEmptyCode(address) |
 | 0x4c9c8ce3 | ERC1967InvalidImplementation(address) |
 | 0xb398979f | ERC1967NonPayable() |
-| 0x1425ea42 | FailedInnerCall() |
+| 0xd6bda275 | FailedCall() |
 | 0xdb42144d | InsufficientBalance(address,uint256,uint256) |
 | 0xf92ee8a9 | InvalidInitialization() |
 | 0x398d4d32 | InvalidOperation() |
@@ -249,10 +249,11 @@
 | 0x6697b232 | AccessControlBadConfirmation() |
 | 0xe2517d3f | AccessControlUnauthorizedAccount(address,bytes32) |
 | 0x9996b315 | AddressEmptyCode(address) |
-| 0xc2f868f4 | ERC1167FailedCreateClone() |
 | 0x4c9c8ce3 | ERC1967InvalidImplementation(address) |
 | 0xb398979f | ERC1967NonPayable() |
-| 0x1425ea42 | FailedInnerCall() |
+| 0xd6bda275 | FailedCall() |
+| 0xb06ebf3d | FailedDeployment() |
+| 0xcf479181 | InsufficientBalance(uint256,uint256) |
 | 0xf92ee8a9 | InvalidInitialization() |
 | 0xd7e6bcf8 | NotInitializing() |
 | 0xe07c8dba | UUPSUnauthorizedCallContext() |
