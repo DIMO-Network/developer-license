@@ -5,4 +5,5 @@ interface IDimoDeveloperLicenseAccount {
     function initialize(uint256 tokenId, address license) external;
     function isValidSignature(bytes32 hashValue, bytes memory signature) external view returns (bytes4);
     function isSigner(address signer) external view returns (bool);
+    function execute(address target, uint256 value, bytes calldata data) external payable returns (bytes memory);
 }

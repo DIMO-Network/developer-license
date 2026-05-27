@@ -118,7 +118,7 @@ contract LicenseAccountFactory is Initializable, AccessControlUpgradeable, UUPSU
         }
 
         clone_ = Clones.clone($._beaconProxyTemplate);
-        DimoDeveloperLicenseAccount(clone_).initialize(tokenId, $._devLicenseDimo);
+        DimoDeveloperLicenseAccount(payable(clone_)).initialize(tokenId, $._devLicenseDimo);
     }
 
     /**

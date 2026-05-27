@@ -41,6 +41,8 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
     error LicenseAccountAlreadyInitialized();
     error ZeroAddress();
     error InvalidTokenId(uint256 tokenId);
+    error Unauthorized();
+    error ExecutionFailed(bytes returnData);
 
     /**
      * @notice Initializes the account with a specific token ID and license contract.
@@ -91,6 +93,29 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
 
         return $._license.isSigner($._tokenId, signer);
     }
+
+    modifier onlyOwner() {
+        DimoDeveloperLicenseAccountStorage storage $ = _getLicenseAccountStorage();
+        if (msg.sender != $._license.ownerOf($._tokenId)) {
+            revert Unauthorized();
+        }
+        _;
+    }
+
+    function execute(address target, uint256 value, bytes calldata data)
+        external
+        payable
+        onlyOwner
+        returns (bytes memory)
+    {
+        (bool success, bytes memory returnData) = target.call{value: value}(data);
+        if (!success) {
+            revert ExecutionFailed(returnData);
+        }
+        return returnData;
+    }
+
+    receive() external payable {}
 
     /**
      * @notice Verifies if a given signature is valid for a provided hash, according to ERC1271.
