@@ -24,11 +24,12 @@ contract ExecuteTest is BaseSetUp {
     function test_executeAsOwner() public {
         deal(address(dimoToken), clientId, 100 ether);
 
+        uint256 ownerBefore = dimoToken.balanceOf(owner);
         bytes memory data = abi.encodeCall(IDimoToken.transfer, (owner, 50 ether));
         DimoDeveloperLicenseAccount(payable(clientId)).execute(address(dimoToken), 0, data);
 
         assertEq(dimoToken.balanceOf(clientId), 50 ether);
-        assertEq(dimoToken.balanceOf(owner), 50 ether);
+        assertEq(dimoToken.balanceOf(owner), ownerBefore + 50 ether);
     }
 
     function test_executeRevertsForNonOwner() public {
@@ -43,11 +44,12 @@ contract ExecuteTest is BaseSetUp {
 
     function test_executeForwardsValue() public {
         address target = address(0xBEEF);
+        uint256 targetBefore = target.balance;
         vm.deal(clientId, 1 ether);
 
         DimoDeveloperLicenseAccount(payable(clientId)).execute(target, 0.5 ether, "");
 
-        assertEq(target.balance, 0.5 ether);
+        assertEq(target.balance, targetBefore + 0.5 ether);
         assertEq(clientId.balance, 0.5 ether);
     }
 

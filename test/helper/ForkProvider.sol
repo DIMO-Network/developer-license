@@ -9,6 +9,6 @@ contract ForkProvider is Test {
     string public _url;
 
     constructor() {
-        _url = "https://polygon-rpc.com";
+        _url = "https://polygon.drpc.org";
     }
 }

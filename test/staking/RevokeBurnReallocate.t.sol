@@ -51,7 +51,7 @@ contract RevokeBurnReallocateTest is Test {
         _user1 = address(0x888);
         _user2 = address(0x999);
 
-        vm.createSelectFork("https://polygon-rpc.com", 50573735);
+        vm.createSelectFork("https://polygon.drpc.org", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         provider = new NormalizedPriceProvider();

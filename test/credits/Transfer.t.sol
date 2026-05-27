@@ -33,7 +33,7 @@ contract MintDimoCreditTest is Test {
         _receiver = address(0x123);
         _admin = address(0x1);
 
-        vm.createSelectFork(vm.rpcUrl("https://polygon-rpc.com"));
+        vm.createSelectFork(vm.rpcUrl("https://polygon.drpc.org"));
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TwapV3 twap = new TwapV3();
