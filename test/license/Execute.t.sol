@@ -53,10 +53,26 @@ contract ExecuteTest is BaseSetUp {
         assertEq(clientId.balance, 0.5 ether);
     }
 
+    function test_executeReturnsData() public {
+        bytes memory data = abi.encodeCall(IDimoToken.balanceOf, (clientId));
+        deal(address(dimoToken), clientId, 42 ether);
+
+        bytes memory returnData =
+            DimoDeveloperLicenseAccount(payable(clientId)).execute(address(dimoToken), 0, data);
+
+        uint256 balance = abi.decode(returnData, (uint256));
+        assertEq(balance, 42 ether);
+    }
+
     function test_executeRevertsOnFailedCall() public {
         bytes memory badData = abi.encodeCall(IDimoToken.transfer, (owner, 999_999 ether));
 
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DimoDeveloperLicenseAccount.ExecutionFailed.selector,
+                abi.encodeWithSignature("Error(string)", "ERC20: transfer amount exceeds balance")
+            )
+        );
         DimoDeveloperLicenseAccount(payable(clientId)).execute(address(dimoToken), 0, badData);
     }
 
