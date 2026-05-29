@@ -42,7 +42,7 @@ contract BaseSetUp is Test {
         _admin = address(0x1);
         _licenseHolder = address(0x999);
 
-        vm.createSelectFork("https://polygon-rpc.com", 50573735);
+        vm.createSelectFork("https://polygon.drpc.org", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         LicenseAccountFactory laf = _deployLicenseAccountFactory(_admin);

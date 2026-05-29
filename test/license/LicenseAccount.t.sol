@@ -44,7 +44,7 @@ contract LicenseAccountTest is Test {
         _admin = address(0x1);
         _receiver = address(0x888);
 
-        vm.createSelectFork("https://polygon-rpc.com", 50573735);
+        vm.createSelectFork("https://polygon.drpc.org", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TestOracleSource testOracleSource = new TestOracleSource();
@@ -114,7 +114,7 @@ contract LicenseAccountTest is Test {
 
     function test_initTemplateNotEffectClone() public {
         address beaconProxyTemplate = LicenseAccountFactory(factory).beaconProxyTemplate();
-        DimoDeveloperLicenseAccount(beaconProxyTemplate).initialize(1, address(0x999));
+        DimoDeveloperLicenseAccount(payable(beaconProxyTemplate)).initialize(1, address(0x999));
 
         deal(address(dimoToken), address(this), 1_000_000 ether);
         dimoToken.approve(address(devLicense), 1_000_000 ether);
@@ -124,7 +124,7 @@ contract LicenseAccountTest is Test {
         assertEq(tokenId00, 1);
 
         vm.expectRevert(abi.encodeWithSelector(DimoDeveloperLicenseAccount.LicenseAccountAlreadyInitialized.selector));
-        DimoDeveloperLicenseAccount(clientId00).initialize(tokenId00, address(devLicense));
+        DimoDeveloperLicenseAccount(payable(clientId00)).initialize(tokenId00, address(devLicense));
 
         (uint256 tokenId01,) = devLicense.issueInDimo(LICENSE_ALIAS_2);
         //console2.log("tokenId01: %s", tokenId01);
@@ -140,7 +140,7 @@ contract LicenseAccountTest is Test {
         (uint256 tokenId, address clientId) = devLicense.issueInDimo(LICENSE_ALIAS_1);
 
         vm.expectRevert(abi.encodeWithSelector(DimoDeveloperLicenseAccount.LicenseAccountAlreadyInitialized.selector));
-        DimoDeveloperLicenseAccount(clientId).initialize(tokenId, address(devLicense));
+        DimoDeveloperLicenseAccount(payable(clientId)).initialize(tokenId, address(devLicense));
     }
 
     function test_redirectUri() public {

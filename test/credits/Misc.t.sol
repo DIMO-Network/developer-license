@@ -29,7 +29,7 @@ contract MiscDimoCreditTest is Test {
     function setUp() public {
         _receiver = address(0x123);
 
-        vm.createSelectFork(vm.rpcUrl("https://polygon-rpc.com"));
+        vm.createSelectFork("https://polygon.drpc.org", 50573735);
         dimoToken = IDimoToken(0xE261D618a959aFfFd53168Cd07D12E37B26761db);
 
         TwapV3 twap = new TwapV3();
