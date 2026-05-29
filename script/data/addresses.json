@@ -23,7 +23,7 @@
     "amoy": {
         "MockOracleSource": "0x510919c578f54038C68F71703dEAbac2945f0bc8",
         "NormalizedPriceProvider": "0x6b64BcfF0219200fc39F026bFdA8E61Ab885813A",
-        "DimoDeveloperLicenseAccount": "0x465264C8aA542ECA9598345084b93A28D20d4Aa1",
+        "DimoDeveloperLicenseAccount": "0xf78092aB3c8CBd2A782B2c86DF2Cfb60f4725A3f",
         "UpgradeableBeacon": "0x938Dae8B8B99950b9e75f6dFdA59F2007211c697",
         "LicenseAccountFactory": {
             "proxy": "0x60081d2E6aEb55f18d2fA763B7A275C8F41aa6A7",
