@@ -45,6 +45,15 @@ contract DimoDeveloperLicenseAccount is IERC1271 {
     error ExecutionFailed(bytes returnData);
 
     /**
+     * @dev Locks the implementation contract so it cannot be initialized directly.
+     *      Clones delegatecall into this logic and never run this constructor, so their
+     *      storage stays uninitialized and they remain initializable via {initialize}.
+     */
+    constructor() {
+        _getLicenseAccountStorage()._initialized = true;
+    }
+
+    /**
      * @notice Initializes the account with a specific token ID and license contract.
      * @dev This function is intended to be called once to set up the account.
      * @param tokenId_ The token ID of the associated DIMO Developer License.

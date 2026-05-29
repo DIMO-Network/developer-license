@@ -82,4 +82,13 @@ contract ExecuteTest is BaseSetUp {
         assertTrue(ok);
         assertEq(clientId.balance, 1 ether);
     }
+
+    /// @dev The beacon implementation must be locked in its constructor so an attacker
+    ///      cannot initialize it with a malicious license and drain funds sent to it.
+    function test_implementationCannotBeInitialized() public {
+        DimoDeveloperLicenseAccount implementation = new DimoDeveloperLicenseAccount();
+
+        vm.expectRevert(DimoDeveloperLicenseAccount.LicenseAccountAlreadyInitialized.selector);
+        implementation.initialize(1, address(0xBEEF));
+    }
 }
